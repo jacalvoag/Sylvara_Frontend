@@ -1,0 +1,1 @@
+Funciones de utilidad visual. Exclusivo para el formateo de datos en la UI, como fechas de muestreo. Cero lógica matemática; el cálculo de índices lo hace el backend.

@@ -1,0 +1,1 @@
+Servicios de conexión HTTP al backend. Contiene exclusivamente las peticiones a la API (POST, GET, etc.) necesarias para el login, registro y validación de sesión.

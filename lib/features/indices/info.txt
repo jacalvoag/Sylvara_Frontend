@@ -1,0 +1,1 @@
+Módulo de índices de biodiversidad. Se encarga únicamente de recibir y mostrar visualmente los resultados ecológicos (Shannon-Wiener, Simpson, Margalef, Pielou) previamente procesados y servidos por el backend.

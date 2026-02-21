@@ -1,0 +1,1 @@
+Mapeo de datos JSON de autenticación. Contiene la estructura pura de datos, como el objeto Usuario y el Token de sesión que devuelve el backend de Sylvara.

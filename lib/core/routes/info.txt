@@ -1,0 +1,1 @@
+Manejo centralizado de la navegación. Contiene el mapa de rutas estáticas para mover al usuario entre el Dashboard, los Proyectos, los Predios y las Especies sin acoplar las vistas directamente.

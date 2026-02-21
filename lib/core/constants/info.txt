@@ -1,0 +1,1 @@
+Constantes globales de Sylvara. Incluye la paleta de colores de la app, tipografías y las rutas estáticas de los endpoints del backend.

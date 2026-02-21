@@ -1,0 +1,1 @@
+Módulo de zonas de estudio (predios). Administra las vistas para las áreas específicas dentro de un proyecto donde se realiza el levantamiento de datos.

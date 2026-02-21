@@ -1,0 +1,1 @@
+Gestor de estado para el flujo de inicio de sesión y registro. Toma los datos de la vista, invoca al servicio de red, recibe los modelos y notifica a la interfaz sobre el éxito o error.

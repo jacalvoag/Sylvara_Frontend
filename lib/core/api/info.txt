@@ -1,0 +1,1 @@
+Gestión del cliente HTTP. Aquí se centralizan las peticiones al backend de Sylvara, la inyección de tokens de autenticación de los investigadores y el manejo global de errores de red.

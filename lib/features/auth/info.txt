@@ -1,0 +1,1 @@
+Módulo de autenticación. Maneja las vistas y el estado para el inicio de sesión y registro de los usuarios.

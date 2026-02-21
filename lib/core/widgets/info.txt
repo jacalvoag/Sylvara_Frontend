@@ -1,0 +1,1 @@
+Componentes visuales genéricos y reutilizables. Contiene botones estándar, campos de texto para los formularios de campo y tarjetas para mostrar proyectos o especies.

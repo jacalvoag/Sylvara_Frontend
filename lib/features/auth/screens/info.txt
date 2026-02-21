@@ -1,0 +1,1 @@
+Vistas UI exclusivas para el módulo de autenticación. Se encarga únicamente de dibujar los formularios (inputs de correo, contraseñas, botones) y capturar la interacción del investigador.

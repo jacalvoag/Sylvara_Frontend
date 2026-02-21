@@ -1,0 +1,1 @@
+Módulo de proyectos. Gestiona la interfaz y el consumo de datos para listar y crear las investigaciones principales.
