@@ -40,29 +40,37 @@ class ProjectCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Logo/Imagen del proyecto (20x20)
-              SizedBox(
-                width: 20,
-                height: 20,
-                child: Image.network(
-                  project.imagen,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0E3520).withOpacity(0.1),
-                      ),
-                      child: const Icon(
-                        Icons.image_not_supported,
-                        size: 12,
-                        color: Color(0xFF0E3520),
-                      ),
-                    );
-                  },
+              // Logo/Imagen del proyecto (48x48)
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0E3520),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    project.imagen,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0E3520),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.landscape,
+                          size: 28,
+                          color: Colors.white,
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
-              // Centro: Nombre y Descripción
+              const SizedBox(width: 16),
+              // Centro: Nombre, Descripción y Badge
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,9 +84,10 @@ class ProjectCard extends StatelessWidget {
                         color: Color(0xFF0E3520),
                         letterSpacing: 1.1,
                         fontFamily: 'Montserrat',
+                        height: 1.0,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     Text(
                       project.descripcion,
                       maxLines: 1,
@@ -89,35 +98,39 @@ class ProjectCard extends StatelessWidget {
                         color: Color(0xFF0E3520),
                         letterSpacing: 0.75,
                         fontFamily: 'Montserrat',
+                        height: 1.0,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    // Badge de estado
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 2.5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFC8E6C9).withOpacity(0.25),
+                          border: Border.all(
+                            color: const Color(0xFF0E3520),
+                            width: 1,
+                          ),
+                          borderRadius: BorderRadius.circular(50),
+                        ),
+                        child: Text(
+                          project.isActive ? 'Activo' : 'Inactivo',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF0E3520),
+                            letterSpacing: 0.5,
+                            fontFamily: 'Montserrat',
+                          ),
+                        ),
                       ),
                     ),
                   ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              // Badge de estado
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 2.5,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFC8E6C9).withOpacity(0.25),
-                  border: Border.all(
-                    color: const Color(0xFF0E3520),
-                    width: 1,
-                  ),
-                  borderRadius: BorderRadius.circular(50),
-                ),
-                child: Text(
-                  project.isActive ? 'Activo' : 'Inactivo',
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF0E3520),
-                    letterSpacing: 0.5,
-                    fontFamily: 'Montserrat',
-                  ),
                 ),
               ),
             ],
