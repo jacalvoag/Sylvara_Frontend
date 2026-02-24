@@ -54,18 +54,18 @@ class _PantallaInicioState extends State<PantallaInicio>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // Fondo con gradiente
+          // Fondo con imagen (placeholder)
           Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  const Color(0xFF0E3520).withOpacity(0.15),
-                  Colors.white,
+                  Color(0xFFE8F5E9),
+                  Color(0xFFF1F5F9),
                 ],
               ),
             ),
@@ -75,23 +75,26 @@ class _PantallaInicioState extends State<PantallaInicio>
             child: Column(
               children: [
                 // Encabezado: CustomBienvenida
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 20,
+                const Padding(
+                  padding: EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    top: 14,
+                    bottom: 230,
                   ),
                   child: CustomBienvenida(nombre: 'Malaga'),
                 ),
 
-                // TabBar personalizado
+                // TabBar personalizado con glassmorphism
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
                   child: Container(
+                    height: 44,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(25),
+                      borderRadius: BorderRadius.circular(22),
                       border: Border.all(
-                        color: const Color(0xFFF1F5F9),
-                        width: 2,
+                        color: Colors.white.withOpacity(0.3),
+                        width: 1,
                       ),
                       boxShadow: [
                         BoxShadow(
@@ -102,48 +105,65 @@ class _PantallaInicioState extends State<PantallaInicio>
                       ],
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(25),
-                      child: TabBar(
-                        controller: _tabController,
-                        labelColor: const Color(0xFF0E3520),
-                        unselectedLabelColor: Colors.white,
-                        indicator: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(25),
+                      borderRadius: BorderRadius.circular(22),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0E3520),
+                          borderRadius: BorderRadius.circular(22),
                         ),
-                        indicatorSize: TabBarIndicatorSize.tab,
-                        padding: const EdgeInsets.all(4),
-                        labelStyle: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.8,
-                          fontFamily: 'Montserrat',
+                        child: TabBar(
+                          controller: _tabController,
+                          labelColor: const Color(0xFF0E3520),
+                          unselectedLabelColor: Colors.white,
+                          indicator: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(22),
+                          ),
+                          indicatorSize: TabBarIndicatorSize.tab,
+                          dividerColor: Colors.transparent,
+                          padding: const EdgeInsets.all(3),
+                          labelStyle: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.8,
+                            fontFamily: 'Montserrat',
+                          ),
+                          unselectedLabelStyle: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.8,
+                            fontFamily: 'Montserrat',
+                          ),
+                          tabs: const [
+                            Tab(text: 'RESUMEN'),
+                            Tab(text: 'RECIENTES'),
+                          ],
                         ),
-                        unselectedLabelStyle: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.8,
-                          fontFamily: 'Montserrat',
-                        ),
-                        tabs: const [
-                          Tab(text: 'RESUMEN'),
-                          Tab(text: 'RECIENTES'),
-                        ],
                       ),
                     ),
                   ),
                 ),
 
+                const SizedBox(height: 20),
                 // TabBarView: Contenido intercambiable
                 Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      // Vista 1: RESUMEN
-                      _buildResumenView(),
-                      // Vista 2: RECIENTES
-                      _buildRecientesView(),
-                    ],
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(40),
+                        topRight: Radius.circular(40),
+                      ),
+                    ),
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        // Vista 1: RESUMEN
+                        _buildResumenView(),
+                        // Vista 2: RECIENTES
+                        _buildRecientesView(),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -170,17 +190,17 @@ class _PantallaInicioState extends State<PantallaInicio>
   // Vista 1: RESUMEN - Solo SummaryCard
   Widget _buildResumenView() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       child: Column(
         children: [
           SummaryCard(
             title: 'Total de proyectos:',
             value: 25,
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
           SummaryCard(
             title: 'Proyectos del mes:',
-            value: 8,
+            value: 5,
           ),
         ],
       ),
@@ -189,19 +209,20 @@ class _PantallaInicioState extends State<PantallaInicio>
 
   // Vista 2: RECIENTES - Solo ProjectCard (limitado a 3)
   Widget _buildRecientesView() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 20),
-      child: Column(
-        children: List.generate(
-          proyectos.length,
-          (index) => ProjectCard(
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      itemCount: proyectos.length,
+      itemBuilder: (context, index) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: ProjectCard(
             project: proyectos[index],
             onTap: () {
               print('Proyecto seleccionado: ${proyectos[index].nombre}');
             },
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
