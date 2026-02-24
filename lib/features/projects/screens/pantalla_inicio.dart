@@ -57,18 +57,10 @@ class _PantallaInicioState extends State<PantallaInicio>
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // Fondo con imagen (placeholder)
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFFE8F5E9),
-                  Color(0xFFF1F5F9),
-                ],
-              ),
-            ),
+          // Imagen de fondo con efecto de desvanecimiento
+          const BackgroundImage(
+            imagePath: 'assets/images/backgrounds/home_background.jpg',
+            height: 610,
           ),
           // Contenido principal
           SafeArea(
