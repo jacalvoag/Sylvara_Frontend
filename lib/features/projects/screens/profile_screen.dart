@@ -1,44 +1,56 @@
 import 'package:flutter/material.dart';
 import 'package:sylvara_frontend/core/widgets/widgets.dart';
-import 'package:sylvara_frontend/features/auth/models/models.dart';
-import 'package:sylvara_frontend/features/auth/services/auth_service.dart';
 
-class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _authService = AuthService();
-  
-  // Controladores para los campos (nombres coinciden con el JSON del backend)
-  final _nameController = TextEditingController();
-  final _lastnameController = TextEditingController();
-  final _birthdayController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
-  
+  final _nombreController = TextEditingController();
+  final _apellidosController = TextEditingController();
+  final _fechaNacimientoController = TextEditingController();
+  final _correoController = TextEditingController();
+  final _contrasenaController = TextEditingController();
+  final _confirmarContrasenaController = TextEditingController();
   String? _errorMessage;
-  bool _isLoading = false;
+  bool _isEditing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Cargar datos del usuario desde sesión
+    _loadUserData();
+  }
+
+  void _loadUserData() {
+    // TODO: Cargar datos reales del usuario desde el backend/sesión
+    setState(() {
+      _nombreController.text = 'Gilberto';
+      _apellidosController.text = 'Malaga';
+      _fechaNacimientoController.text = '15/10/2000';
+      _correoController.text = 'malagaacos@gmail.com';
+    });
+  }
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _lastnameController.dispose();
-    _birthdayController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
+    _nombreController.dispose();
+    _apellidosController.dispose();
+    _fechaNacimientoController.dispose();
+    _correoController.dispose();
+    _contrasenaController.dispose();
+    _confirmarContrasenaController.dispose();
     super.dispose();
   }
 
-  /// Seleccionar fecha de nacimiento
-  Future<void> _selectBirthday(BuildContext context) async {
-    final DateTime? pickedDate = await showDatePicker(
+  Future<void> _selectDate(BuildContext context) async {
+    if (!_isEditing) return;
+    
+    final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime(2000, 1, 1),
       firstDate: DateTime(1900),
@@ -56,105 +68,91 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
       },
     );
-
-    if (pickedDate != null) {
-      // Formatear a YYYY-MM-DD según el contrato del backend
-      final formattedDate = 
-          '${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}';
+    if (picked != null) {
       setState(() {
-        _birthdayController.text = formattedDate;
+        _fechaNacimientoController.text =
+            '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
       });
     }
   }
 
-  /// Manejar el registro
-  Future<void> _handleRegister() async {
+  void _handleEdit() {
     setState(() {
       _errorMessage = null;
-      _isLoading = true;
+      _isEditing = true;
     });
 
-    // Validar formulario
-    if (!_formKey.currentState!.validate()) {
-      setState(() {
-        _errorMessage = 'Por favor, completa correctamente todos los campos';
-        _isLoading = false;
-      });
-      return;
-    }
-
-    // Validar que las contraseñas coincidan
-    if (_passwordController.text != _confirmPasswordController.text) {
-      setState(() {
-        _errorMessage = 'Las contraseñas no coinciden';
-        _isLoading = false;
-      });
-      return;
-    }
-
-    try {
-      // Crear request según el contrato del backend
-      final request = RegisterRequest(
-        name: _nameController.text.trim(),
-        lastname: _lastnameController.text.trim(),
-        birthday: _birthdayController.text.trim(), // Formato YYYY-MM-DD
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
-
-      // Llamar al servicio de registro
-      final response = await _authService.register(request);
-
-      if (!mounted) return;
-
-      // Registro exitoso (201)
-      print('✅ Registro exitoso');
-      print('Usuario: ${response.user.fullName}');
-      print('AccessToken: ${response.accessToken}');
-      print('RefreshToken: ${response.refreshToken}');
-
-      // Mostrar mensaje de éxito
+    if (_formKey.currentState!.validate()) {
+      // TODO: Implementar lógica de actualización de perfil
+      print('Actualizando perfil...');
+      print('Nombre: ${_nombreController.text}');
+      print('Apellidos: ${_apellidosController.text}');
+      print('Fecha de nacimiento: ${_fechaNacimientoController.text}');
+      print('Correo: ${_correoController.text}');
+      
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('¡Bienvenido, ${response.user.name}!'),
-          backgroundColor: const Color(0xFF0E3520),
-          duration: const Duration(seconds: 3),
+        const SnackBar(
+          content: Text('Perfil actualizado exitosamente'),
+          backgroundColor: Color(0xFF0E3520),
         ),
       );
-
-      // TODO: Navegar a la pantalla principal
-      // Navigator.pushReplacement(
-      //   context,
-      //   MaterialPageRoute(builder: (context) => const HomeScreen()),
-      // );
-
-    } on AuthException catch (e) {
-      // Manejar errores 400, 409, 500
+      
       setState(() {
-        _errorMessage = e.message;
-        _isLoading = false;
+        _isEditing = false;
       });
-      
-      print('❌ Error de autenticación [${e.statusCode}]: ${e.message}');
-      
-    } catch (e) {
-      // Manejar otros errores inesperados
+    } else {
       setState(() {
-        _errorMessage = 'Error inesperado. Por favor intenta de nuevo';
-        _isLoading = false;
+        _errorMessage = 'Por favor, completa correctamente todos los campos';
       });
-      
-      print('❌ Error inesperado: $e');
     }
-
-    setState(() {
-      _isLoading = false;
-    });
   }
 
-  /// Cancelar registro
   void _handleCancel() {
-    Navigator.of(context).pop();
+    setState(() {
+      _isEditing = false;
+      _errorMessage = null;
+      _contrasenaController.clear();
+      _confirmarContrasenaController.clear();
+    });
+    _loadUserData();
+  }
+
+  void _handleLogout() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Cerrar sesión'),
+          content: const Text('¿Estás seguro de que deseas cerrar sesión?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                // TODO: Implementar lógica de logout
+                Navigator.of(context).pop();
+                // Navegar a login screen
+              },
+              child: const Text('Cerrar sesión', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _handleImageUpload() {
+    if (!_isEditing) return;
+    
+    // TODO: Implementar lógica de subida de imagen
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Función de subida de imagen próximamente'),
+        backgroundColor: Color(0xFF0E3520),
+      ),
+    );
   }
 
   @override
@@ -165,7 +163,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         children: [
           // Background image
           const BackgroundImage(
-            imagePath: 'assets/images/backgrounds/FondoAuth.png',
+            imagePath: 'assets/images/backgrounds/FodoHome.png',
             height: 612,
           ),
           
@@ -193,12 +191,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
                       
-                      // Título "Regístrate"
+                      // Título "Mis Perfil"
                       RichText(
                         text: const TextSpan(
                           children: [
                             TextSpan(
-                              text: 'Regís',
+                              text: 'Mis',
                               style: TextStyle(
                                 fontFamily: 'Montserrat',
                                 fontSize: 22,
@@ -207,7 +205,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                             ),
                             TextSpan(
-                              text: 'trate',
+                              text: ' Perfil',
                               style: TextStyle(
                                 fontFamily: 'Montserrat',
                                 fontSize: 22,
@@ -250,7 +248,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 text: const TextSpan(
                                   children: [
                                     TextSpan(
-                                      text: 'Completa ',
+                                      text: 'Configura ',
                                       style: TextStyle(
                                         fontFamily: 'Montserrat',
                                         fontSize: 22,
@@ -259,7 +257,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       ),
                                     ),
                                     TextSpan(
-                                      text: 'tus datos',
+                                      text: 'tú cuenta',
                                       style: TextStyle(
                                         fontFamily: 'Montserrat',
                                         fontSize: 22,
@@ -278,14 +276,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         Transform.translate(
                           offset: const Offset(0, -141),
                           child: Container(
-                            width: 336,
+                            width: double.infinity,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 30,
                               vertical: 28,
                             ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(40),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(40),
+                                topRight: Radius.circular(40),
+                              ),
                             ),
                             child: Form(
                               key: _formKey,
@@ -296,7 +297,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   CustomTextField(
                                     label: 'Nombre',
                                     placeholder: 'Ej. Gilberto',
-                                    controller: _nameController,
+                                    controller: _nombreController,
                                     keyboardType: TextInputType.name,
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
@@ -312,7 +313,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   CustomTextField(
                                     label: 'Apellidos',
                                     placeholder: 'Ej. Malaga',
-                                    controller: _lastnameController,
+                                    controller: _apellidosController,
                                     keyboardType: TextInputType.name,
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
@@ -327,16 +328,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   // Fecha de nacimiento
                                   CustomTextField(
                                     label: 'Fecha de nacimiento',
-                                    placeholder: 'YYYY-MM-DD',
-                                    controller: _birthdayController,
+                                    placeholder: 'Ej.  15/10/2000',
+                                    controller: _fechaNacimientoController,
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
                                         return 'Por favor selecciona tu fecha de nacimiento';
-                                      }
-                                      // Validar formato YYYY-MM-DD
-                                      final dateRegex = RegExp(r'^\d{4}-\d{2}-\d{2}$');
-                                      if (!dateRegex.hasMatch(value)) {
-                                        return 'Formato inválido (YYYY-MM-DD)';
                                       }
                                       return null;
                                     },
@@ -344,7 +340,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         GestureDetector(
-                                          onTap: () => _selectBirthday(context),
+                                          onTap: _isEditing ? () => _selectDate(context) : null,
                                           child: const Icon(
                                             Icons.calendar_today,
                                             size: 18,
@@ -352,6 +348,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                           ),
                                         ),
                                         const SizedBox(width: 8),
+                                        const Icon(
+                                          Icons.keyboard_arrow_down,
+                                          size: 12,
+                                          color: Color(0xFF0E3520),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -360,16 +361,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   
                                   // Correo electrónico
                                   CustomTextField(
-                                    label: 'Correo electrónico',
+                                    label: 'Correo electronico',
                                     placeholder: 'Ej. malagaacos@gmail.com',
-                                    controller: _emailController,
+                                    controller: _correoController,
                                     keyboardType: TextInputType.emailAddress,
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
                                         return 'Por favor ingresa tu correo';
                                       }
-                                      final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-                                      if (!emailRegex.hasMatch(value)) {
+                                      if (!value.contains('@')) {
                                         return 'Ingresa un correo válido';
                                       }
                                       return null;
@@ -381,15 +381,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   // Contraseña
                                   CustomTextField(
                                     label: 'Contraseña',
-                                    placeholder: 'Mínimo 6 caracteres',
-                                    controller: _passwordController,
+                                    placeholder: 'Ej. malagaacos@gmail.com',
+                                    controller: _contrasenaController,
                                     obscureText: true,
                                     validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Por favor ingresa una contraseña';
-                                      }
-                                      if (value.length < 6) {
-                                        return 'Mínimo 6 caracteres';
+                                      if (_isEditing && value != null && value.isNotEmpty) {
+                                        if (value.length < 6) {
+                                          return 'La contraseña debe tener al menos 6 caracteres';
+                                        }
                                       }
                                       return null;
                                     },
@@ -400,12 +399,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   // Confirmar contraseña
                                   CustomTextField(
                                     label: 'Confirmar contraseña',
-                                    placeholder: 'Repite tu contraseña',
-                                    controller: _confirmPasswordController,
+                                    placeholder: 'Ej. malagaacos@gmail.com',
+                                    controller: _confirmarContrasenaController,
                                     obscureText: true,
                                     validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Por favor confirma tu contraseña';
+                                      if (_isEditing && _contrasenaController.text.isNotEmpty) {
+                                        if (value != _contrasenaController.text) {
+                                          return 'Las contraseñas no coinciden';
+                                        }
                                       }
                                       return null;
                                     },
@@ -413,11 +414,74 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   
                                   const SizedBox(height: 27),
                                   
-                                  // Advertencia de errores
+                                  // Agregar imagen y logout
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      // Agregar imagen
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const Text(
+                                            'Agregar',
+                                            style: TextStyle(
+                                              fontFamily: 'Montserrat',
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                              color: Color(0xFF0E3520),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          GestureDetector(
+                                            onTap: _handleImageUpload,
+                                            child: Container(
+                                              width: 120,
+                                              height: 97,
+                                              decoration: BoxDecoration(
+                                                border: Border.all(
+                                                  color: const Color(0xFF0E3520),
+                                                  width: 1,
+                                                ),
+                                                borderRadius: BorderRadius.circular(5),
+                                                color: Colors.white,
+                                              ),
+                                              child: const Icon(
+                                                Icons.add_photo_alternate,
+                                                size: 43,
+                                                color: Color(0xFF0E3520),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      
+                                      // Logout button
+                                      GestureDetector(
+                                        onTap: _handleLogout,
+                                        child: Container(
+                                          width: 37.5,
+                                          height: 30,
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFAE0000),
+                                            borderRadius: BorderRadius.circular(5),
+                                          ),
+                                          child: const Icon(
+                                            Icons.logout,
+                                            color: Colors.white,
+                                            size: 20,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  
+                                  const SizedBox(height: 27),
+                                  
+                                  // Advertencia
                                   if (_errorMessage != null)
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 10),
-                                      margin: const EdgeInsets.only(bottom: 27),
                                       child: Row(
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
@@ -426,13 +490,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                             color: Color(0xFFAE0000),
                                             size: 20,
                                           ),
-                                          const SizedBox(width: 8),
+                                          const SizedBox(width: 4),
                                           Flexible(
                                             child: Text(
                                               _errorMessage!,
                                               style: const TextStyle(
                                                 fontFamily: 'Montserrat',
-                                                fontSize: 12,
+                                                fontSize: 14,
                                                 fontWeight: FontWeight.w600,
                                                 color: Color(0xFFAE0000),
                                               ),
@@ -443,77 +507,67 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       ),
                                     ),
                                   
+                                  if (_errorMessage != null)
+                                    const SizedBox(height: 27),
+                                  
                                   // Botones
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       // Botón Cancelar
                                       GestureDetector(
-                                        onTap: _isLoading ? null : _handleCancel,
+                                        onTap: _handleCancel,
                                         child: Container(
-                                          width: 129,
+                                          width: 136.64,
                                           height: 30,
                                           decoration: BoxDecoration(
                                             border: Border.all(
-                                              color: _isLoading 
-                                                  ? Colors.grey 
-                                                  : const Color(0xFF0E3520),
+                                              color: const Color(0xFF0E3520),
                                               width: 2,
                                             ),
                                             borderRadius: BorderRadius.circular(10),
                                           ),
                                           alignment: Alignment.center,
-                                          child: Text(
+                                          child: const Text(
                                             'Cancelar',
                                             style: TextStyle(
                                               fontSize: 14,
                                               fontWeight: FontWeight.bold,
-                                              color: _isLoading 
-                                                  ? Colors.grey 
-                                                  : const Color(0xFF0E3520),
+                                              color: Color(0xFF0E3520),
                                               fontFamily: 'Montserrat',
                                             ),
                                           ),
                                         ),
                                       ),
                                       
-                                      const SizedBox(width: 12),
+                                      const SizedBox(width: 13),
                                       
-                                      // Botón Registrarse
+                                      // Botón Editar
                                       GestureDetector(
-                                        onTap: _isLoading ? null : _handleRegister,
+                                        onTap: _handleEdit,
                                         child: Container(
-                                          width: 129,
+                                          width: 136.64,
                                           height: 30,
                                           decoration: BoxDecoration(
-                                            color: _isLoading 
-                                                ? Colors.grey 
-                                                : const Color(0xFF0E3520),
+                                            color: const Color(0xFF0E3520),
                                             borderRadius: BorderRadius.circular(10),
                                           ),
                                           alignment: Alignment.center,
-                                          child: _isLoading
-                                              ? const SizedBox(
-                                                  width: 16,
-                                                  height: 16,
-                                                  child: CircularProgressIndicator(
-                                                    color: Colors.white,
-                                                    strokeWidth: 2,
-                                                  ),
-                                                )
-                                              : const Text(
-                                                  'Registrarse',
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Color(0xFFF1F5F9),
-                                                    fontFamily: 'Montserrat',
-                                                  ),
-                                                ),
+                                          child: const Text(
+                                            'Editar',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFFF1F5F9),
+                                              fontFamily: 'Montserrat',
+                                            ),
+                                          ),
                                         ),
                                       ),
                                     ],
                                   ),
+                                  
+                                  const SizedBox(height: 80),
                                 ],
                               ),
                             ),
@@ -524,6 +578,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
               ],
+            ),
+          ),
+          
+          // Bottom navbar
+          Positioned(
+            bottom: 20,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: MenuNavegation(
+                currentIndex: 2,
+                onTap: (index) {
+                  if (index == 0) {
+                    // Navegar a home
+                    // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PantallaInicio()));
+                  } else if (index == 1) {
+                    // Navegar a documentos/proyectos
+                  }
+                  // index 2 ya estamos en profile
+                },
+              ),
             ),
           ),
         ],

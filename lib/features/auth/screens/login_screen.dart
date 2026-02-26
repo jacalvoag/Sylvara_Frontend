@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sylvara_frontend/core/widgets/widgets.dart';
-import 'package:sylvara_frontend/features/auth/widgets/widgets.dart';
+import 'package:sylvara_frontend/features/auth/models/models.dart';
+import 'package:sylvara_frontend/features/auth/services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

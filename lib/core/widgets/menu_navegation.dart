@@ -20,15 +20,15 @@ class MenuNavegation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: 244,
+      height: 44,
       decoration: BoxDecoration(
+        color: const Color(0xFF0E3520),
+        border: Border.all(
+          color: const Color(0xFF0E3520),
+          width: 3,
+        ),
         borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 0),
-          ),
-        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(22),
@@ -36,55 +36,81 @@ class MenuNavegation extends StatelessWidget {
           filter: ImageFilter.blur(sigmaX: 3.5, sigmaY: 3.5),
           child: Container(
             decoration: BoxDecoration(
-              color: const Color(0xFF0E3520),
+              color: const Color(0xFFFCFFFD).withOpacity(0.1),
               border: Border.all(
-                color: const Color(0xFF0E3520),
-                width: 3,
+                color: Colors.white,
+                width: 1,
               ),
               borderRadius: BorderRadius.circular(22),
             ),
-            child: BottomNavigationBar(
-              currentIndex: currentIndex,
-              onTap: onTap,
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              type: BottomNavigationBarType.fixed,
-              items: [
-                BottomNavigationBarItem(
-                  icon: Icon(
-                    Icons.home,
-                    size: 24,
-                    color: currentIndex == 0
-                        ? (selectedItemColor ?? Colors.white)
-                        : (unselectedItemColor ?? Colors.white70),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                // Home icon
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => onTap(0),
+                    child: Container(
+                      color: Colors.transparent,
+                      child: Center(
+                        child: Icon(
+                          Icons.home,
+                          size: 24,
+                          color: currentIndex == 0
+                              ? (selectedItemColor ?? Colors.white)
+                              : (unselectedItemColor ?? Colors.white.withOpacity(0.7)),
+                        ),
+                      ),
+                    ),
                   ),
-                  label: 'Inicio',
                 ),
-                BottomNavigationBarItem(
-                  icon: Icon(
-                    Icons.assignment,
-                    size: 24,
-                    color: currentIndex == 1
-                        ? (selectedItemColor ?? Colors.white)
-                        : (unselectedItemColor ?? Colors.white70),
+                
+                // Documents icon
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => onTap(1),
+                    child: Container(
+                      color: Colors.transparent,
+                      child: Center(
+                        child: Icon(
+                          Icons.article,
+                          size: 24,
+                          color: currentIndex == 1
+                              ? (selectedItemColor ?? Colors.white)
+                              : (unselectedItemColor ?? Colors.white.withOpacity(0.7)),
+                        ),
+                      ),
+                    ),
                   ),
-                  label: 'Proyectos',
                 ),
-                BottomNavigationBarItem(
-                  icon: Icon(
-                    Icons.person,
-                    size: 24,
-                    color: currentIndex == 2
-                        ? (selectedItemColor ?? Colors.white)
-                        : (unselectedItemColor ?? Colors.white70),
+                
+                // Profile/Avatar
+                Padding(
+                  padding: const EdgeInsets.only(right: 5),
+                  child: GestureDetector(
+                    onTap: () => onTap(2),
+                    child: Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: currentIndex == 2
+                            ? Colors.white.withOpacity(0.3)
+                            : Colors.white.withOpacity(0.1),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.5),
+                          width: 1,
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.person,
+                        size: 20,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
-                  label: 'Perfil',
                 ),
               ],
-              selectedItemColor: selectedItemColor ?? Colors.white,
-              unselectedItemColor: unselectedItemColor ?? Colors.white70,
-              showSelectedLabels: false,
-              showUnselectedLabels: false,
             ),
           ),
         ),

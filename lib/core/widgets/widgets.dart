@@ -4,3 +4,4 @@ export 'custom_bienvenida.dart';
 export 'menu_navegation.dart';
 export 'titulo_section.dart';
 export 'background_image.dart';
+export 'custom_text_field.dart';
