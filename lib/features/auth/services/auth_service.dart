@@ -140,22 +140,56 @@ class AuthService {
   }
 
   /// Login de usuario (POST /auth/login)
-  /// Mock para futuro uso
-  Future<RegisterResponse> login(String email, String password) async {
+  /// 
+  /// Simula el comportamiento del backend:
+  /// - 200: Login exitoso con tokens y datos del usuario
+  /// - 400: Datos inválidos
+  /// - 401: Credenciales incorrectas
+  /// - 500: Error del servidor (simulado aleatoriamente)
+  Future<RegisterResponse> login(LoginRequest request) async {
+    // Simular delay de red
     await Future.delayed(const Duration(seconds: 1));
 
+    // Validación de campos (400 - Bad Request)
+    if (request.email.isEmpty || request.password.isEmpty) {
+      throw AuthException(
+        message: 'Todos los campos son obligatorios',
+        statusCode: 400,
+      );
+    }
+
+    // Validar formato de email
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(request.email)) {
+      throw AuthException(
+        message: 'El formato del correo electrónico no es válido',
+        statusCode: 400,
+      );
+    }
+
+    // Buscar usuario por email y contraseña (200 o 401)
     final user = _mockUsers.firstWhere(
-      (u) => u['email'] == email && u['password'] == password,
+      (u) => u['email'] == request.email && u['password'] == request.password,
       orElse: () => {},
     );
 
+    // Usuario no encontrado o contraseña incorrecta (401 - Unauthorized)
     if (user.isEmpty) {
       throw AuthException(
-        message: 'Credenciales incorrectas',
+        message: 'El correo o la contraseña son incorrectos',
         statusCode: 401,
       );
     }
 
+    // Simular error del servidor (500) - 5% de probabilidad
+    // if (DateTime.now().millisecond % 20 == 0) {
+    //   throw AuthException(
+    //     message: 'Error interno del servidor. Por favor intenta más tarde',
+    //     statusCode: 500,
+    //   );
+    // }
+
+    // Login exitoso (200 - OK)
     final accessToken = _generateMockToken('access', user['id'] as String);
     final refreshToken = _generateMockToken('refresh', user['id'] as String);
 
@@ -169,9 +203,14 @@ class AuthService {
       updatedAt: DateTime.parse(user['updatedAt'] as String),
     );
 
+    // Guardar sesión actual
     _currentAccessToken = accessToken;
     _currentRefreshToken = refreshToken;
     _currentUser = userData;
+
+    print('✅ Usuario autenticado exitosamente: ${userData.fullName}');
+    print('📧 Email: ${userData.email}');
+    print('🔑 Access Token: $accessToken');
 
     return RegisterResponse(
       accessToken: accessToken,

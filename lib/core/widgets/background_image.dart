@@ -25,3 +25,4 @@ class BackgroundImage extends StatelessWidget {
     );
   }
 }
+
