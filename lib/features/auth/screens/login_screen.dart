@@ -3,6 +3,7 @@ import 'package:sylvara_frontend/core/widgets/widgets.dart';
 import 'package:sylvara_frontend/features/auth/models/models.dart';
 import 'package:sylvara_frontend/features/auth/services/auth_service.dart';
 
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -12,9 +13,11 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _authService = AuthService();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   String? _errorMessage;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -23,29 +26,77 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _handleLogin() {
+  /// Manejar el inicio de sesión
+  Future<void> _handleLogin() async {
     setState(() {
       _errorMessage = null;
+      _isLoading = true;
     });
 
-    if (_formKey.currentState!.validate()) {
-      // TODO: Implementar lógica de inicio de sesión
-      print('Email: ${_emailController.text}');
-      print('Password: ${_passwordController.text}');
-      
-      // Aquí iría la llamada al backend
-      // Por ahora, solo mostramos un mensaje
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Iniciando sesión...'),
-          backgroundColor: Color(0xFF0E3520),
-        ),
-      );
-    } else {
+    // Validar formulario
+    if (!_formKey.currentState!.validate()) {
       setState(() {
         _errorMessage = 'Por favor, completa todos los campos correctamente';
+        _isLoading = false;
       });
+      return;
     }
+
+    try {
+      // Crear request según el contrato del backend
+      final request = LoginRequest(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      // Llamar al servicio de login
+      final response = await _authService.login(request);
+
+      if (!mounted) return;
+
+      // Login exitoso (200)
+      print('✅ Login exitoso');
+      print('Usuario: ${response.user.fullName}');
+      print('AccessToken: ${response.accessToken}');
+      print('RefreshToken: ${response.refreshToken}');
+
+      // Mostrar mensaje de éxito
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('¡Bienvenido, ${response.user.name}!'),
+          backgroundColor: const Color(0xFF0E3520),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+
+      // TODO: Navegar a la pantalla principal
+      // Navigator.pushReplacement(
+      //   context,
+      //   MaterialPageRoute(builder: (context) => const HomeScreen()),
+      // );
+
+    } on AuthException catch (e) {
+      // Manejar errores 400, 401, 500
+      setState(() {
+        _errorMessage = e.message;
+        _isLoading = false;
+      });
+      
+      print('❌ Error de autenticación [${e.statusCode}]: ${e.message}');
+      
+    } catch (e) {
+      // Manejar otros errores inesperados
+      setState(() {
+        _errorMessage = 'Error inesperado. Por favor intenta de nuevo';
+        _isLoading = false;
+      });
+      
+      print('❌ Error inesperado: $e');
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   void _handleCancel() {
@@ -275,25 +326,29 @@ class _LoginScreenState extends State<LoginScreen> {
                                   children: [
                                     // Cancel button
                                     GestureDetector(
-                                      onTap: _handleCancel,
+                                      onTap: _isLoading ? null : _handleCancel,
                                       child: Container(
                                         width: 129,
                                         height: 30,
                                         decoration: BoxDecoration(
                                           border: Border.all(
-                                            color: const Color(0xFF0E3520),
+                                            color: _isLoading 
+                                                ? Colors.grey 
+                                                : const Color(0xFF0E3520),
                                             width: 2,
                                           ),
                                           borderRadius: BorderRadius.circular(10),
                                         ),
-                                        child: const Center(
+                                        child: Center(
                                           child: Text(
                                             'Cancelar',
                                             style: TextStyle(
                                               fontFamily: 'Montserrat',
                                               fontSize: 14,
                                               fontWeight: FontWeight.bold,
-                                              color: Color(0xFF0E3520),
+                                              color: _isLoading 
+                                                  ? Colors.grey 
+                                                  : const Color(0xFF0E3520),
                                             ),
                                           ),
                                         ),
@@ -304,24 +359,35 @@ class _LoginScreenState extends State<LoginScreen> {
                                     
                                     // Accept button
                                     GestureDetector(
-                                      onTap: _handleLogin,
+                                      onTap: _isLoading ? null : _handleLogin,
                                       child: Container(
                                         width: 129,
                                         height: 30,
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFF0E3520),
+                                          color: _isLoading 
+                                              ? Colors.grey 
+                                              : const Color(0xFF0E3520),
                                           borderRadius: BorderRadius.circular(10),
                                         ),
-                                        child: const Center(
-                                          child: Text(
-                                            'Aceptar',
-                                            style: TextStyle(
-                                              fontFamily: 'Montserrat',
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFFF1F5F9),
-                                            ),
-                                          ),
+                                        child: Center(
+                                          child: _isLoading
+                                              ? const SizedBox(
+                                                  width: 16,
+                                                  height: 16,
+                                                  child: CircularProgressIndicator(
+                                                    color: Colors.white,
+                                                    strokeWidth: 2,
+                                                  ),
+                                                )
+                                              : const Text(
+                                                  'Aceptar',
+                                                  style: TextStyle(
+                                                    fontFamily: 'Montserrat',
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Color(0xFFF1F5F9),
+                                                  ),
+                                                ),
                                         ),
                                       ),
                                     ),
