@@ -59,7 +59,7 @@ class _PantallaInicioState extends State<PantallaInicio>
         children: [
           // Imagen de fondo con efecto de desvanecimiento
           const BackgroundImage(
-            imagePath: 'assets/images/backgrounds/home_background.jpg',
+            imagePath: 'assets/images/backgrounds/FondoHome.png',
             height: 610,
           ),
           // Contenido principal
