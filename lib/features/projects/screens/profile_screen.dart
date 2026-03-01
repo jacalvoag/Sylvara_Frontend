@@ -158,7 +158,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF1F5F9),
       body: Stack(
         children: [
           // Background image
@@ -590,13 +590,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: MenuNavegation(
                 currentIndex: 2,
                 onTap: (index) {
-                  if (index == 0) {
-                    // Navegar a home
-                    // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PantallaInicio()));
-                  } else if (index == 1) {
-                    // Navegar a documentos/proyectos
-                  }
-                  // index 2 ya estamos en profile
+                  // La navegación se maneja dentro de MenuNavegation
                 },
               ),
             ),

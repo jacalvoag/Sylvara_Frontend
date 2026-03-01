@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sylvara_frontend/features/projects/screens/pantalla_inicio.dart';
+import 'package:sylvara_frontend/features/projects/screens/screens.dart';
 
 void main() {
   runApp(const MainApp());
