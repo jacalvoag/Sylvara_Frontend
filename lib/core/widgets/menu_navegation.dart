@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import 'package:sylvara_frontend/features/projects/screens/screens.dart';
 
 class MenuNavegation extends StatelessWidget {
   final int currentIndex;
@@ -16,6 +17,41 @@ class MenuNavegation extends StatelessWidget {
     this.selectedItemColor,
     this.unselectedItemColor,
   });
+
+  void _navigateToScreen(BuildContext context, int index) {
+    Widget screen;
+    
+    switch (index) {
+      case 0:
+        screen = const PantallaInicio();
+        break;
+      case 1:
+        screen = const ProjectListScreen();
+        break;
+      case 2:
+        screen = const ProfileScreen();
+        break;
+      default:
+        return;
+    }
+    
+    // Solo navegar si no estamos ya en esa pantalla
+    if (index != currentIndex) {
+      Navigator.pushReplacement(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => screen,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: animation,
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 300),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +85,10 @@ class MenuNavegation extends StatelessWidget {
                 // Home icon
                 Expanded(
                   child: GestureDetector(
-                    onTap: () => onTap(0),
+                    onTap: () {
+                      _navigateToScreen(context, 0);
+                      onTap(0);
+                    },
                     child: Container(
                       color: Colors.transparent,
                       child: Center(
@@ -68,7 +107,10 @@ class MenuNavegation extends StatelessWidget {
                 // Documents icon
                 Expanded(
                   child: GestureDetector(
-                    onTap: () => onTap(1),
+                    onTap: () {
+                      _navigateToScreen(context, 1);
+                      onTap(1);
+                    },
                     child: Container(
                       color: Colors.transparent,
                       child: Center(
@@ -88,7 +130,10 @@ class MenuNavegation extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(right: 5),
                   child: GestureDetector(
-                    onTap: () => onTap(2),
+                    onTap: () {
+                      _navigateToScreen(context, 2);
+                      onTap(2);
+                    },
                     child: Container(
                       width: 38,
                       height: 38,

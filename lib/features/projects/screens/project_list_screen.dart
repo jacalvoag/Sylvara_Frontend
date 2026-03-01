@@ -2,11 +2,13 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:sylvara_frontend/core/widgets/background_image.dart';
 import 'package:sylvara_frontend/core/widgets/menu_navegation.dart';
+import 'package:sylvara_frontend/core/widgets/custom_text_field.dart';
 import 'package:sylvara_frontend/features/projects/models/dashboard_response.dart';
 import 'package:sylvara_frontend/features/projects/models/update_status_request.dart';
 import 'package:sylvara_frontend/features/projects/models/project_exception.dart';
 import 'package:sylvara_frontend/features/projects/services/project_service.dart';
 import 'package:sylvara_frontend/features/projects/widgets/editable_project_card.dart';
+import 'package:sylvara_frontend/features/projects/screens/project_form_screen.dart';
 
 class ProjectListScreen extends StatefulWidget {
   const ProjectListScreen({super.key});
@@ -231,19 +233,23 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
 
   void _showPasswordDialog(Plot project) {
     final TextEditingController passwordController = TextEditingController();
-    bool obscurePassword = true;
 
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              title: Text(
-                '${project.status == 'active' ? 'Desactivar' : 'Activar'} Proyecto',
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          contentPadding: const EdgeInsets.all(24),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Título
+              Text(
+                'Cambiar estado',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -251,102 +257,94 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                   fontFamily: 'Montserrat',
                 ),
               ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+              const SizedBox(height: 12),
+              // Mensaje
+              Text(
+                'Ingresa tu contraseña para cambiar el estatus de ${project.name}',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: const Color(0xFF666666),
+                  fontFamily: 'Montserrat',
+                ),
+              ),
+              const SizedBox(height: 20),
+              // Campo de contraseña
+              CustomTextField(
+                label: 'Contraseña',
+                placeholder: '••••••••',
+                controller: passwordController,
+                obscureText: true,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Ingresa tu contraseña';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 24),
+              // Botones
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Text(
-                    'Por favor, ingresa tu contraseña para confirmar:',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: const Color(0xFF666666),
-                      fontFamily: 'Montserrat',
+                  // Botón Cancelar
+                  TextButton(
+                    onPressed: () {
+                      passwordController.dispose();
+                      Navigator.of(dialogContext).pop();
+                    },
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(
+                      'Cancelar',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF757575),
+                        fontFamily: 'Montserrat',
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: passwordController,
-                    obscureText: obscurePassword,
-                    decoration: InputDecoration(
-                      labelText: 'Contraseña',
-                      hintText: 'Ingresa tu contraseña',
-                      prefixIcon: Icon(
-                        Icons.lock_outline,
-                        color: const Color(0xFF0E3520),
+                  const SizedBox(width: 12),
+                  // Botón Confirmar
+                  ElevatedButton(
+                    onPressed: () async {
+                      final password = passwordController.text;
+                      passwordController.dispose();
+                      Navigator.of(dialogContext).pop();
+                      await _toggleProjectStatus(project, password);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0E3520),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
                       ),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          obscurePassword ? Icons.visibility_off : Icons.visibility,
-                          color: const Color(0xFF757575),
-                        ),
-                        onPressed: () {
-                          setDialogState(() {
-                            obscurePassword = !obscurePassword;
-                          });
-                        },
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: const Color(0xFFE0E0E0)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: const Color(0xFF0E3520), width: 2),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 16,
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      'Confirmar',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'Montserrat',
                       ),
                     ),
                   ),
                 ],
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(
-                    'Cancelar',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF757575),
-                      fontFamily: 'Montserrat',
-                    ),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    final password = passwordController.text;
-                    Navigator.of(context).pop();
-                    await _toggleProjectStatus(project, password);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0E3520),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: Text(
-                    'Confirmar',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      fontFamily: 'Montserrat',
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
+            ],
+          ),
         );
       },
     );
@@ -712,14 +710,20 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                     padding: const EdgeInsets.only(bottom: 12),
                                     child: EditableProjectCard(
                                       project: project,
-                                      onEdit: () {
-                                        // TODO: Navegar a pantalla de edición
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text('Editar: ${project.name}'),
-                                            behavior: SnackBarBehavior.floating,
+                                      onEdit: () async {
+                                        // Navegar a pantalla de edición
+                                        final result = await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => ProjectFormScreen(
+                                              project: project,
+                                            ),
                                           ),
                                         );
+                                        // Si se editó, recargar lista
+                                        if (result == true) {
+                                          _loadProjects();
+                                        }
                                       },
                                       onToggleStatus: () {
                                         _showPasswordDialog(project);
@@ -748,30 +752,18 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
         height: 59,
         margin: const EdgeInsets.only(bottom: 60),
         child: FloatingActionButton(
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  children: [
-                    Icon(Icons.info_outline, color: Colors.white),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Pantalla de creación próximamente',
-                      style: TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-                backgroundColor: const Color(0xFF0E3520),
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                margin: const EdgeInsets.all(16),
+          onPressed: () async {
+            // Navegar a pantalla de creación
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ProjectFormScreen(),
               ),
             );
+            // Si se creó, recargar lista
+            if (result == true) {
+              _loadProjects();
+            }
           },
           backgroundColor: const Color(0xFF0E3520),
           elevation: 0,

@@ -13,7 +13,6 @@ class PantallaInicio extends StatefulWidget {
 class _PantallaInicioState extends State<PantallaInicio>
     with TickerProviderStateMixin {
   late TabController _tabController;
-  int _selectedMenuIndex = 0;
   final _projectService = ProjectService();
   late Future<DashboardResponse> _dashboardFuture;
 
@@ -34,7 +33,7 @@ class _PantallaInicioState extends State<PantallaInicio>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF1F5F9),
       body: FutureBuilder<DashboardResponse>(
         future: _dashboardFuture,
         builder: (context, snapshot) {
@@ -62,12 +61,9 @@ class _PantallaInicioState extends State<PantallaInicio>
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(12),
         child: MenuNavegation(
-          currentIndex: _selectedMenuIndex,
+          currentIndex: 0,
           onTap: (index) {
-            setState(() {
-              _selectedMenuIndex = index;
-            });
-            print('Opción de menú seleccionada: $index');
+            // La navegación se maneja dentro de MenuNavegation
           },
         ),
       ),
