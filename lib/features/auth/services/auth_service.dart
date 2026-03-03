@@ -1,248 +1,72 @@
 import 'dart:convert';
+import 'package:sylvara_frontend/core/api/api_client.dart';
+import 'package:sylvara_frontend/core/api/api_config.dart';
+import 'package:sylvara_frontend/core/api/token_storage.dart';
 import 'package:sylvara_frontend/features/auth/models/models.dart';
 
 class AuthService {
-  // Singleton pattern para mantener una única instancia
   static final AuthService _instance = AuthService._internal();
   factory AuthService() => _instance;
   AuthService._internal();
 
-  // Simulación de base de datos en memoria
-  final List<Map<String, dynamic>> _mockUsers = [];
-  
-  // Tokens simulados (en producción, el backend los generaría)
-  String? _currentAccessToken;
-  String? _currentRefreshToken;
+  final _apiClient = ApiClient();
+  final _tokenStorage = TokenStorage();
+
   User? _currentUser;
 
-  // Getters para acceder a la sesión actual
-  String? get accessToken => _currentAccessToken;
-  String? get refreshToken => _currentRefreshToken;
   User? get currentUser => _currentUser;
-  bool get isAuthenticated => _currentAccessToken != null && _currentUser != null;
+  Future<bool> get isAuthenticated => _tokenStorage.hasTokens();
 
-  /// Registro de usuario (POST /auth/register)
-  /// 
-  /// Simula el comportamiento del backend:
-  /// - 201: Registro exitoso con tokens y datos del usuario
-  /// - 400: Datos inválidos
-  /// - 409: Email ya registrado
-  /// - 500: Error del servidor (simulado aleatoriamente)
   Future<RegisterResponse> register(RegisterRequest request) async {
-    // Simular delay de red
-    await Future.delayed(const Duration(seconds: 1));
-
-    // Validación de campos (400 - Bad Request)
-    if (request.name.isEmpty || 
-        request.lastname.isEmpty || 
-        request.birthday.isEmpty || 
-        request.email.isEmpty || 
-        request.password.isEmpty) {
-      throw AuthException(
-        message: 'Todos los campos son obligatorios',
-        statusCode: 400,
-      );
-    }
-
-    // Validar formato de email
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!emailRegex.hasMatch(request.email)) {
-      throw AuthException(
-        message: 'El formato del correo electrónico no es válido',
-        statusCode: 400,
-      );
-    }
-
-    // Validar longitud de contraseña
-    if (request.password.length < 6) {
-      throw AuthException(
-        message: 'La contraseña debe tener al menos 6 caracteres',
-        statusCode: 400,
-      );
-    }
-
-    // Validar formato de fecha (YYYY-MM-DD)
-    final dateRegex = RegExp(r'^\d{4}-\d{2}-\d{2}$');
-    if (!dateRegex.hasMatch(request.birthday)) {
-      throw AuthException(
-        message: 'El formato de la fecha debe ser YYYY-MM-DD',
-        statusCode: 400,
-      );
-    }
-
-    // Verificar si el email ya existe (409 - Conflict)
-    final existingUser = _mockUsers.firstWhere(
-      (user) => user['email'] == request.email,
-      orElse: () => {},
+    final response = await _apiClient.postNoAuth(
+      ApiConfig.register,
+      body: request.toJson(),
     );
 
-    if (existingUser.isNotEmpty) {
-      throw AuthException(
-        message: 'El correo electrónico ya está registrado',
-        statusCode: 409,
+    final data = jsonDecode(response.body);
+
+    if (response.statusCode == 201) {
+      final registerResponse = RegisterResponse.fromJson(data);
+
+      await _tokenStorage.saveTokens(
+        accessToken: registerResponse.accessToken,
+        refreshToken: registerResponse.refreshToken,
+        role: registerResponse.user.role ?? 'USER',
       );
+
+      _currentUser = registerResponse.user;
+      return registerResponse;
     }
 
-    // Simular error del servidor (500) - 5% de probabilidad
-    // if (DateTime.now().millisecond % 20 == 0) {
-    //   throw AuthException(
-    //     message: 'Error interno del servidor. Por favor intenta más tarde',
-    //     statusCode: 500,
-    //   );
-    // }
-
-    // Registro exitoso (201 - Created)
-    final now = DateTime.now();
-    final userId = 'user_${_mockUsers.length + 1}_${now.millisecondsSinceEpoch}';
-    
-    final userData = {
-      'id': userId,
-      'name': request.name,
-      'lastname': request.lastname,
-      'birthday': request.birthday,
-      'email': request.email,
-      'password': request.password, // En producción, esto estaría hasheado
-      'createdAt': now.toIso8601String(),
-      'updatedAt': now.toIso8601String(),
-    };
-
-    _mockUsers.add(userData);
-
-    // Generar tokens mock
-    final accessToken = _generateMockToken('access', userId);
-    final refreshToken = _generateMockToken('refresh', userId);
-
-    // Crear usuario sin la contraseña
-    final user = User(
-      id: userData['id'] as String,
-      name: userData['name'] as String,
-      lastname: userData['lastname'] as String,
-      birthday: userData['birthday'] as String,
-      email: userData['email'] as String,
-      createdAt: DateTime.parse(userData['createdAt'] as String),
-      updatedAt: DateTime.parse(userData['updatedAt'] as String),
-    );
-
-    // Guardar sesión actual
-    _currentAccessToken = accessToken;
-    _currentRefreshToken = refreshToken;
-    _currentUser = user;
-
-    print('✅ Usuario registrado exitosamente: ${user.fullName}');
-    print('📧 Email: ${user.email}');
-    print('🔑 Access Token: $accessToken');
-
-    return RegisterResponse(
-      accessToken: accessToken,
-      refreshToken: refreshToken,
-      user: user,
-    );
+    throw AuthException.fromJson(data, statusCode: response.statusCode);
   }
 
-  /// Login de usuario (POST /auth/login)
-  /// 
-  /// Simula el comportamiento del backend:
-  /// - 200: Login exitoso con tokens y datos del usuario
-  /// - 400: Datos inválidos
-  /// - 401: Credenciales incorrectas
-  /// - 500: Error del servidor (simulado aleatoriamente)
   Future<RegisterResponse> login(LoginRequest request) async {
-    // Simular delay de red
-    await Future.delayed(const Duration(seconds: 1));
-
-    // Validación de campos (400 - Bad Request)
-    if (request.email.isEmpty || request.password.isEmpty) {
-      throw AuthException(
-        message: 'Todos los campos son obligatorios',
-        statusCode: 400,
-      );
-    }
-
-    // Validar formato de email
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!emailRegex.hasMatch(request.email)) {
-      throw AuthException(
-        message: 'El formato del correo electrónico no es válido',
-        statusCode: 400,
-      );
-    }
-
-    // Buscar usuario por email y contraseña (200 o 401)
-    final user = _mockUsers.firstWhere(
-      (u) => u['email'] == request.email && u['password'] == request.password,
-      orElse: () => {},
+    final response = await _apiClient.postNoAuth(
+      ApiConfig.login,
+      body: request.toJson(),
     );
 
-    // Usuario no encontrado o contraseña incorrecta (401 - Unauthorized)
-    if (user.isEmpty) {
-      throw AuthException(
-        message: 'El correo o la contraseña son incorrectos',
-        statusCode: 401,
+    final data = jsonDecode(response.body);
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final loginResponse = RegisterResponse.fromJson(data);
+
+      await _tokenStorage.saveTokens(
+        accessToken: loginResponse.accessToken,
+        refreshToken: loginResponse.refreshToken,
+        role: loginResponse.user.role ?? 'USER',
       );
+
+      _currentUser = loginResponse.user;
+      return loginResponse;
     }
 
-    // Simular error del servidor (500) - 5% de probabilidad
-    // if (DateTime.now().millisecond % 20 == 0) {
-    //   throw AuthException(
-    //     message: 'Error interno del servidor. Por favor intenta más tarde',
-    //     statusCode: 500,
-    //   );
-    // }
-
-    // Login exitoso (200 - OK)
-    final accessToken = _generateMockToken('access', user['id'] as String);
-    final refreshToken = _generateMockToken('refresh', user['id'] as String);
-
-    final userData = User(
-      id: user['id'] as String,
-      name: user['name'] as String,
-      lastname: user['lastname'] as String,
-      birthday: user['birthday'] as String,
-      email: user['email'] as String,
-      createdAt: DateTime.parse(user['createdAt'] as String),
-      updatedAt: DateTime.parse(user['updatedAt'] as String),
-    );
-
-    // Guardar sesión actual
-    _currentAccessToken = accessToken;
-    _currentRefreshToken = refreshToken;
-    _currentUser = userData;
-
-    print('✅ Usuario autenticado exitosamente: ${userData.fullName}');
-    print('📧 Email: ${userData.email}');
-    print('🔑 Access Token: $accessToken');
-
-    return RegisterResponse(
-      accessToken: accessToken,
-      refreshToken: refreshToken,
-      user: userData,
-    );
+    throw AuthException.fromJson(data, statusCode: response.statusCode);
   }
 
-  /// Cerrar sesión
-  void logout() {
-    _currentAccessToken = null;
-    _currentRefreshToken = null;
+  Future<void> logout() async {
     _currentUser = null;
-    print('Sesión cerrada');
-  }
-
-  /// Generar token mock
-  String _generateMockToken(String type, String userId) {
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final payload = base64Encode(utf8.encode('$type:$userId:$timestamp'));
-    return 'mock_${type}_token_$payload';
-  }
-
-  /// Obtener todos los usuarios mock (solo para desarrollo)
-  List<Map<String, dynamic>> getAllMockUsers() {
-    return List.unmodifiable(_mockUsers);
-  }
-
-  /// Limpiar todos los usuarios mock (solo para desarrollo/testing)
-  void clearAllMockUsers() {
-    _mockUsers.clear();
-    logout();
-    print('Base de datos mock limpiada');
+    await _tokenStorage.clear();
   }
 }
