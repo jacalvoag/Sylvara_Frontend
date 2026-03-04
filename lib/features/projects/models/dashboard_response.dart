@@ -86,63 +86,135 @@ class DashboardSummary {
 
 /// Proyecto (Plot) individual
 class Plot {
-  final String id;
-  final String name;
-  final String description;
-  final String status;
+  final int samplingPlotId;
+  final String samplingPlotName;
+  final double? totalArea;
+  final int? unitId;
+  final String? unitName;
+  final String samplingPlotStatus;
+  final int? currentCycleNumber;
+  final DateTime? startDate;
+  final DateTime? endDate;
   final String? imageUrl;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
 
   Plot({
-    required this.id,
-    required this.name,
-    required this.description,
-    required this.status,
+    required this.samplingPlotId,
+    required this.samplingPlotName,
+    this.totalArea,
+    this.unitId,
+    this.unitName,
+    required this.samplingPlotStatus,
+    this.currentCycleNumber,
+    this.startDate,
+    this.endDate,
     this.imageUrl,
-    this.createdAt,
-    this.updatedAt,
   });
 
   factory Plot.fromJson(Map<String, dynamic> json) {
     return Plot(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      description: json['description'] as String,
-      status: json['status'] as String,
-      imageUrl: json['image_url'] as String?,
-      createdAt: json['created_at'] != null 
-          ? DateTime.parse(json['created_at'] as String)
+      samplingPlotId: json['samplingPlotId'] as int,
+      samplingPlotName: json['samplingPlotName'] as String,
+      totalArea: (json['totalArea'] as num?)?.toDouble(),
+      unitId: json['unitId'] as int?,
+      unitName: json['unitName'] as String?,
+      samplingPlotStatus: json['samplingPlotStatus'] as String,
+      currentCycleNumber: json['currentCycleNumber'] as int?,
+      startDate: json['startDate'] != null 
+          ? DateTime.parse(json['startDate'] as String)
           : null,
-      updatedAt: json['updated_at'] != null
-          ? DateTime.parse(json['updated_at'] as String)
+      endDate: json['endDate'] != null
+          ? DateTime.parse(json['endDate'] as String)
           : null,
+      imageUrl: json['imageUrl'] as String?,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'name': name,
-      'description': description,
-      'status': status,
-      'image_url': imageUrl,
-      'created_at': createdAt?.toIso8601String(),
-      'updated_at': updatedAt?.toIso8601String(),
+      'samplingPlotId': samplingPlotId,
+      'samplingPlotName': samplingPlotName,
+      'totalArea': totalArea,
+      'unitId': unitId,
+      'unitName': unitName,
+      'samplingPlotStatus': samplingPlotStatus,
+      'currentCycleNumber': currentCycleNumber,
+      'startDate': startDate?.toIso8601String(),
+      'endDate': endDate?.toIso8601String(),
+      'imageUrl': imageUrl,
     };
   }
 
   /// Verificar si el proyecto está activo
-  bool get isActive => status.toLowerCase() == 'active' || status.toLowerCase() == 'activo';
+  bool get isActive => samplingPlotStatus.toLowerCase() == 'active' || samplingPlotStatus.toLowerCase() == 'activo';
 
   /// Convertir Plot a Project (para compatibilidad con widgets existentes)
   Project toProject() {
     return Project(
-      id: id,
-      nombre: name,
-      descripcion: description,
+      id: samplingPlotId.toString(),
+      nombre: samplingPlotName,
+      descripcion: '',
       isActive: isActive,
       imagen: imageUrl ?? '',
     );
   }
+
+  /// Nombre para mostrar con ID
+  String get id => samplingPlotId.toString();
+  String get name => samplingPlotName;
+  String get status => samplingPlotStatus;
+  String get description => unitName ?? 'Sin descripción';
+}
+
+/// Respuesta paginada de proyectos
+class PaginatedProjectsResponse {
+  final List<Plot> data;
+  final PaginationMeta meta;
+
+  PaginatedProjectsResponse({
+    required this.data,
+    required this.meta,
+  });
+
+  factory PaginatedProjectsResponse.fromJson(Map<String, dynamic> json) {
+    return PaginatedProjectsResponse(
+      data: (json['data'] as List<dynamic>)
+          .map((plot) => Plot.fromJson(plot as Map<String, dynamic>))
+          .toList(),
+      meta: PaginationMeta.fromJson(json['meta'] as Map<String, dynamic>),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'data': data.map((plot) => plot.toJson()).toList(),
+      'meta': meta.toJson(),
+    };
+  }
+}
+
+/// Metadatos de paginación
+class PaginationMeta {
+  final int? nextCursor;
+  final int limit;
+
+  PaginationMeta({
+    this.nextCursor,
+    required this.limit,
+  });
+
+  factory PaginationMeta.fromJson(Map<String, dynamic> json) {
+    return PaginationMeta(
+      nextCursor: json['nextCursor'] as int?,
+      limit: json['limit'] as int,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'nextCursor': nextCursor,
+      'limit': limit,
+    };
+  }
+
+  bool get hasMore => nextCursor != null;
 }

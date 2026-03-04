@@ -19,18 +19,77 @@ class ProjectListScreen extends StatefulWidget {
 
 class _ProjectListScreenState extends State<ProjectListScreen> {
   final ProjectService _projectService = ProjectService();
-  late Future<List<Plot>> _projectsFuture;
+  late Future<PaginatedProjectsResponse> _projectsFuture;
+  
+  // Variables para paginación
+  final ScrollController _scrollController = ScrollController();
+  int? _nextCursor;
+  bool _isLoadingMore = false;
+  final List<Plot> _allProjects = [];
 
   @override
   void initState() {
     super.initState();
     _loadProjects();
+    _setupScrollListener();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _setupScrollListener() {
+    _scrollController.addListener(() {
+      // Detectar cuando el usuario llega al 80% del scroll
+      if (_scrollController.position.pixels >= 
+          _scrollController.position.maxScrollExtent * 0.8) {
+        _loadMoreProjects();
+      }
+    });
   }
 
   void _loadProjects() {
     setState(() {
-      _projectsFuture = _projectService.getProjects();
+      _allProjects.clear();
+      _nextCursor = null;
+      _projectsFuture = _projectService.getProjects(limit: 20);
     });
+  }
+
+  Future<void> _loadMoreProjects() async {
+    // Si ya está cargando más o no hay más páginas, no hacer nada
+    if (_isLoadingMore || _nextCursor == null) return;
+
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    try {
+      final response = await _projectService.getProjects(
+        cursor: _nextCursor,
+        limit: 20,
+      );
+
+      setState(() {
+        _allProjects.addAll(response.data);
+        _nextCursor = response.meta.nextCursor;
+        _isLoadingMore = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingMore = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar más proyectos: $e'),
+            backgroundColor: const Color(0xFFD32F2F),
+          ),
+        );
+      }
+    }
   }
 
   void _showDeleteConfirmationDialog(Plot project) {
@@ -579,7 +638,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                         
                         // Lista de proyectos
                         Expanded(
-                          child: FutureBuilder<List<Plot>>(
+                          child: FutureBuilder<PaginatedProjectsResponse>(
                             future: _projectsFuture,
                             builder: (context, snapshot) {
                               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -661,7 +720,18 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                 );
                               }
 
-                              final projects = snapshot.data ?? [];
+                              final response = snapshot.data!;
+                              final projects = [...response.data, ..._allProjects];
+
+                              // Guardar nextCursor para paginación
+                              if (_allProjects.isEmpty && response.data.isNotEmpty) {
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  setState(() {
+                                    _allProjects.addAll(response.data);
+                                    _nextCursor = response.meta.nextCursor;
+                                  });
+                                });
+                              }
 
                               if (projects.isEmpty) {
                                 return Center(
@@ -702,9 +772,24 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                               }
 
                               return ListView.builder(
+                                controller: _scrollController,
                                 padding: const EdgeInsets.fromLTRB(20, 18, 20, 80),
-                                itemCount: projects.length,
+                                itemCount: projects.length + (_isLoadingMore ? 1 : 0),
                                 itemBuilder: (context, index) {
+                                  // Mostrar indicador de carga al final
+                                  if (index == projects.length) {
+                                    return Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(16),
+                                        child: CircularProgressIndicator(
+                                          valueColor: AlwaysStoppedAnimation<Color>(
+                                            const Color(0xFF0E3520),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }
+
                                   final project = projects[index];
                                   return Padding(
                                     padding: const EdgeInsets.only(bottom: 12),

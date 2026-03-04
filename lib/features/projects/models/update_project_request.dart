@@ -13,14 +13,14 @@ class UpdateProjectRequest {
     this.unitId,
   });
 
-  // Convertir a JSON para enviar al backend
+  // Convertir a JSON para enviar al backend (camelCase)
   Map<String, dynamic> toJson() {
     return {
-      'nombre': nombre,
-      'descripcion': descripcion,
-      if (imagen != null) 'imagen': imagen,
-      if (area != null) 'area': area,
-      if (unitId != null) 'unit_id': unitId,
+      'samplingPlotName': nombre,
+      'samplingPlotDescription': descripcion,
+      if (imagen != null) 'imageUrl': imagen,
+      if (area != null) 'totalArea': area,
+      if (unitId != null) 'unitId': unitId,
     };
   }
 
