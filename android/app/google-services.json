@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "960985889121",
+    "project_id": "sylvara-9ee68",
+    "storage_bucket": "sylvara-9ee68.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:960985889121:android:9e5e834c1aa312482fed20",
+        "android_client_info": {
+          "package_name": "com.example.sylvara_frontend"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBrsdfZx_NdpGKC6zPXqpVk7mYorJFAKbw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
