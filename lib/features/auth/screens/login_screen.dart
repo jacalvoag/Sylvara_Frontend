@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sylvara_frontend/core/widgets/widgets.dart';
 import 'package:sylvara_frontend/features/auth/models/models.dart';
 import 'package:sylvara_frontend/features/auth/services/auth_service.dart';
+import 'package:sylvara_frontend/features/projects/screens/screens.dart';
 
 
 class LoginScreen extends StatefulWidget {
@@ -69,11 +70,10 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
 
-      // TODO: Navegar a la pantalla principal
-      // Navigator.pushReplacement(
-      //   context,
-      //   MaterialPageRoute(builder: (context) => const HomeScreen()),
-      // );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const PantallaInicio()),
+      );
 
     } on AuthException catch (e) {
       // Manejar errores 400, 401, 500

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:sylvara_frontend/core/widgets/widgets.dart';
 import 'package:sylvara_frontend/features/projects/models/models.dart';
 import 'package:sylvara_frontend/features/projects/services/project_service.dart';
+import 'package:sylvara_frontend/core/api/token_storage.dart';
+import 'package:sylvara_frontend/features/benchmarking/screens/screens.dart';
 
 class PantallaInicio extends StatefulWidget {
   const PantallaInicio({super.key});
@@ -200,6 +202,53 @@ class _PantallaInicioState extends State<PantallaInicio>
                   bottom: 230,
                 ),
                 child: CustomBienvenida(nombre: dashboard.user.userName),
+              ),
+
+              // Después del CustomBienvenida y antes del TabBar
+              FutureBuilder<bool>(
+                future: TokenStorage().isAdmin(),
+                builder: (context, snapshot) {
+                  if (snapshot.data != true) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 16),
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const BenchmarkingScreen(),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0E3520),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.speed, color: Colors.white, size: 16),
+                              SizedBox(width: 6),
+                              Text(
+                                'Benchmarking',
+                                style: TextStyle(
+                                  fontFamily: 'Montserrat',
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
 
               // TabBar personalizado con glassmorphism
