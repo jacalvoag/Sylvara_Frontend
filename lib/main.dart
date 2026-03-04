@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sylvara_frontend/features/auth/screens/login_screen.dart';
+import 'package:sylvara_frontend/features/auth/screens/register_screen.dart';
+
 import 'package:sylvara_frontend/features/projects/screens/screens.dart';
 
 void main() {

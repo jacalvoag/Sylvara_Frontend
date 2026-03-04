@@ -14,106 +14,155 @@ class GoogleStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isConnected ? const Color(0xFF0E3520) : const Color(0xFFE0E0E0),
-          width: 1.5,
-        ),
+        gradient: isConnected
+            ? const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF0E3520), Color(0xFF1A5C38)],
+              )
+            : const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFFFFFFFF), Color(0xFFF8FAFB)],
+              ),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: isConnected
+                ? const Color(0xFF0E3520).withOpacity(0.3)
+                : Colors.black.withOpacity(0.06),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Row(
         children: [
+          // Google icon container
           Container(
-            width: 44,
-            height: 44,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               color: isConnected
-                  ? const Color(0xFF0E3520).withOpacity(0.1)
-                  : const Color(0xFFE0E0E0).withOpacity(0.3),
-              borderRadius: BorderRadius.circular(12),
+                  ? Colors.white.withOpacity(0.15)
+                  : const Color(0xFF0E3520).withOpacity(0.06),
+              borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(
-              isConnected ? Icons.cloud_done : Icons.cloud_off,
-              color: isConnected ? const Color(0xFF0E3520) : const Color(0xFF757575),
-              size: 24,
+            child: Center(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: Icon(
+                  isConnected ? Icons.cloud_done_rounded : Icons.cloud_off_rounded,
+                  key: ValueKey(isConnected),
+                  color: isConnected ? Colors.white : const Color(0xFF9E9E9E),
+                  size: 26,
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 16),
+
+          // Texts
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Google BigQuery',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Montserrat',
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF0E3520),
+                    color: isConnected ? Colors.white : const Color(0xFF0E3520),
+                    letterSpacing: 0.3,
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  isConnected ? 'Conectado' : 'No conectado',
-                  style: TextStyle(
-                    fontFamily: 'Montserrat',
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: isConnected ? const Color(0xFF0E3520) : const Color(0xFF757575),
-                  ),
+                const SizedBox(height: 3),
+                Row(
+                  children: [
+                    Container(
+                      width: 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isConnected
+                            ? const Color(0xFF4ADE80)
+                            : const Color(0xFFBDBDBD),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      isConnected ? 'Cuenta vinculada' : 'Sin vincular',
+                      style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: isConnected
+                            ? Colors.white.withOpacity(0.8)
+                            : const Color(0xFF9E9E9E),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
+
+          // Action button or check
           if (!isConnected)
             GestureDetector(
               onTap: isLoading ? null : onConnect,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 decoration: BoxDecoration(
                   color: const Color(0xFF0E3520),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0E3520).withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
                 ),
                 child: isLoading
                     ? const SizedBox(
-                        width: 16,
-                        height: 16,
+                        width: 18,
+                        height: 18,
                         child: CircularProgressIndicator(
                           color: Colors.white,
                           strokeWidth: 2,
                         ),
                       )
                     : const Text(
-                        'Conectar',
+                        'Vincular',
                         style: TextStyle(
                           fontFamily: 'Montserrat',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
                           color: Colors.white,
+                          letterSpacing: 0.5,
                         ),
                       ),
               ),
             ),
+
           if (isConnected)
             Container(
-              width: 28,
-              height: 28,
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
-                color: const Color(0xFF0E3520),
+                color: Colors.white.withOpacity(0.2),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.check, color: Colors.white, size: 16),
+              child: const Icon(Icons.check_rounded, color: Colors.white, size: 20),
             ),
         ],
       ),
