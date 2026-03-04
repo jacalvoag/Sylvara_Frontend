@@ -62,4 +62,12 @@ class BenchmarkingService {
     }
     throw Exception('Error al obtener métricas: ${response.body}');
   }
+
+  Future<List<int>> downloadCsvBytes() async {
+    final response = await _apiClient.get(ApiConfig.csvDownload);
+    if (response.statusCode == 200) {
+      return response.bodyBytes;
+    }
+    throw Exception('Error al descargar CSV: ${response.body}');
+  }
 }
