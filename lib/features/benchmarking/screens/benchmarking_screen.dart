@@ -1,10 +1,13 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'dart:html' as html;
 import 'package:sylvara_frontend/core/api/token_storage.dart';
 import 'package:sylvara_frontend/features/benchmarking/models/models.dart';
+import 'package:sylvara_frontend/features/benchmarking/service/google_auth_service.dart';
 import 'package:sylvara_frontend/features/benchmarking/service/benchmarking_service.dart';
 import 'package:sylvara_frontend/features/benchmarking/widgets/widgets.dart';
 
+// Conditional import for web
+import 'benchmarking_screen_web.dart' if (dart.library.io) 'benchmarking_screen_stub.dart';
 class BenchmarkingScreen extends StatefulWidget {
   const BenchmarkingScreen({super.key});
 
@@ -16,6 +19,7 @@ class _BenchmarkingScreenState extends State<BenchmarkingScreen>
     with SingleTickerProviderStateMixin {
   final _service = BenchmarkingService();
   final _tokenStorage = TokenStorage();
+  final _googleAuthService = GoogleAuthService();
 
   bool _googleConnected = false;
   bool _isLoadingGoogle = false;
@@ -63,11 +67,19 @@ class _BenchmarkingScreenState extends State<BenchmarkingScreen>
   }
 
   Future<void> _connectGoogle() async {
+    if (kIsWeb) {
+      await _connectGoogleWeb();
+    } else {
+      await _connectGoogleMobile();
+    }
+  }
+
+  Future<void> _connectGoogleWeb() async {
     final token = await _tokenStorage.getAccessToken();
     if (token == null) return;
 
     final url = _service.getGoogleAuthUrl(token);
-    html.window.open(url, '_blank');
+    openUrlInBrowser(url);
 
     if (mounted) {
       showModalBottomSheet(
@@ -160,6 +172,58 @@ class _BenchmarkingScreenState extends State<BenchmarkingScreen>
           ),
         ),
       );
+    }
+  }
+
+  Future<void> _connectGoogleMobile() async {
+    setState(() => _isLoadingGoogle = true);
+
+    try {
+      final success = await _googleAuthService.signInWithGoogleMobile();
+
+      if (success) {
+        setState(() => _googleConnected = true);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Google vinculado exitosamente'),
+              backgroundColor: const Color(0xFF0E3520),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('No se pudo vincular Google'),
+              backgroundColor: const Color(0xFFDC2626),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: const Color(0xFFDC2626),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
+    } finally {
+      setState(() => _isLoadingGoogle = false);
     }
   }
 
@@ -372,7 +436,6 @@ class _BenchmarkingScreenState extends State<BenchmarkingScreen>
           opacity: _fadeAnimation,
           child: Column(
             children: [
-              // App bar
               Padding(
                 padding: const EdgeInsets.fromLTRB(8, 8, 20, 0),
                 child: Row(
@@ -409,7 +472,6 @@ class _BenchmarkingScreenState extends State<BenchmarkingScreen>
                       ],
                     ),
                     const Spacer(),
-                    // Refresh button
                     GestureDetector(
                       onTap: _checkGoogleStatus,
                       child: Container(
@@ -436,10 +498,7 @@ class _BenchmarkingScreenState extends State<BenchmarkingScreen>
                   ],
                 ),
               ),
-
               const SizedBox(height: 20),
-
-              // Content
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
@@ -447,16 +506,12 @@ class _BenchmarkingScreenState extends State<BenchmarkingScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Google status
                       GoogleStatusCard(
                         isConnected: _googleConnected,
                         isLoading: _isLoadingGoogle,
                         onConnect: _connectGoogle,
                       ),
-
                       const SizedBox(height: 20),
-
-                      // Corte del dia
                       CortDelDiaCard(
                         googleConnected: _googleConnected,
                         currentStep: _currentStep,
@@ -468,8 +523,6 @@ class _BenchmarkingScreenState extends State<BenchmarkingScreen>
                         onSendBigQuery: _handleSendBigQuery,
                         onReset: _handleReset,
                       ),
-
-                      // Snapshot table
                       if (_showSnapshot) ...[
                         const SizedBox(height: 28),
                         Row(
@@ -498,7 +551,6 @@ class _BenchmarkingScreenState extends State<BenchmarkingScreen>
                         const SizedBox(height: 14),
                         SnapshotTable(rows: _snapshotRows),
                       ],
-
                       const SizedBox(height: 40),
                     ],
                   ),
