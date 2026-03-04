@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:sylvara_frontend/core/widgets/widgets.dart';
 import 'package:sylvara_frontend/features/auth/models/models.dart';
 import 'package:sylvara_frontend/features/auth/services/auth_service.dart';
+import 'package:sylvara_frontend/features/auth/screens/register_screen.dart';
 import 'package:sylvara_frontend/features/projects/screens/screens.dart';
-
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,6 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   String? _errorMessage;
   bool _isLoading = false;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -27,46 +28,31 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  /// Manejar el inicio de sesión
   Future<void> _handleLogin() async {
-    setState(() {
-      _errorMessage = null;
-      _isLoading = true;
-    });
+    setState(() => _errorMessage = null);
 
-    // Validar formulario
-    if (!_formKey.currentState!.validate()) {
-      setState(() {
-        _errorMessage = 'Por favor, completa todos los campos correctamente';
-        _isLoading = false;
-      });
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
 
     try {
-      // Crear request según el contrato del backend
       final request = LoginRequest(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
 
-      // Llamar al servicio de login
       final response = await _authService.login(request);
 
       if (!mounted) return;
 
-      // Login exitoso (200)
-      print('✅ Login exitoso');
-      print('Usuario: ${response.user.fullName}');
-      print('AccessToken: ${response.accessToken}');
-      print('RefreshToken: ${response.refreshToken}');
-
-      // Mostrar mensaje de éxito
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('¡Bienvenido, ${response.user.name}!'),
           backgroundColor: const Color(0xFF0E3520),
-          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
 
@@ -74,33 +60,17 @@ class _LoginScreenState extends State<LoginScreen> {
         context,
         MaterialPageRoute(builder: (context) => const PantallaInicio()),
       );
-
     } on AuthException catch (e) {
-      // Manejar errores 400, 401, 500
       setState(() {
         _errorMessage = e.message;
         _isLoading = false;
       });
-      
-      print('❌ Error de autenticación [${e.statusCode}]: ${e.message}');
-      
     } catch (e) {
-      // Manejar otros errores inesperados
       setState(() {
-        _errorMessage = 'Error inesperado. Por favor intenta de nuevo';
+        _errorMessage = 'Error de conexión. Verifica tu red e intenta de nuevo.';
         _isLoading = false;
       });
-      
-      print('❌ Error inesperado: $e');
     }
-
-    setState(() {
-      _isLoading = false;
-    });
-  }
-
-  void _handleCancel() {
-    Navigator.of(context).pop();
   }
 
   @override
@@ -108,302 +78,315 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Background image
           const BackgroundImage(
             imagePath: 'assets/images/backgrounds/auth_background.jpg',
             height: 933,
           ),
-          
-          // Content
           SafeArea(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  const SizedBox(height: 100),
-                  
-                  // Logo SYLVARA
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        'assets/images/logos/sylvara_logo.png',
-                        width: 50,
-                        height: 54,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Icon(
-                            Icons.eco,
-                            size: 50,
-                            color: Color(0xFF0E3520),
-                          );
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'SYLVARA',
-                        style: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 28,
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFF0E3520),
-                          letterSpacing: 2.24,
-                        ),
-                      ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 27),
-                  
-                  // Form container
-                  SizedBox(
-                    width: 336,
-                    child: Column(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 28),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 40),
+
+                    // Logo
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Glassmorphism header
-                        Container(
-                          width: 336,
-                          height: 224,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFCFFFD).withOpacity(0.1),
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 1,
-                            ),
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(40),
-                              topRight: Radius.circular(40),
-                            ),
+                        Image.asset(
+                          'assets/images/logos/sylvara_logo.png',
+                          width: 50,
+                          height: 54,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(
+                              Icons.eco,
+                              size: 50,
+                              color: Color(0xFF0E3520),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'SYLVARA',
+                          style: TextStyle(
+                            fontFamily: 'Montserrat',
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF0E3520),
+                            letterSpacing: 2.24,
                           ),
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 20, top: 13),
-                            child: Align(
-                              alignment: Alignment.topLeft,
-                              child: RichText(
-                                text: const TextSpan(
-                                  children: [
-                                    TextSpan(
-                                      text: 'Inicia ',
-                                      style: TextStyle(
-                                        fontFamily: 'Montserrat',
-                                        fontSize: 19,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF0E3520),
-                                      ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 40),
+
+                    // Card del formulario
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(28),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(28),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.12),
+                            blurRadius: 24,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            RichText(
+                              text: const TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: 'Inicia ',
+                                    style: TextStyle(
+                                      fontFamily: 'Montserrat',
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w800,
+                                      color: Color(0xFF0E3520),
                                     ),
-                                    TextSpan(
-                                      text: 'sesión',
-                                      style: TextStyle(
-                                        fontFamily: 'Montserrat',
-                                        fontSize: 19,
-                                        fontWeight: FontWeight.normal,
-                                        color: Color(0xFF0E3520),
+                                  ),
+                                  TextSpan(
+                                    text: 'sesión',
+                                    style: TextStyle(
+                                      fontFamily: 'Montserrat',
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w400,
+                                      color: Color(0xFF0E3520),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            const SizedBox(height: 28),
+
+                            CustomTextField(
+                              label: 'Correo electrónico',
+                              placeholder: 'correo@ejemplo.com',
+                              controller: _emailController,
+                              keyboardType: TextInputType.emailAddress,
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Ingresa tu correo';
+                                }
+                                final emailRegex = RegExp(
+                                  r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                                );
+                                if (!emailRegex.hasMatch(value.trim())) {
+                                  return 'Correo no válido';
+                                }
+                                return null;
+                              },
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            CustomTextField(
+                              label: 'Contraseña',
+                              placeholder: '••••••••',
+                              controller: _passwordController,
+                              obscureText: _obscurePassword,
+                              suffixIcon: GestureDetector(
+                                onTap: () {
+                                  setState(() => _obscurePassword = !_obscurePassword);
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.only(right: 12),
+                                  child: Icon(
+                                    _obscurePassword
+                                        ? Icons.visibility_off_outlined
+                                        : Icons.visibility_outlined,
+                                    size: 20,
+                                    color: const Color(0xFF0E3520).withOpacity(0.5),
+                                  ),
+                                ),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Ingresa tu contraseña';
+                                }
+                                if (value.length < 6) {
+                                  return 'Mínimo 6 caracteres';
+                                }
+                                return null;
+                              },
+                            ),
+
+                            // Error message
+                            if (_errorMessage != null) ...[
+                              const SizedBox(height: 20),
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 10,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFEF2F2),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: const Color(0xFFFECACA),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.error_outline_rounded,
+                                      color: Color(0xFFDC2626),
+                                      size: 18,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        _errorMessage!,
+                                        style: const TextStyle(
+                                          fontFamily: 'Montserrat',
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: Color(0xFFDC2626),
+                                        ),
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                            ),
-                          ),
-                        ),
-                        
-                        // Main form container
-                        Transform.translate(
-                          offset: const Offset(0, -44),
-                          child: Container(
-                            width: 336,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 5,
-                              vertical: 7,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(32),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.25),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 0),
-                                ),
-                              ],
-                            ),
-                            child: Column(
+                            ],
+
+                            const SizedBox(height: 28),
+
+                            // Botones
+                            Row(
                               children: [
-                                // Fields container
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 14,
-                                    vertical: 23,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: const Color(0xFF0E3520),
-                                      width: 1,
-                                    ),
-                                    borderRadius: BorderRadius.circular(29),
-                                  ),
-                                  child: Form(
-                                    key: _formKey,
-                                    child: Column(
-                                      children: [
-                                        // Email field
-                                        CustomTextField(
-                                          label: 'Correo electronico',
-                                          placeholder: 'Ej. malagaacos@gmail.com',
-                                          controller: _emailController,
-                                          keyboardType: TextInputType.emailAddress,
-                                          validator: (value) {
-                                            if (value == null || value.isEmpty) {
-                                              return 'El correo es requerido';
-                                            }
-                                            final emailRegex = RegExp(
-                                              r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                                            );
-                                            if (!emailRegex.hasMatch(value)) {
-                                              return 'Correo inválido';
-                                            }
-                                            return null;
-                                          },
-                                        ),
-                                        
-                                        const SizedBox(height: 23),
-                                        
-                                        // Password field
-                                        CustomTextField(
-                                          label: 'Contraseña',
-                                          placeholder: '••••••••',
-                                          controller: _passwordController,
-                                          obscureText: true,
-                                          validator: (value) {
-                                            if (value == null || value.isEmpty) {
-                                              return 'La contraseña es requerida';
-                                            }
-                                            if (value.length < 6) {
-                                              return 'Mínimo 6 caracteres';
-                                            }
-                                            return null;
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                
-                                const SizedBox(height: 16),
-                                
-                                // Warning message area (fuera del formulario pero dentro del contenedor principal)
-                                if (_errorMessage != null)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        const Icon(
-                                          Icons.warning,
-                                          color: Color(0xFFAE0000),
-                                          size: 20,
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Flexible(
-                                          child: Text(
-                                            _errorMessage!,
-                                            style: const TextStyle(
-                                              fontFamily: 'Montserrat',
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w600,
-                                              color: Color(0xFFAE0000),
-                                            ),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                
-                                SizedBox(height: _errorMessage != null ? 16 : 0),
-                                
-                                // Buttons
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    // Cancel button
-                                    GestureDetector(
-                                      onTap: _isLoading ? null : _handleCancel,
-                                      child: Container(
-                                        width: 129,
-                                        height: 30,
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
-                                            color: _isLoading 
-                                                ? Colors.grey 
-                                                : const Color(0xFF0E3520),
-                                            width: 2,
-                                          ),
-                                          borderRadius: BorderRadius.circular(10),
-                                        ),
-                                        child: Center(
-                                          child: Text(
-                                            'Cancelar',
-                                            style: TextStyle(
-                                              fontFamily: 'Montserrat',
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                              color: _isLoading 
-                                                  ? Colors.grey 
-                                                  : const Color(0xFF0E3520),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    
-                                    const SizedBox(width: 12),
-                                    
-                                    // Accept button
-                                    GestureDetector(
-                                      onTap: _isLoading ? null : _handleLogin,
-                                      child: Container(
-                                        width: 129,
-                                        height: 30,
-                                        decoration: BoxDecoration(
-                                          color: _isLoading 
-                                              ? Colors.grey 
+                                Expanded(
+                                  child: SizedBox(
+                                    height: 48,
+                                    child: OutlinedButton(
+                                      onPressed: _isLoading
+                                          ? null
+                                          : () => Navigator.of(context).pop(),
+                                      style: OutlinedButton.styleFrom(
+                                        side: BorderSide(
+                                          color: _isLoading
+                                              ? const Color(0xFFCBD5E1)
                                               : const Color(0xFF0E3520),
-                                          borderRadius: BorderRadius.circular(10),
+                                          width: 1.5,
                                         ),
-                                        child: Center(
-                                          child: _isLoading
-                                              ? const SizedBox(
-                                                  width: 16,
-                                                  height: 16,
-                                                  child: CircularProgressIndicator(
-                                                    color: Colors.white,
-                                                    strokeWidth: 2,
-                                                  ),
-                                                )
-                                              : const Text(
-                                                  'Aceptar',
-                                                  style: TextStyle(
-                                                    fontFamily: 'Montserrat',
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Color(0xFFF1F5F9),
-                                                  ),
-                                                ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'Cancelar',
+                                        style: TextStyle(
+                                          fontFamily: 'Montserrat',
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                          color: _isLoading
+                                              ? const Color(0xFFCBD5E1)
+                                              : const Color(0xFF0E3520),
                                         ),
                                       ),
                                     ),
-                                  ],
+                                  ),
                                 ),
-                                
-                                const SizedBox(height: 7),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: SizedBox(
+                                    height: 48,
+                                    child: ElevatedButton(
+                                      onPressed: _isLoading ? null : _handleLogin,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(0xFF0E3520),
+                                        disabledBackgroundColor: const Color(0xFFCBD5E1),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        elevation: 0,
+                                      ),
+                                      child: _isLoading
+                                          ? const SizedBox(
+                                              width: 20,
+                                              height: 20,
+                                              child: CircularProgressIndicator(
+                                                color: Colors.white,
+                                                strokeWidth: 2,
+                                              ),
+                                            )
+                                          : const Text(
+                                              'Iniciar sesión',
+                                              style: TextStyle(
+                                                fontFamily: 'Montserrat',
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w700,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
-                          ),
+
+                            const SizedBox(height: 20),
+
+                            // Link a registro
+                            Center(
+                              child: GestureDetector(
+                                onTap: _isLoading
+                                    ? null
+                                    : () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const RegisterScreen(),
+                                          ),
+                                        );
+                                      },
+                                child: RichText(
+                                  text: TextSpan(
+                                    children: [
+                                      TextSpan(
+                                        text: '¿No tienes cuenta? ',
+                                        style: TextStyle(
+                                          fontFamily: 'Montserrat',
+                                          fontSize: 13,
+                                          color: const Color(0xFF0E3520)
+                                              .withOpacity(0.6),
+                                        ),
+                                      ),
+                                      const TextSpan(
+                                        text: 'Regístrate',
+                                        style: TextStyle(
+                                          fontFamily: 'Montserrat',
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w700,
+                                          color: Color(0xFF0E3520),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 40),
-                ],
+
+                    const SizedBox(height: 40),
+                  ],
+                ),
               ),
             ),
           ),
