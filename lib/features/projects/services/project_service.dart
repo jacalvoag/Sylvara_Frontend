@@ -32,7 +32,7 @@ class ProjectService {
     //   },
     // );
 
-    // Datos mock simulando la respuesta del backend
+    // Datos mock simulando la respuesta del backend (con estructura camelCase)
     final Map<String, dynamic> mockResponse = {
       'user': {
         'user_name': 'Malaga',
@@ -44,31 +44,40 @@ class ProjectService {
       },
       'latest_plots': [
         {
-          'id': '1',
-          'name': 'Predio Cuba Libre',
-          'description': 'Monitoreo de especies nativas en zona protegida',
-          'status': 'active',
-          'image_url': 'https://via.placeholder.com/48',
-          'created_at': '2026-02-15T10:30:00Z',
-          'updated_at': '2026-02-26T14:20:00Z',
+          'samplingPlotId': 1,
+          'samplingPlotName': 'Predio Cuba Libre',
+          'totalArea': 1500.5,
+          'unitId': 2,
+          'unitName': 'Hectáreas',
+          'samplingPlotStatus': 'active',
+          'currentCycleNumber': 1,
+          'startDate': '2026-02-15T10:30:00Z',
+          'endDate': null,
+          'imageUrl': 'https://via.placeholder.com/48',
         },
         {
-          'id': '2',
-          'name': 'Reserva Natural del Noreste',
-          'description': 'Estudio de biodiversidad y conservación',
-          'status': 'active',
-          'image_url': 'https://via.placeholder.com/48',
-          'created_at': '2026-02-10T08:15:00Z',
-          'updated_at': '2026-02-25T16:45:00Z',
+          'samplingPlotId': 2,
+          'samplingPlotName': 'Reserva Natural del Noreste',
+          'totalArea': 2800.0,
+          'unitId': 2,
+          'unitName': 'Hectáreas',
+          'samplingPlotStatus': 'active',
+          'currentCycleNumber': 2,
+          'startDate': '2026-02-10T08:15:00Z',
+          'endDate': null,
+          'imageUrl': 'https://via.placeholder.com/48',
         },
         {
-          'id': '3',
-          'name': 'Parque Nacional Sierra Verde',
-          'description': 'Investigación forestal y fauna silvestre',
-          'status': 'inactive',
-          'image_url': 'https://via.placeholder.com/48',
-          'created_at': '2026-01-20T12:00:00Z',
-          'updated_at': '2026-02-20T09:30:00Z',
+          'samplingPlotId': 3,
+          'samplingPlotName': 'Parque Nacional Sierra Verde',
+          'totalArea': 5000.0,
+          'unitId': 2,
+          'unitName': 'Hectáreas',
+          'samplingPlotStatus': 'inactive',
+          'currentCycleNumber': 1,
+          'startDate': '2026-01-20T12:00:00Z',
+          'endDate': '2026-02-20T09:30:00Z',
+          'imageUrl': 'https://via.placeholder.com/48',
         },
       ],
     };
@@ -86,19 +95,35 @@ class ProjectService {
     return DashboardResponse.fromJson(mockResponse);
   }
 
-  /// Obtener todos los proyectos (GET /projects)
+  /// Obtener todos los proyectos con paginación (GET /projects)
+  /// 
+  /// Parámetros:
+  /// - status: Filtrar por estado ('active', 'inactive', etc.)
+  /// - cursor: Cursor de paginación para cargar más proyectos
+  /// - limit: Cantidad de proyectos a cargar (por defecto 20)
   /// 
   /// Simula el comportamiento del backend:
-  /// - 200: Retorna lista de proyectos
+  /// - 200: Retorna respuesta paginada con data y meta
   /// - 401: No autenticado
+  /// - 404: No se encontraron proyectos (NOT_FOUND)
   /// - 500: Error del servidor
-  Future<List<Plot>> getProjects() async {
+  Future<PaginatedProjectsResponse> getProjects({
+    String? status,
+    int? cursor,
+    int limit = 20,
+  }) async {
     // Simular delay de red
     await Future.delayed(const Duration(milliseconds: 800));
 
     // TODO: En producción, reemplazar con llamada HTTP real
+    // final queryParams = <String, dynamic>{
+    //   if (status != null) 'status': status,
+    //   if (cursor != null) 'cursor': cursor,
+    //   'limit': limit,
+    // };
+    // final uri = Uri.parse('https://api.sylvara.com/projects').replace(queryParameters: queryParams);
     // final response = await http.get(
-    //   Uri.parse('https://api.sylvara.com/projects'),
+    //   uri,
     //   headers: {
     //     'Authorization': 'Bearer $token',
     //     'Content-Type': 'application/json',
@@ -109,37 +134,81 @@ class ProjectService {
     if (_mockProjects.isEmpty) {
       _mockProjects.addAll([
         {
-          'id': '1',
-          'name': 'Predio Cuba Libre',
-          'description': 'Monitoreo de especies nativas en zona protegida',
-          'status': 'active',
-          'image_url': 'https://via.placeholder.com/48',
-          'created_at': '2026-02-15T10:30:00Z',
-          'updated_at': '2026-02-26T14:20:00Z',
+          'samplingPlotId': 1,
+          'samplingPlotName': 'Predio Cuba Libre',
+          'totalArea': 1500.5,
+          'unitId': 2,
+          'unitName': 'Hectáreas',
+          'samplingPlotStatus': 'active',
+          'currentCycleNumber': 1,
+          'startDate': '2026-02-15T10:30:00Z',
+          'endDate': null,
+          'imageUrl': 'https://via.placeholder.com/48',
         },
         {
-          'id': '2',
-          'name': 'Reserva Natural del Noreste',
-          'description': 'Estudio de biodiversidad y conservación',
-          'status': 'active',
-          'image_url': 'https://via.placeholder.com/48',
-          'created_at': '2026-02-10T08:15:00Z',
-          'updated_at': '2026-02-25T16:45:00Z',
+          'samplingPlotId': 2,
+          'samplingPlotName': 'Reserva Natural del Noreste',
+          'totalArea': 2800.0,
+          'unitId': 2,
+          'unitName': 'Hectáreas',
+          'samplingPlotStatus': 'active',
+          'currentCycleNumber': 2,
+          'startDate': '2026-02-10T08:15:00Z',
+          'endDate': null,
+          'imageUrl': 'https://via.placeholder.com/48',
         },
         {
-          'id': '3',
-          'name': 'Parque Nacional Sierra Verde',
-          'description': 'Investigación forestal y fauna silvestre',
-          'status': 'inactive',
-          'image_url': 'https://via.placeholder.com/48',
-          'created_at': '2026-01-20T12:00:00Z',
-          'updated_at': '2026-02-20T09:30:00Z',
+          'samplingPlotId': 3,
+          'samplingPlotName': 'Parque Nacional Sierra Verde',
+          'totalArea': 5000.0,
+          'unitId': 2,
+          'unitName': 'Hectáreas',
+          'samplingPlotStatus': 'inactive',
+          'currentCycleNumber': 1,
+          'startDate': '2026-01-20T12:00:00Z',
+          'endDate': '2026-02-20T09:30:00Z',
+          'imageUrl': 'https://via.placeholder.com/48',
         },
       ]);
     }
 
-    print('📋 Se obtuvieron ${_mockProjects.length} proyectos');
-    return _mockProjects.map((json) => Plot.fromJson(json)).toList();
+    // Filtrar por estado si se especifica
+    List<Map<String, dynamic>> filteredProjects = _mockProjects;
+    if (status != null) {
+      filteredProjects = _mockProjects
+          .where((p) => p['samplingPlotStatus'] == status)
+          .toList();
+    }
+
+    // Si no hay proyectos después del filtro
+    if (filteredProjects.isEmpty) {
+      throw ProjectException(
+        message: 'No se encontraron proyectos',
+        statusCode: 404, // NOT_FOUND
+      );
+    }
+
+    // Aplicar paginación
+    final startIndex = cursor ?? 0;
+    final endIndex = (startIndex + limit).clamp(0, filteredProjects.length);
+    final paginatedData = filteredProjects.sublist(startIndex, endIndex);
+
+    // Determinar si hay más datos
+    final hasMore = endIndex < filteredProjects.length;
+    final nextCursor = hasMore ? endIndex : null;
+
+    print('📋 Se obtuvieron ${paginatedData.length} proyectos (cursor: $cursor, limit: $limit)');
+    print('📄 Siguiente cursor: $nextCursor');
+
+    final response = {
+      'data': paginatedData,
+      'meta': {
+        'nextCursor': nextCursor,
+        'limit': limit,
+      },
+    };
+
+    return PaginatedProjectsResponse.fromJson(response);
   }
 
   /// Crear un nuevo proyecto (POST /projects)
@@ -148,6 +217,7 @@ class ProjectService {
   /// - 201: Proyecto creado exitosamente
   /// - 400: Datos inválidos
   /// - 401: No autenticado
+  /// - 422: Área excedida (AREA_EXCEEDED)
   /// - 500: Error del servidor
   Future<Plot> createProject(CreateProjectRequest request) async {
     // Simular delay de red
@@ -176,6 +246,14 @@ class ProjectService {
       );
     }
 
+    // Validar área excedida (422 - Unprocessable Entity)
+    if (request.area != null && request.area! > 10000) {
+      throw ProjectException(
+        message: 'El área excede el límite máximo permitido',
+        statusCode: 422, // AREA_EXCEEDED
+      );
+    }
+
     // TODO: En producción, reemplazar con llamada HTTP real
     // final response = await http.post(
     //   Uri.parse('https://api.sylvara.com/projects'),
@@ -188,16 +266,19 @@ class ProjectService {
 
     // Crear proyecto exitoso (201 - Created)
     final now = DateTime.now();
-    final projectId = 'project_${_mockProjects.length + 1}_${now.millisecondsSinceEpoch}';
+    final projectId = _mockProjects.length + 1;
     
     final newProject = {
-      'id': projectId,
-      'name': request.nombre,
-      'description': request.descripcion,
-      'status': 'active',
-      'image_url': request.imagen ?? 'https://via.placeholder.com/48',
-      'created_at': now.toIso8601String(),
-      'updated_at': now.toIso8601String(),
+      'samplingPlotId': projectId,
+      'samplingPlotName': request.nombre,
+      'totalArea': request.area,
+      'unitId': request.unitId,
+      'unitName': request.unitId == 1 ? 'Metros' : 'Hectáreas',
+      'samplingPlotStatus': 'active',
+      'currentCycleNumber': 1,
+      'startDate': now.toIso8601String(),
+      'endDate': null,
+      'imageUrl': request.imagen ?? 'https://via.placeholder.com/48',
     };
 
     _mockProjects.add(newProject);
@@ -212,7 +293,8 @@ class ProjectService {
   /// - 200: Proyecto actualizado exitosamente
   /// - 400: Datos inválidos
   /// - 401: No autenticado
-  /// - 404: Proyecto no encontrado
+  /// - 404: Proyecto no encontrado (NOT_FOUND)
+  /// - 422: Área excedida (AREA_EXCEEDED)
   /// - 500: Error del servidor
   Future<Plot> updateProject(String id, UpdateProjectRequest request) async {
     // Simular delay de red
@@ -226,13 +308,21 @@ class ProjectService {
       );
     }
 
+    // Validar área excedida (422 - Unprocessable Entity)
+    if (request.area != null && request.area! > 10000) {
+      throw ProjectException(
+        message: 'El área excede el límite máximo permitido',
+        statusCode: 422, // AREA_EXCEEDED
+      );
+    }
+
     // Buscar el proyecto
-    final projectIndex = _mockProjects.indexWhere((p) => p['id'] == id);
+    final projectIndex = _mockProjects.indexWhere((p) => p['samplingPlotId'].toString() == id);
     
     if (projectIndex == -1) {
       throw ProjectException(
         message: 'Proyecto no encontrado',
-        statusCode: 404,
+        statusCode: 404, // NOT_FOUND
       );
     }
 
@@ -249,13 +339,18 @@ class ProjectService {
     // Actualizar proyecto (200 - OK)
     final existingProject = _mockProjects[projectIndex];
     final updatedProject = {
-      'id': id,
-      'name': request.nombre,
-      'description': request.descripcion,
-      'status': existingProject['status'],
-      'image_url': request.imagen ?? existingProject['image_url'],
-      'created_at': existingProject['created_at'],
-      'updated_at': DateTime.now().toIso8601String(),
+      'samplingPlotId': int.parse(id),
+      'samplingPlotName': request.nombre,
+      'totalArea': request.area ?? existingProject['totalArea'],
+      'unitId': request.unitId ?? existingProject['unitId'],
+      'unitName': request.unitId != null
+          ? (request.unitId == 1 ? 'Metros' : 'Hectáreas')
+          : existingProject['unitName'],
+      'samplingPlotStatus': existingProject['samplingPlotStatus'],
+      'currentCycleNumber': existingProject['currentCycleNumber'],
+      'startDate': existingProject['startDate'],
+      'endDate': existingProject['endDate'],
+      'imageUrl': request.imagen ?? existingProject['imageUrl'],
     };
 
     _mockProjects[projectIndex] = updatedProject;
@@ -270,7 +365,7 @@ class ProjectService {
   /// - 200: Estado actualizado exitosamente
   /// - 400: Datos inválidos
   /// - 401: Contraseña inválida
-  /// - 404: Proyecto no encontrado
+  /// - 404: Proyecto no encontrado (NOT_FOUND)
   /// - 500: Error del servidor
   Future<Plot> updateProjectStatus(String id, UpdateStatusRequest request) async {
     // Simular delay de red
@@ -294,12 +389,12 @@ class ProjectService {
     }
 
     // Buscar el proyecto
-    final projectIndex = _mockProjects.indexWhere((p) => p['id'] == id);
+    final projectIndex = _mockProjects.indexWhere((p) => p['samplingPlotId'].toString() == id);
     
     if (projectIndex == -1) {
       throw ProjectException(
         message: 'Proyecto no encontrado',
-        statusCode: 404,
+        statusCode: 404, // NOT_FOUND
       );
     }
 
@@ -317,8 +412,10 @@ class ProjectService {
     final existingProject = _mockProjects[projectIndex];
     final updatedProject = {
       ...existingProject,
-      'status': request.samplingPlotStatus,
-      'updated_at': DateTime.now().toIso8601String(),
+      'samplingPlotStatus': request.samplingPlotStatus,
+      'endDate': request.samplingPlotStatus == 'inactive' 
+          ? DateTime.now().toIso8601String() 
+          : null,
     };
 
     _mockProjects[projectIndex] = updatedProject;
@@ -332,19 +429,19 @@ class ProjectService {
   /// Simula el comportamiento del backend:
   /// - 204: Proyecto eliminado exitosamente
   /// - 401: No autenticado
-  /// - 404: Proyecto no encontrado
+  /// - 404: Proyecto no encontrado (NOT_FOUND)
   /// - 500: Error del servidor
   Future<void> deleteProject(String id) async {
     // Simular delay de red
     await Future.delayed(const Duration(milliseconds: 800));
 
     // Buscar el proyecto
-    final projectIndex = _mockProjects.indexWhere((p) => p['id'] == id);
+    final projectIndex = _mockProjects.indexWhere((p) => p['samplingPlotId'].toString() == id);
     
     if (projectIndex == -1) {
       throw ProjectException(
         message: 'Proyecto no encontrado',
-        statusCode: 404,
+        statusCode: 404, // NOT_FOUND
       );
     }
 
@@ -358,7 +455,7 @@ class ProjectService {
     // );
 
     // Eliminar proyecto (204 - No Content)
-    final projectName = _mockProjects[projectIndex]['name'];
+    final projectName = _mockProjects[projectIndex]['samplingPlotName'];
     _mockProjects.removeAt(projectIndex);
     print('🗑️ Proyecto eliminado: $projectName');
   }

@@ -7,10 +7,10 @@ class UpdateStatusRequest {
     required this.password,
   });
 
-  // Convertir a JSON para enviar al backend
+  // Convertir a JSON para enviar al backend (camelCase)
   Map<String, dynamic> toJson() {
     return {
-      'sampling_plot_status': samplingPlotStatus,
+      'samplingPlotStatus': samplingPlotStatus,
       'password': password,
     };
   }
@@ -18,7 +18,7 @@ class UpdateStatusRequest {
   // Crear desde JSON (si es necesario)
   factory UpdateStatusRequest.fromJson(Map<String, dynamic> json) {
     return UpdateStatusRequest(
-      samplingPlotStatus: json['sampling_plot_status'] as String,
+      samplingPlotStatus: json['samplingPlotStatus'] as String,
       password: json['password'] as String,
     );
   }
