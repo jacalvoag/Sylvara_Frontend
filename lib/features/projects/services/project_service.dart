@@ -1,7 +1,10 @@
+import 'dart:convert';
+import 'package:sylvara_frontend/core/api/api_client.dart';
+import 'package:sylvara_frontend/core/api/api_config.dart';
 import 'package:sylvara_frontend/features/projects/models/models.dart';
-
 class ProjectService {
   // Singleton pattern para mantener una única instancia
+  final _apiClient = ApiClient();
   static final ProjectService _instance = ProjectService._internal();
   factory ProjectService() => _instance;
   ProjectService._internal();
@@ -15,81 +18,19 @@ class ProjectService {
   /// - 200: Retorna datos del dashboard con user, summary y latest_plots
   /// - 401: No autenticado
   /// - 500: Error del servidor
-  Future<DashboardResponse> getDashboardData() async {
-    // Simular delay de red
-    await Future.delayed(const Duration(seconds: 1));
+Future<DashboardResponse> getDashboardData() async {
+  final response = await _apiClient.get(ApiConfig.dashboard);
+  final data = jsonDecode(response.body);
 
-    // TODO: En producción, reemplazar con llamada HTTP real
-    // final response = await http.get(
-    //   Uri.parse('https://api.sylvara.com/dashboard'),
-    //   headers: {
-    //     'Authorization': 'Bearer $token',
-    //     'Content-Type': 'application/json',
-    //   },
-    // );
-
-    // Datos mock simulando la respuesta del backend (con estructura camelCase)
-    final Map<String, dynamic> mockResponse = {
-      'user': {
-        'user_name': 'Malaga',
-        'profile_picture_url': null, // o 'https://example.com/avatar.jpg'
-      },
-      'summary': {
-        'total_historical_plots': 12,
-        'current_month_plots': 3,
-      },
-      'latest_plots': [
-        {
-          'samplingPlotId': 1,
-          'samplingPlotName': 'Predio Cuba Libre',
-          'totalArea': 1500.5,
-          'unitId': 2,
-          'unitName': 'Hectáreas',
-          'samplingPlotStatus': 'active',
-          'currentCycleNumber': 1,
-          'startDate': '2026-02-15T10:30:00Z',
-          'endDate': null,
-          'imageUrl': 'https://via.placeholder.com/48',
-        },
-        {
-          'samplingPlotId': 2,
-          'samplingPlotName': 'Reserva Natural del Noreste',
-          'totalArea': 2800.0,
-          'unitId': 2,
-          'unitName': 'Hectáreas',
-          'samplingPlotStatus': 'active',
-          'currentCycleNumber': 2,
-          'startDate': '2026-02-10T08:15:00Z',
-          'endDate': null,
-          'imageUrl': 'https://via.placeholder.com/48',
-        },
-        {
-          'samplingPlotId': 3,
-          'samplingPlotName': 'Parque Nacional Sierra Verde',
-          'totalArea': 5000.0,
-          'unitId': 2,
-          'unitName': 'Hectáreas',
-          'samplingPlotStatus': 'inactive',
-          'currentCycleNumber': 1,
-          'startDate': '2026-01-20T12:00:00Z',
-          'endDate': '2026-02-20T09:30:00Z',
-          'imageUrl': 'https://via.placeholder.com/48',
-        },
-      ],
-    };
-
-    final userData = mockResponse['user'] as Map<String, dynamic>;
-    final summaryData = mockResponse['summary'] as Map<String, dynamic>;
-    final plotsData = mockResponse['latest_plots'] as List;
-    
-    print('📊 Dashboard data obtenido exitosamente');
-    print('👤 Usuario: ${userData['user_name']}');
-    print('📈 Total proyectos: ${summaryData['total_historical_plots']}');
-    print('📅 Proyectos del mes: ${summaryData['current_month_plots']}');
-    print('🗂️ Proyectos recientes: ${plotsData.length}');
-
-    return DashboardResponse.fromJson(mockResponse);
+  if (response.statusCode == 200) {
+    return DashboardResponse.fromJson(data);
+  } else {
+    throw ProjectException(
+      message: data['message'] ?? 'Error al cargar el dashboard',
+      statusCode: response.statusCode,
+    );
   }
+}
 
   /// Obtener todos los proyectos con paginación (GET /projects)
   /// 

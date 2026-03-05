@@ -1,4 +1,3 @@
-/// Modelo para el perfil del usuario (GET /profile)
 class UserProfile {
   final int userId;
   final String userName;
@@ -18,33 +17,30 @@ class UserProfile {
     required this.userRole,
   });
 
-  /// Crear una instancia desde JSON
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
-      userId: json['user_id'] as int,
-      userName: json['user_name'] as String,
-      userLastname: json['user_lastname'] as String,
-      userBirthday: json['user_birthday'] as String,
-      userEmail: json['user_email'] as String,
-      profilePictureUrl: json['profile_picture_url'] as String,
-      userRole: json['user_role'] as String,
+      userId: json['id'] as int,
+      userName: json['name'] as String,
+      userLastname: json['lastname'] as String,
+      userBirthday: json['birthday']?.toString() ?? '',
+      userEmail: json['email'] as String,
+      profilePictureUrl: (json['pictureUrl'] as String?) ?? '',
+      userRole: json['role'] as String? ?? 'USER',
     );
   }
 
-  /// Convertir a JSON
   Map<String, dynamic> toJson() {
     return {
-      'user_id': userId,
-      'user_name': userName,
-      'user_lastname': userLastname,
-      'user_birthday': userBirthday,
-      'user_email': userEmail,
-      'profile_picture_url': profilePictureUrl,
-      'user_role': userRole,
+      'id': userId,
+      'name': userName,
+      'lastname': userLastname,
+      'birthday': userBirthday,
+      'email': userEmail,
+      'pictureUrl': profilePictureUrl,
+      'role': userRole,
     };
   }
 
-  /// Crear una copia con campos modificados
   UserProfile copyWith({
     int? userId,
     String? userName,
@@ -66,7 +62,6 @@ class UserProfile {
   }
 }
 
-/// Modelo para actualizar el perfil (PATCH /profile)
 class UpdateProfileRequest {
   final String userName;
   final String userLastname;
@@ -82,19 +77,17 @@ class UpdateProfileRequest {
     required this.profilePictureUrl,
   });
 
-  /// Convertir a JSON para enviar al backend
   Map<String, dynamic> toJson() {
     return {
-      'user_name': userName,
-      'user_lastname': userLastname,
-      'user_birthday': userBirthday,
-      'user_email': userEmail,
-      'profile_picture_url': profilePictureUrl,
+      'name': userName,
+      'lastname': userLastname,
+      'birthday': userBirthday,
+      'email': userEmail,
+      if (profilePictureUrl.isNotEmpty) 'pictureUrl': profilePictureUrl,
     };
   }
 }
 
-/// Modelo para cambiar la contraseña (PUT /profile/password)
 class UpdatePasswordRequest {
   final String currentPassword;
   final String newPassword;
@@ -104,16 +97,14 @@ class UpdatePasswordRequest {
     required this.newPassword,
   });
 
-  /// Convertir a JSON para enviar al backend
   Map<String, dynamic> toJson() {
     return {
-      'current_password': currentPassword,
-      'new_password': newPassword,
+      'currentPassword': currentPassword,
+      'newPassword': newPassword,
     };
   }
 }
 
-/// Excepción personalizada para errores de perfil
 class ProfileException implements Exception {
   final String message;
   final int statusCode;
@@ -124,7 +115,5 @@ class ProfileException implements Exception {
   });
 
   @override
-  String toString() {
-    return 'ProfileException($statusCode): $message';
-  }
+  String toString() => 'ProfileException($statusCode): $message';
 }

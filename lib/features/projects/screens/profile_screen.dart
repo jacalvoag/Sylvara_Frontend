@@ -246,11 +246,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
-                      onPressed: () {
-                        currentPasswordController.dispose();
-                        newPasswordController.dispose();
-                        Navigator.of(dialogContext).pop();
-                      },
+onPressed: () {
+  Navigator.of(dialogContext).pop();
+},
                       style: TextButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 20,
@@ -272,80 +270,79 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(width: 12),
                     ElevatedButton(
-                      onPressed: () async {
-                        if (!formKey.currentState!.validate()) {
-                          return;
-                        }
+onPressed: () async {
+  if (!formKey.currentState!.validate()) {
+    return;
+  }
 
-                        final request = UpdatePasswordRequest(
-                          currentPassword: currentPasswordController.text,
-                          newPassword: newPasswordController.text,
-                        );
+  final currentPwd = currentPasswordController.text;
+  final newPwd = newPasswordController.text;
 
-                        currentPasswordController.dispose();
-                        newPasswordController.dispose();
-                        Navigator.of(dialogContext).pop();
+  Navigator.of(dialogContext).pop();
 
-                        try {
-                          await _profileService.changePassword(request);
+  try {
+    final request = UpdatePasswordRequest(
+      currentPassword: currentPwd,
+      newPassword: newPwd,
+    );
 
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Row(
-                                  children: [
-                                    const Icon(Icons.check_circle,
-                                        color: Colors.white),
-                                    const SizedBox(width: 12),
-                                    const Text(
-                                      'Contraseña actualizada exitosamente',
-                                      style: TextStyle(
-                                        fontFamily: 'Montserrat',
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                backgroundColor: const Color(0xFF0E3520),
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                margin: const EdgeInsets.all(16),
-                              ),
-                            );
-                          }
-                        } on ProfileException catch (e) {
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Row(
-                                  children: [
-                                    const Icon(Icons.error_outline,
-                                        color: Colors.white),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        e.message,
-                                        style: const TextStyle(
-                                          fontFamily: 'Montserrat',
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                backgroundColor: const Color(0xFFD32F2F),
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                margin: const EdgeInsets.all(16),
-                              ),
-                            );
-                          }
-                        }
-                      },
+    await _profileService.changePassword(request);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.white),
+              SizedBox(width: 12),
+              Text(
+                'Contraseña actualizada exitosamente',
+                style: TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFF0E3520),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+    }
+  } on ProfileException catch (e) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  e.message,
+                  style: const TextStyle(
+                    fontFamily: 'Montserrat',
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFFD32F2F),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+    }
+  }
+},
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF0E3520),
                         foregroundColor: Colors.white,

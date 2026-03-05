@@ -11,6 +11,11 @@ class ApiConfig {
   static String get googleStatus => '$baseUrl/auth/google/status';
   static String get googleAuth => '$baseUrl/auth/google';
 
+  static String get dashboard => '$baseUrl/dashboard';
+
+  static String get profile => '$baseUrl/profile';
+  static String get profilePassword => '$baseUrl/profile/password';
+
   static String get snapshot => '$baseUrl/benchmarking/snapshot';
   static String get bigquerySend => '$baseUrl/benchmarking/bigquery/send';
   static String get reset => '$baseUrl/benchmarking/reset';
