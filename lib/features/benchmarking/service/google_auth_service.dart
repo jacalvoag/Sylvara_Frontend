@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sylvara_frontend/core/api/api_client.dart';
 import 'package:sylvara_frontend/core/api/api_config.dart';
-import 'dart:convert';
 
 class GoogleAuthService {
   static final GoogleAuthService _instance = GoogleAuthService._internal();
@@ -12,7 +11,7 @@ class GoogleAuthService {
   final _apiClient = ApiClient();
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
-    clientId: '530170205990-ed6rjnd9mgjamin33ksukunj0f9ppngb.apps.googleusercontent.com',
+    serverClientId: '530170205990-ed6rjnd9mgjamin33ksukunj0f9ppngb.apps.googleusercontent.com',
     scopes: ['https://www.googleapis.com/auth/bigquery'],
   );
 

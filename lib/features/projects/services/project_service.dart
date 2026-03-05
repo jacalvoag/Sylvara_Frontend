@@ -1,8 +1,4 @@
 import 'package:sylvara_frontend/features/projects/models/models.dart';
-import 'package:sylvara_frontend/features/projects/models/create_project_request.dart';
-import 'package:sylvara_frontend/features/projects/models/update_project_request.dart';
-import 'package:sylvara_frontend/features/projects/models/update_status_request.dart';
-import 'package:sylvara_frontend/features/projects/models/project_exception.dart';
 
 class ProjectService {
   // Singleton pattern para mantener una única instancia
