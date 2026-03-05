@@ -4,6 +4,7 @@ import '../models/models.dart';
 import '../services/services.dart';
 import '../widgets/widgets.dart';
 import 'study_zone_form_screen.dart';
+import '../../species/screens/species_list_screen.dart';
 
 /// Pantalla de detalles de un proyecto que muestra las zonas de estudio.
 ///
@@ -119,10 +120,14 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
   }
 
   void _navigateToSpecies(StudyZone zone) {
-    // TODO: Navegar a pantalla de Flora y Fauna cuando esté implementada
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Ver Flora y Fauna de "${zone.nameStudyZone}"'),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SpeciesListScreen(
+          projectId: widget.projectId,
+          zoneId: zone.studyZoneId,
+          zoneName: zone.nameStudyZone,
+        ),
       ),
     );
   }

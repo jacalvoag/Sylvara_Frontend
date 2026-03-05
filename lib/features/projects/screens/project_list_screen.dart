@@ -9,6 +9,7 @@ import 'package:sylvara_frontend/features/projects/models/project_exception.dart
 import 'package:sylvara_frontend/features/projects/services/project_service.dart';
 import 'package:sylvara_frontend/features/projects/widgets/editable_project_card.dart';
 import 'package:sylvara_frontend/features/projects/screens/project_form_screen.dart';
+import 'package:sylvara_frontend/features/zones/screens/project_details_screen.dart';
 
 class ProjectListScreen extends StatefulWidget {
   const ProjectListScreen({super.key});
@@ -815,6 +816,17 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                       },
                                       onDelete: () {
                                         _showDeleteConfirmationDialog(project);
+                                      },
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => ProjectDetailsScreen(
+                                              projectId: project.samplingPlotId,
+                                              projectName: project.samplingPlotName,
+                                            ),
+                                          ),
+                                        );
                                       },
                                     ),
                                   );
