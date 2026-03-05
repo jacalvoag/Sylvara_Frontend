@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sylvara_frontend/core/widgets/widgets.dart';
 import 'package:sylvara_frontend/features/auth/models/models.dart';
 import 'package:sylvara_frontend/features/auth/services/auth_service.dart';
+import 'package:sylvara_frontend/features/projects/screens/screens.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -13,17 +14,18 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _authService = AuthService();
-  
-  // Controladores para los campos (nombres coinciden con el JSON del backend)
+
   final _nameController = TextEditingController();
   final _lastnameController = TextEditingController();
   final _birthdayController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  
+
   String? _errorMessage;
   bool _isLoading = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirm = true;
 
   @override
   void dispose() {
@@ -36,8 +38,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  /// Seleccionar fecha de nacimiento
-  Future<void> _selectBirthday(BuildContext context) async {
+  Future<void> _selectBirthday() async {
+    FocusScope.of(context).unfocus();
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime(2000, 1, 1),
@@ -58,8 +60,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
 
     if (pickedDate != null) {
-      // Formatear a YYYY-MM-DD según el contrato del backend
-      final formattedDate = 
+      final formattedDate =
           '${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}';
       setState(() {
         _birthdayController.text = formattedDate;
@@ -67,94 +68,58 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  /// Manejar el registro
   Future<void> _handleRegister() async {
-    setState(() {
-      _errorMessage = null;
-      _isLoading = true;
-    });
+    setState(() => _errorMessage = null);
 
-    // Validar formulario
-    if (!_formKey.currentState!.validate()) {
-      setState(() {
-        _errorMessage = 'Por favor, completa correctamente todos los campos';
-        _isLoading = false;
-      });
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
-    // Validar que las contraseñas coincidan
     if (_passwordController.text != _confirmPasswordController.text) {
-      setState(() {
-        _errorMessage = 'Las contraseñas no coinciden';
-        _isLoading = false;
-      });
+      setState(() => _errorMessage = 'Las contraseñas no coinciden');
       return;
     }
+
+    setState(() => _isLoading = true);
 
     try {
-      // Crear request según el contrato del backend
       final request = RegisterRequest(
         name: _nameController.text.trim(),
         lastname: _lastnameController.text.trim(),
-        birthday: _birthdayController.text.trim(), // Formato YYYY-MM-DD
+        birthday: _birthdayController.text.trim(),
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
 
-      // Llamar al servicio de registro
       final response = await _authService.register(request);
 
       if (!mounted) return;
 
-      // Registro exitoso (201)
-      print('✅ Registro exitoso');
-      print('Usuario: ${response.user.fullName}');
-      print('AccessToken: ${response.accessToken}');
-      print('RefreshToken: ${response.refreshToken}');
-
-      // Mostrar mensaje de éxito
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('¡Bienvenido, ${response.user.name}!'),
           backgroundColor: const Color(0xFF0E3520),
-          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
 
-      // TODO: Navegar a la pantalla principal
-      // Navigator.pushReplacement(
-      //   context,
-      //   MaterialPageRoute(builder: (context) => const HomeScreen()),
-      // );
-
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const PantallaInicio()),
+        (route) => false,
+      );
     } on AuthException catch (e) {
-      // Manejar errores 400, 409, 500
       setState(() {
         _errorMessage = e.message;
         _isLoading = false;
       });
-      
-      print('❌ Error de autenticación [${e.statusCode}]: ${e.message}');
-      
     } catch (e) {
-      // Manejar otros errores inesperados
       setState(() {
-        _errorMessage = 'Error inesperado. Por favor intenta de nuevo';
+        _errorMessage = 'Error de conexión. Verifica tu red e intenta de nuevo.';
         _isLoading = false;
       });
-      
-      print('❌ Error inesperado: $e');
     }
-
-    setState(() {
-      _isLoading = false;
-    });
-  }
-
-  /// Cancelar registro
-  void _handleCancel() {
-    Navigator.of(context).pop();
   }
 
   @override
@@ -163,37 +128,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // Background image
           const BackgroundImage(
             imagePath: 'assets/images/backgrounds/FondoAuth.png',
             height: 612,
           ),
-          
-          // Content
           SafeArea(
             child: Column(
               children: [
                 // Header
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 36),
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Logo SYLVARA
-                      Container(
-                        width: 50,
-                        height: 54,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF0E3520),
-                        ),
-                        child: const Icon(
-                          Icons.eco,
-                          color: Colors.white,
-                          size: 32,
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.8),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.arrow_back_rounded,
+                            color: Color(0xFF0E3520),
+                            size: 22,
+                          ),
                         ),
                       ),
-                      
-                      // Título "Regístrate"
+                      const Spacer(),
                       RichText(
                         text: const TextSpan(
                           children: [
@@ -202,7 +165,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               style: TextStyle(
                                 fontFamily: 'Montserrat',
                                 fontSize: 22,
-                                fontWeight: FontWeight.normal,
+                                fontWeight: FontWeight.w400,
                                 color: Color(0xFF0E3520),
                               ),
                             ),
@@ -211,292 +174,323 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               style: TextStyle(
                                 fontFamily: 'Montserrat',
                                 fontSize: 22,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w800,
                                 color: Color(0xFF0E3520),
                               ),
                             ),
                           ],
                         ),
                       ),
+                      const SizedBox(width: 40),
                     ],
                   ),
                 ),
-                
-                // Content with form
+
+                const SizedBox(height: 16),
+
+                // Formulario scrollable
                 Expanded(
                   child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 28),
                     child: Column(
                       children: [
-                        // Glassmorphism header
                         Container(
                           width: double.infinity,
-                          height: 200,
+                          padding: const EdgeInsets.all(28),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFCFFFD).withOpacity(0.1),
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 1,
-                            ),
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(40),
-                              topRight: Radius.circular(40),
-                            ),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 84, top: 50),
-                            child: Align(
-                              alignment: Alignment.topLeft,
-                              child: RichText(
-                                text: const TextSpan(
-                                  children: [
-                                    TextSpan(
-                                      text: 'Completa ',
-                                      style: TextStyle(
-                                        fontFamily: 'Montserrat',
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF0E3520),
-                                      ),
-                                    ),
-                                    TextSpan(
-                                      text: 'tus datos',
-                                      style: TextStyle(
-                                        fontFamily: 'Montserrat',
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.normal,
-                                        color: Color(0xFF0E3520),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(28),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.12),
+                                blurRadius: 24,
+                                offset: const Offset(0, 8),
                               ),
-                            ),
+                            ],
                           ),
-                        ),
-                        
-                        // Form container
-                        Transform.translate(
-                          offset: const Offset(0, -141),
-                          child: Container(
-                            width: 336,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 30,
-                              vertical: 28,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(40),
-                            ),
-                            child: Form(
-                              key: _formKey,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // Nombre
-                                  CustomTextField(
-                                    label: 'Nombre',
-                                    placeholder: 'Ej. Gilberto',
-                                    controller: _nameController,
-                                    keyboardType: TextInputType.name,
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Por favor ingresa tu nombre';
-                                      }
-                                      return null;
-                                    },
+                          child: Form(
+                            key: _formKey,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                RichText(
+                                  text: const TextSpan(
+                                    children: [
+                                      TextSpan(
+                                        text: 'Completa ',
+                                        style: TextStyle(
+                                          fontFamily: 'Montserrat',
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.w800,
+                                          color: Color(0xFF0E3520),
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text: 'tus datos',
+                                        style: TextStyle(
+                                          fontFamily: 'Montserrat',
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.w400,
+                                          color: Color(0xFF0E3520),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  
-                                  const SizedBox(height: 27),
-                                  
-                                  // Apellidos
-                                  CustomTextField(
-                                    label: 'Apellidos',
-                                    placeholder: 'Ej. Malaga',
-                                    controller: _lastnameController,
-                                    keyboardType: TextInputType.name,
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Por favor ingresa tus apellidos';
-                                      }
-                                      return null;
-                                    },
+                                ),
+
+                                const SizedBox(height: 28),
+
+                                // Nombre
+                                CustomTextField(
+                                  label: 'Nombre',
+                                  placeholder: 'Ej. Gilberto',
+                                  controller: _nameController,
+                                  keyboardType: TextInputType.name,
+                                  validator: (value) {
+                                    if (value == null || value.trim().isEmpty) {
+                                      return 'Ingresa tu nombre';
+                                    }
+                                    return null;
+                                  },
+                                ),
+
+                                const SizedBox(height: 18),
+
+                                // Apellidos
+                                CustomTextField(
+                                  label: 'Apellidos',
+                                  placeholder: 'Ej. Malaga Acosta',
+                                  controller: _lastnameController,
+                                  keyboardType: TextInputType.name,
+                                  validator: (value) {
+                                    if (value == null || value.trim().isEmpty) {
+                                      return 'Ingresa tus apellidos';
+                                    }
+                                    return null;
+                                  },
+                                ),
+
+                                const SizedBox(height: 18),
+
+                                // Fecha de nacimiento
+                                CustomTextField(
+                                  label: 'Fecha de nacimiento',
+                                  placeholder: 'YYYY-MM-DD',
+                                  controller: _birthdayController,
+                                  readOnly: true,
+                                  onTap: _selectBirthday,
+                                  suffixIcon: GestureDetector(
+                                    onTap: _selectBirthday,
+                                    child: const Padding(
+                                      padding: EdgeInsets.only(right: 12),
+                                      child: Icon(
+                                        Icons.calendar_today_rounded,
+                                        size: 20,
+                                        color: Color(0xFF0E3520),
+                                      ),
+                                    ),
                                   ),
-                                  
-                                  const SizedBox(height: 27),
-                                  
-                                  // Fecha de nacimiento
-                                  CustomTextField(
-                                    label: 'Fecha de nacimiento',
-                                    placeholder: 'YYYY-MM-DD',
-                                    controller: _birthdayController,
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Por favor selecciona tu fecha de nacimiento';
-                                      }
-                                      // Validar formato YYYY-MM-DD
-                                      final dateRegex = RegExp(r'^\d{4}-\d{2}-\d{2}$');
-                                      if (!dateRegex.hasMatch(value)) {
-                                        return 'Formato inválido (YYYY-MM-DD)';
-                                      }
-                                      return null;
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Selecciona tu fecha de nacimiento';
+                                    }
+                                    return null;
+                                  },
+                                ),
+
+                                const SizedBox(height: 18),
+
+                                // Email
+                                CustomTextField(
+                                  label: 'Correo electrónico',
+                                  placeholder: 'correo@ejemplo.com',
+                                  controller: _emailController,
+                                  keyboardType: TextInputType.emailAddress,
+                                  validator: (value) {
+                                    if (value == null || value.trim().isEmpty) {
+                                      return 'Ingresa tu correo';
+                                    }
+                                    final emailRegex = RegExp(
+                                      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                                    );
+                                    if (!emailRegex.hasMatch(value.trim())) {
+                                      return 'Correo no válido';
+                                    }
+                                    return null;
+                                  },
+                                ),
+
+                                const SizedBox(height: 18),
+
+                                // Contraseña
+                                CustomTextField(
+                                  label: 'Contraseña',
+                                  placeholder: 'Mínimo 6 caracteres',
+                                  controller: _passwordController,
+                                  obscureText: _obscurePassword,
+                                  suffixIcon: GestureDetector(
+                                    onTap: () {
+                                      setState(
+                                          () => _obscurePassword = !_obscurePassword);
                                     },
-                                    suffixIcon: Row(
-                                      mainAxisSize: MainAxisSize.min,
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(right: 12),
+                                      child: Icon(
+                                        _obscurePassword
+                                            ? Icons.visibility_off_outlined
+                                            : Icons.visibility_outlined,
+                                        size: 20,
+                                        color: const Color(0xFF0E3520)
+                                            .withOpacity(0.5),
+                                      ),
+                                    ),
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Ingresa una contraseña';
+                                    }
+                                    if (value.length < 6) {
+                                      return 'Mínimo 6 caracteres';
+                                    }
+                                    return null;
+                                  },
+                                ),
+
+                                const SizedBox(height: 18),
+
+                                // Confirmar contraseña
+                                CustomTextField(
+                                  label: 'Confirmar contraseña',
+                                  placeholder: 'Repite tu contraseña',
+                                  controller: _confirmPasswordController,
+                                  obscureText: _obscureConfirm,
+                                  suffixIcon: GestureDetector(
+                                    onTap: () {
+                                      setState(
+                                          () => _obscureConfirm = !_obscureConfirm);
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(right: 12),
+                                      child: Icon(
+                                        _obscureConfirm
+                                            ? Icons.visibility_off_outlined
+                                            : Icons.visibility_outlined,
+                                        size: 20,
+                                        color: const Color(0xFF0E3520)
+                                            .withOpacity(0.5),
+                                      ),
+                                    ),
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Confirma tu contraseña';
+                                    }
+                                    return null;
+                                  },
+                                ),
+
+                                // Error message
+                                if (_errorMessage != null) ...[
+                                  const SizedBox(height: 20),
+                                  Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 10,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFFEF2F2),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: const Color(0xFFFECACA),
+                                      ),
+                                    ),
+                                    child: Row(
                                       children: [
-                                        GestureDetector(
-                                          onTap: () => _selectBirthday(context),
-                                          child: const Icon(
-                                            Icons.calendar_today,
-                                            size: 18,
-                                            color: Color(0xFF0E3520),
+                                        const Icon(
+                                          Icons.error_outline_rounded,
+                                          color: Color(0xFFDC2626),
+                                          size: 18,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Text(
+                                            _errorMessage!,
+                                            style: const TextStyle(
+                                              fontFamily: 'Montserrat',
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                              color: Color(0xFFDC2626),
+                                            ),
                                           ),
                                         ),
-                                        const SizedBox(width: 8),
                                       ],
                                     ),
                                   ),
-                                  
-                                  const SizedBox(height: 27),
-                                  
-                                  // Correo electrónico
-                                  CustomTextField(
-                                    label: 'Correo electrónico',
-                                    placeholder: 'Ej. malagaacos@gmail.com',
-                                    controller: _emailController,
-                                    keyboardType: TextInputType.emailAddress,
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Por favor ingresa tu correo';
-                                      }
-                                      final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-                                      if (!emailRegex.hasMatch(value)) {
-                                        return 'Ingresa un correo válido';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                  
-                                  const SizedBox(height: 27),
-                                  
-                                  // Contraseña
-                                  CustomTextField(
-                                    label: 'Contraseña',
-                                    placeholder: 'Mínimo 6 caracteres',
-                                    controller: _passwordController,
-                                    obscureText: true,
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Por favor ingresa una contraseña';
-                                      }
-                                      if (value.length < 6) {
-                                        return 'Mínimo 6 caracteres';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                  
-                                  const SizedBox(height: 27),
-                                  
-                                  // Confirmar contraseña
-                                  CustomTextField(
-                                    label: 'Confirmar contraseña',
-                                    placeholder: 'Repite tu contraseña',
-                                    controller: _confirmPasswordController,
-                                    obscureText: true,
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Por favor confirma tu contraseña';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                  
-                                  const SizedBox(height: 27),
-                                  
-                                  // Advertencia de errores
-                                  if (_errorMessage != null)
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                                      margin: const EdgeInsets.only(bottom: 27),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          const Icon(
-                                            Icons.warning,
-                                            color: Color(0xFFAE0000),
-                                            size: 20,
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Flexible(
-                                            child: Text(
-                                              _errorMessage!,
-                                              style: const TextStyle(
-                                                fontFamily: 'Montserrat',
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w600,
-                                                color: Color(0xFFAE0000),
-                                              ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  
-                                  // Botones
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      // Botón Cancelar
-                                      GestureDetector(
-                                        onTap: _isLoading ? null : _handleCancel,
-                                        child: Container(
-                                          width: 129,
-                                          height: 30,
-                                          decoration: BoxDecoration(
-                                            border: Border.all(
-                                              color: _isLoading 
-                                                  ? Colors.grey 
+                                ],
+
+                                const SizedBox(height: 28),
+
+                                // Botones
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: SizedBox(
+                                        height: 48,
+                                        child: OutlinedButton(
+                                          onPressed: _isLoading
+                                              ? null
+                                              : () => Navigator.pop(context),
+                                          style: OutlinedButton.styleFrom(
+                                            side: BorderSide(
+                                              color: _isLoading
+                                                  ? const Color(0xFFCBD5E1)
                                                   : const Color(0xFF0E3520),
-                                              width: 2,
+                                              width: 1.5,
                                             ),
-                                            borderRadius: BorderRadius.circular(10),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
                                           ),
-                                          alignment: Alignment.center,
                                           child: Text(
                                             'Cancelar',
                                             style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                              color: _isLoading 
-                                                  ? Colors.grey 
-                                                  : const Color(0xFF0E3520),
                                               fontFamily: 'Montserrat',
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w700,
+                                              color: _isLoading
+                                                  ? const Color(0xFFCBD5E1)
+                                                  : const Color(0xFF0E3520),
                                             ),
                                           ),
                                         ),
                                       ),
-                                      
-                                      const SizedBox(width: 12),
-                                      
-                                      // Botón Registrarse
-                                      GestureDetector(
-                                        onTap: _isLoading ? null : _handleRegister,
-                                        child: Container(
-                                          width: 129,
-                                          height: 30,
-                                          decoration: BoxDecoration(
-                                            color: _isLoading 
-                                                ? Colors.grey 
-                                                : const Color(0xFF0E3520),
-                                            borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    const SizedBox(width: 14),
+                                    Expanded(
+                                      child: SizedBox(
+                                        height: 48,
+                                        child: ElevatedButton(
+                                          onPressed:
+                                              _isLoading ? null : _handleRegister,
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                                const Color(0xFF0E3520),
+                                            disabledBackgroundColor:
+                                                const Color(0xFFCBD5E1),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            elevation: 0,
                                           ),
-                                          alignment: Alignment.center,
                                           child: _isLoading
                                               ? const SizedBox(
-                                                  width: 16,
-                                                  height: 16,
-                                                  child: CircularProgressIndicator(
+                                                  width: 20,
+                                                  height: 20,
+                                                  child:
+                                                      CircularProgressIndicator(
                                                     color: Colors.white,
                                                     strokeWidth: 2,
                                                   ),
@@ -504,21 +498,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                               : const Text(
                                                   'Registrarse',
                                                   style: TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Color(0xFFF1F5F9),
                                                     fontFamily: 'Montserrat',
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: Colors.white,
                                                   ),
                                                 ),
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                ],
-                              ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
                         ),
+
+                        const SizedBox(height: 40),
                       ],
                     ),
                   ),

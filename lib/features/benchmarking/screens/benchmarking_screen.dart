@@ -5,6 +5,9 @@ import 'package:sylvara_frontend/features/benchmarking/models/models.dart';
 import 'package:sylvara_frontend/features/benchmarking/service/google_auth_service.dart';
 import 'package:sylvara_frontend/features/benchmarking/service/benchmarking_service.dart';
 import 'package:sylvara_frontend/features/benchmarking/widgets/widgets.dart';
+import 'dart:io' show File, Platform;
+import 'package:path_provider/path_provider.dart';
+import 'dart:convert';
 
 // Conditional import for web
 import 'benchmarking_screen_web.dart' if (dart.library.io) 'benchmarking_screen_stub.dart';
@@ -252,28 +255,71 @@ class _BenchmarkingScreenState extends State<BenchmarkingScreen>
     }
   }
 
-  Future<void> _handleCsvBackup() async {
+Future<void> _handleCsvBackup() async {
+  setState(() {
+    _isProcessing = true;
+    _isError = false;
+    _statusMessage = 'Generando CSV de respaldo...';
+  });
+
+  try {
+    // 1. Generar CSV en el servidor
+    final result = await _service.generateCsv();
+    final filename = result['filePath']?.toString().split('/').last
+        ?? result['filename']?.toString()
+        ?? 'backup.csv';
+
     setState(() {
-      _isProcessing = true;
-      _isError = false;
-      _statusMessage = 'Generando CSV de respaldo...';
+      _statusMessage = 'Descargando $filename...';
     });
 
-    try {
-      final result = await _service.generateCsv();
-      setState(() {
-        _currentStep = 2;
-        _statusMessage = 'CSV generado: ${result['filename'] ?? 'respaldo listo'}';
-        _isProcessing = false;
-      });
-    } catch (e) {
-      setState(() {
-        _statusMessage = 'Error al generar CSV';
-        _isProcessing = false;
-        _isError = true;
-      });
+    // 2. Descargar bytes del CSV
+    final bytes = await _service.downloadCsvBytes();
+
+    // 3. Guardar en el dispositivo
+    if (kIsWeb) {
+      _downloadWeb(bytes, filename);
+    } else {
+      await _downloadMobile(bytes, filename);
     }
+
+    setState(() {
+      _currentStep = 2;
+      _statusMessage = 'CSV descargado: $filename';
+      _isProcessing = false;
+    });
+  } catch (e) {
+    setState(() {
+      _statusMessage = 'Error al generar CSV: $e';
+      _isProcessing = false;
+      _isError = true;
+    });
   }
+}
+
+void _downloadWeb(List<int> bytes, String filename) {
+  openUrlInBrowser('data:text/csv;base64,${base64Encode(bytes)}');
+}
+
+Future<void> _downloadMobile(List<int> bytes, String filename) async {
+  final dir = await getDownloadsDirectory() ?? await getApplicationDocumentsDirectory();
+  final file = File('${dir.path}/$filename');
+  await file.writeAsBytes(bytes);
+
+  if (mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('CSV guardado en: ${file.path}'),
+        backgroundColor: const Color(0xFF0E3520),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        duration: const Duration(seconds: 4),
+      ),
+    );
+  }
+}
 
   Future<void> _handleSendBigQuery() async {
     setState(() {
