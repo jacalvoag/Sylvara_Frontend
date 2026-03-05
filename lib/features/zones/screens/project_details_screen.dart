@@ -479,7 +479,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
                   filter: ImageFilter.blur(sigmaX: 3.5, sigmaY: 3.5),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: const Color(0xFCFFFD).withValues(alpha: 0.1),
+                      color: const Color(0x00fcfffd).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(25),
                     ),
                     child: IconButton(

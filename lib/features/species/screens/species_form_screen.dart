@@ -803,7 +803,7 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
                       ),
                       const SizedBox(height: 6),
                       DropdownButtonFormField<int>(
-                        value: _selectedFunctionalTypeId,
+                        initialValue: _selectedFunctionalTypeId,
                         decoration: InputDecoration(
                           hintText: 'Seleccione una opción',
                           hintStyle: TextStyle(

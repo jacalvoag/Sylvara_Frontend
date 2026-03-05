@@ -120,7 +120,7 @@ class SpeciesCard extends StatelessWidget {
                       // Unidad de muestreo
                       _buildInfoRow(
                         'Unidad de muestreo:',
-                        '${species.unitName}',
+                        species.unitName,
                       ),
                       
                       const SizedBox(height: 5),

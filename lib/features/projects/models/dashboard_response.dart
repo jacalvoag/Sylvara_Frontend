@@ -14,15 +14,32 @@ class DashboardResponse {
   });
 
   /// Crear desde JSON (respuesta del backend)
-  factory DashboardResponse.fromJson(Map<String, dynamic> json) {
-    return DashboardResponse(
-      user: DashboardUser.fromJson(json['user'] as Map<String, dynamic>),
-      summary: DashboardSummary.fromJson(json['summary'] as Map<String, dynamic>),
-      latestPlots: (json['latest_plots'] as List<dynamic>)
-          .map((plot) => Plot.fromJson(plot as Map<String, dynamic>))
-          .toList(),
-    );
-  }
+factory DashboardResponse.fromJson(Map<String, dynamic> json) {
+  final summary = json['summary'] as Map<String, dynamic>;
+  final plots = json['latestPlots'] as List<dynamic>? ?? [];
+
+  return DashboardResponse(
+    user: DashboardUser(
+      userName: summary['userName'] as String? ?? '',
+      profilePictureUrl: summary['pictureUrl'] as String?,
+    ),
+    summary: DashboardSummary(
+      totalHistoricalPlots: summary['totalHistoricalPlots'] as int? ?? 0,
+      currentMonthPlots: summary['currentMonthPlots'] as int? ?? 0,
+    ),
+    latestPlots: plots.map((plot) {
+      final p = plot as Map<String, dynamic>;
+      return Plot(
+        samplingPlotId: p['id'] as int,
+        samplingPlotName: p['name'] as String? ?? '',
+        totalArea: (p['totalArea'] as num?)?.toDouble(),
+        unitName: p['areaUnit'] as String?,
+        samplingPlotStatus: p['status'] as String? ?? 'active',
+        startDate: p['startDate'] != null ? DateTime.tryParse(p['startDate'].toString()) : null,
+      );
+    }).toList(),
+  );
+}
 
   /// Convertir a JSON
   Map<String, dynamic> toJson() {

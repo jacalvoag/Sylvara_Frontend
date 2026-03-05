@@ -265,7 +265,7 @@ class CortDelDiaCard extends StatelessWidget {
             valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF0E3520)),
           ),
           Text(
-            '${currentStep}/4',
+            '$currentStep/4',
             style: const TextStyle(
               fontFamily: 'Montserrat',
               fontSize: 10,

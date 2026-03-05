@@ -31,6 +31,29 @@ class ApiClient {
     );
   }
 
+  Future<http.Response> patch(String url, {Map<String, dynamic>? body}) async {
+    final headers = await _authHeaders();
+    return await http.patch(
+      Uri.parse(url),
+      headers: headers,
+      body: body != null ? jsonEncode(body) : null,
+    );
+  }
+
+  Future<http.Response> put(String url, {Map<String, dynamic>? body}) async {
+    final headers = await _authHeaders();
+    return await http.put(
+      Uri.parse(url),
+      headers: headers,
+      body: body != null ? jsonEncode(body) : null,
+    );
+  }
+
+  Future<http.Response> delete(String url) async {
+    final headers = await _authHeaders();
+    return await http.delete(Uri.parse(url), headers: headers);
+  }
+
   Future<http.Response> postNoAuth(String url, {required Map<String, dynamic> body}) async {
     return await http.post(
       Uri.parse(url),

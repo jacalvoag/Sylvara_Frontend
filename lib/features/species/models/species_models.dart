@@ -1,4 +1,5 @@
 /// Modelos para la gestión de especies en zonas de estudio
+library;
 
 /// Registro de una especie en una zona de estudio
 class SpeciesRecord {
