@@ -6,6 +6,7 @@ class EditableProjectCard extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onToggleStatus;
   final VoidCallback onDelete;
+  final VoidCallback? onTap;
 
   const EditableProjectCard({
     super.key,
@@ -13,39 +14,42 @@ class EditableProjectCard extends StatelessWidget {
     required this.onEdit,
     required this.onToggleStatus,
     required this.onDelete,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final bool isActive = project.status == 'active';
     
-    return Container(
-      height: 96,
-      width: double.infinity,
-      padding: const EdgeInsets.all(5),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          BoxShadow(
-            offset: const Offset(0, 0),
-            blurRadius: 10,
-            spreadRadius: 0,
-            color: Colors.black.withOpacity(0.15),
-          ),
-        ],
-      ),
+    return GestureDetector(
+      onTap: onTap,
       child: Container(
+        height: 96,
+        width: double.infinity,
+        padding: const EdgeInsets.all(5),
         decoration: BoxDecoration(
           color: const Color(0xFFF1F5F9),
-          border: Border.all(
-            color: isActive ? const Color(0xFF0E3520) : const Color(0xFF582F0E),
-            width: 1.5,
-          ),
-          borderRadius: BorderRadius.circular(23),
+          borderRadius: BorderRadius.circular(25),
+          boxShadow: [
+            BoxShadow(
+              offset: const Offset(0, 0),
+              blurRadius: 10,
+              spreadRadius: 0,
+              color: Colors.black.withOpacity(0.15),
+            ),
+          ],
         ),
-        child: Stack(
-          children: [
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F5F9),
+            border: Border.all(
+              color: isActive ? const Color(0xFF0E3520) : const Color(0xFF582F0E),
+              width: 1.5,
+            ),
+            borderRadius: BorderRadius.circular(23),
+          ),
+          child: Stack(
+            children: [
             // Contenido principal
             Padding(
               padding: const EdgeInsets.fromLTRB(28, 16, 16, 16),
@@ -241,6 +245,7 @@ class EditableProjectCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }
