@@ -5,8 +5,6 @@ class User {
   final String? birthday;
   final String email;
   final String? role;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
 
   User({
     required this.id,
@@ -15,37 +13,27 @@ class User {
     this.birthday,
     required this.email,
     this.role,
-    this.createdAt,
-    this.updatedAt,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'],
-      name: json['name'] as String,
-      lastname: json['lastname'] as String,
-      birthday: json['birthday'] as String?,
-      email: json['email'] as String,
-      role: json['role'] as String?,
-      createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'] as String)
-          : null,
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.tryParse(json['updatedAt'] as String)
-          : null,
+      id: json['userId'],
+      name: json['userName'] as String,
+      lastname: json['userLastname'] as String,
+      birthday: json['userBirthday']?.toString(),
+      email: json['userEmail'] as String,
+      role: json['userRole'] as String?,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'name': name,
-      'lastname': lastname,
-      'birthday': birthday,
-      'email': email,
-      'role': role,
-      'createdAt': createdAt?.toIso8601String(),
-      'updatedAt': updatedAt?.toIso8601String(),
+      'userId': id,
+      'userName': name,
+      'userLastname': lastname,
+      'userBirthday': birthday,
+      'userEmail': email,
+      'userRole': role,
     };
   }
 

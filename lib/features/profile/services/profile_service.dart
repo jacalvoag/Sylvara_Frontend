@@ -64,7 +64,7 @@ class ProfileService {
   Future<void> deleteAccount() async {
     final response = await _apiClient.delete(ApiConfig.profile);
 
-    if (response.statusCode != 200) {
+    if (response.statusCode != 204) {
       final data = jsonDecode(response.body);
       throw ProfileException(
         message: data['message'] ?? 'Error al eliminar la cuenta',
