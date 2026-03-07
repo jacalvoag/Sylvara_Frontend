@@ -55,7 +55,12 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
     setState(() {
       _allProjects.clear();
       _nextCursor = null;
-      _projectsFuture = _projectService.getProjects(limit: 20);
+      _isLoadingMore = false;
+      _projectsFuture = _projectService.getProjects(limit: 20).then((response) {
+        _allProjects.addAll(response.data);
+        _nextCursor = response.meta.nextCursor;
+        return response;
+      });
     });
   }
 
@@ -734,35 +739,31 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                 });
                               }
 
-                              if (projects.isEmpty) {
+                              if (_allProjects.isEmpty) {
                                 return Center(
                                   child: Padding(
                                     padding: const EdgeInsets.all(32),
                                     child: Column(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                        Icon(
-                                          Icons.folder_open,
-                                          size: 80,
-                                          color: Colors.grey[400],
-                                        ),
+                                        Icon(Icons.folder_open, size: 80, color: Colors.grey[400]),
                                         const SizedBox(height: 24),
-                                        Text(
+                                        const Text(
                                           'No hay proyectos',
                                           style: TextStyle(
                                             fontSize: 22,
                                             fontWeight: FontWeight.bold,
-                                            color: const Color(0xFF0E3520),
+                                            color: Color(0xFF0E3520),
                                             fontFamily: 'Montserrat',
                                           ),
                                         ),
                                         const SizedBox(height: 8),
-                                        Text(
+                                        const Text(
                                           'Crea tu primer proyecto usando el botón +',
                                           textAlign: TextAlign.center,
                                           style: TextStyle(
                                             fontSize: 15,
-                                            color: const Color(0xFF666666),
+                                            color: Color(0xFF666666),
                                             fontFamily: 'Montserrat',
                                           ),
                                         ),
@@ -775,48 +776,32 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                               return ListView.builder(
                                 controller: _scrollController,
                                 padding: const EdgeInsets.fromLTRB(20, 18, 20, 80),
-                                itemCount: projects.length + (_isLoadingMore ? 1 : 0),
+                                itemCount: _allProjects.length + (_isLoadingMore ? 1 : 0),
                                 itemBuilder: (context, index) {
-                                  // Mostrar indicador de carga al final
-                                  if (index == projects.length) {
-                                    return Center(
+                                  if (index == _allProjects.length) {
+                                    return const Center(
                                       child: Padding(
-                                        padding: const EdgeInsets.all(16),
-                                        child: CircularProgressIndicator(
-                                          valueColor: AlwaysStoppedAnimation<Color>(
-                                            const Color(0xFF0E3520),
-                                          ),
-                                        ),
+                                        padding: EdgeInsets.all(16),
+                                        child: CircularProgressIndicator(color: Color(0xFF0E3520)),
                                       ),
                                     );
                                   }
-
-                                  final project = projects[index];
+                                  final project = _allProjects[index];
                                   return Padding(
                                     padding: const EdgeInsets.only(bottom: 12),
                                     child: EditableProjectCard(
                                       project: project,
                                       onEdit: () async {
-                                        // Navegar a pantalla de edición
                                         final result = await Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (context) => ProjectFormScreen(
-                                              project: project,
-                                            ),
+                                            builder: (context) => ProjectFormScreen(project: project),
                                           ),
                                         );
-                                        // Si se editó, recargar lista
-                                        if (result == true) {
-                                          _loadProjects();
-                                        }
+                                        if (result == true) _loadProjects();
                                       },
-                                      onToggleStatus: () {
-                                        _showPasswordDialog(project);
-                                      },
-                                      onDelete: () {
-                                        _showDeleteConfirmationDialog(project);
-                                      },
+                                      onToggleStatus: () => _showPasswordDialog(project),
+                                      onDelete: () => _showDeleteConfirmationDialog(project),
                                       onTap: () {
                                         Navigator.push(
                                           context,

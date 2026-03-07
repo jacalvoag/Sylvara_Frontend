@@ -14,32 +14,35 @@ class DashboardResponse {
   });
 
   /// Crear desde JSON (respuesta del backend)
-factory DashboardResponse.fromJson(Map<String, dynamic> json) {
-  final summary = json['summary'] as Map<String, dynamic>;
-  final plots = json['latestPlots'] as List<dynamic>? ?? [];
+  factory DashboardResponse.fromJson(Map<String, dynamic> json) {
+    final user = json['user'] as Map<String, dynamic>;
+    final summary = json['summary'] as Map<String, dynamic>;
+    final plots = json['latestPlots'] as List<dynamic>? ?? [];
 
-  return DashboardResponse(
-    user: DashboardUser(
-      userName: summary['userName'] as String? ?? '',
-      profilePictureUrl: summary['pictureUrl'] as String?,
-    ),
-    summary: DashboardSummary(
-      totalHistoricalPlots: summary['totalHistoricalPlots'] as int? ?? 0,
-      currentMonthPlots: summary['currentMonthPlots'] as int? ?? 0,
-    ),
-    latestPlots: plots.map((plot) {
-      final p = plot as Map<String, dynamic>;
-      return Plot(
-        samplingPlotId: p['id'] as int,
-        samplingPlotName: p['name'] as String? ?? '',
-        totalArea: (p['totalArea'] as num?)?.toDouble(),
-        unitName: p['areaUnit'] as String?,
-        samplingPlotStatus: p['status'] as String? ?? 'active',
-        startDate: p['startDate'] != null ? DateTime.tryParse(p['startDate'].toString()) : null,
-      );
-    }).toList(),
-  );
-}
+    return DashboardResponse(
+      user: DashboardUser(
+        userName: user['userName'] as String? ?? '',
+        profilePictureUrl: user['profilePictureUrl'] as String?,
+      ),
+      summary: DashboardSummary(
+        totalHistoricalPlots: summary['totalHistoricalPlots'] as int? ?? 0,
+        currentMonthPlots: summary['currentMonthPlots'] as int? ?? 0,
+      ),
+      latestPlots: plots.map((plot) {
+        final p = plot as Map<String, dynamic>;
+        return Plot(
+          samplingPlotId: p['id'] as int,
+          samplingPlotName: p['name'] as String? ?? '',
+          totalArea: (p['totalArea'] as num?)?.toDouble(),
+          unitName: p['areaUnit'] as String?,
+          samplingPlotStatus: p['status'] as String? ?? 'active',
+          startDate: p['startDate'] != null
+              ? DateTime.tryParse(p['startDate'].toString())
+              : null,
+        );
+      }).toList(),
+    );
+  }
 
   /// Convertir a JSON
   Map<String, dynamic> toJson() {
@@ -136,11 +139,11 @@ class Plot {
       unitName: json['unitName'] as String?,
       samplingPlotStatus: json['samplingPlotStatus'] as String,
       currentCycleNumber: json['currentCycleNumber'] as int?,
-      startDate: json['startDate'] != null 
-          ? DateTime.parse(json['startDate'] as String)
+      startDate: json['startDate'] != null
+          ? DateTime.tryParse(json['startDate'].toString())
           : null,
       endDate: json['endDate'] != null
-          ? DateTime.parse(json['endDate'] as String)
+          ? DateTime.tryParse(json['endDate'].toString())
           : null,
       imageUrl: json['imageUrl'] as String?,
     );

@@ -1,37 +1,20 @@
 class UpdateProjectRequest {
-  final String nombre;
-  final String descripcion;
-  final String? imagen; // Opcional
-  final double? area; // Área de la zona
-  final int? unitId; // 1: Metros, 2: Hectáreas
+  final String? nombre;
+  final String? descripcion;
+  final double? area;
+  final int? unitId;
 
   UpdateProjectRequest({
-    required this.nombre,
-    required this.descripcion,
-    this.imagen,
+    this.nombre,
+    this.descripcion,
     this.area,
     this.unitId,
   });
 
-  // Convertir a JSON para enviar al backend (camelCase)
-  Map<String, dynamic> toJson() {
-    return {
-      'samplingPlotName': nombre,
-      'samplingPlotDescription': descripcion,
-      if (imagen != null) 'imageUrl': imagen,
-      if (area != null) 'totalArea': area,
-      if (unitId != null) 'unitId': unitId,
-    };
-  }
-
-  // Crear desde JSON (si es necesario)
-  factory UpdateProjectRequest.fromJson(Map<String, dynamic> json) {
-    return UpdateProjectRequest(
-      nombre: json['nombre'] as String,
-      descripcion: json['descripcion'] as String,
-      imagen: json['imagen'] as String?,
-      area: json['area'] as double?,
-      unitId: json['unit_id'] as int?,
-    );
-  }
+  Map<String, dynamic> toJson() => {
+    if (nombre != null) 'samplingPlotName': nombre,
+    if (descripcion != null) 'description': descripcion,
+    if (area != null) 'totalArea': area,
+    if (unitId != null) 'unitId': unitId,
+  };
 }
