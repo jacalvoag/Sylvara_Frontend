@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:sylvara_frontend/features/auth/screens/login_screen.dart';
-import 'package:sylvara_frontend/features/projects/screens/screens.dart';
-import 'package:sylvara_frontend/features/zones/screens/project_details_screen.dart';
-import 'package:sylvara_frontend/features/zones/widgets/biodiversity_chart.dart';
 import 'package:sylvara_frontend/core/api/token_storage.dart';
-
+import 'package:sylvara_frontend/features/auth/screens/screens.dart';
+import 'package:sylvara_frontend/features/projects/screens/pantalla_inicio.dart';
 
 void main() {
   runApp(const MainApp());
@@ -17,7 +14,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: PantallaInicio(), // Cambia a la pantalla que quieras probar
+      home: const AuthGate(),
     );
   }
 }
