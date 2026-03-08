@@ -60,9 +60,7 @@ class _PantallaInicioState extends State<PantallaInicio> with TickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    return MainScaffold(
-      currentIndex: 0,
-      child: Scaffold(
+    return Scaffold(
         backgroundColor: const Color(0xFFF1F5F9),
         body: Stack(
           children: [
@@ -108,7 +106,6 @@ class _PantallaInicioState extends State<PantallaInicio> with TickerProviderStat
               _buildSuccessState(_dashboard!),
           ],
         ),
-      ),
     );
   }
 

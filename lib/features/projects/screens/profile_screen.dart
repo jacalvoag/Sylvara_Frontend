@@ -354,9 +354,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MainScaffold(
-      currentIndex: 2,
-      child: Scaffold(
+    return Scaffold(
         backgroundColor: const Color(0xFFF1F5F9),
         body: Stack(
           children: [
@@ -425,7 +423,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ],
         ),
-      ),
     );
   }
 

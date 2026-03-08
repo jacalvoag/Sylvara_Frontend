@@ -4,6 +4,9 @@ import 'package:sylvara_frontend/features/auth/models/models.dart';
 import 'package:sylvara_frontend/features/auth/services/auth_service.dart';
 import 'package:sylvara_frontend/features/auth/screens/register_screen.dart';
 import 'package:sylvara_frontend/features/projects/screens/screens.dart';
+import 'package:sylvara_frontend/core/widgets/main_scaffold.dart';
+
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -45,15 +48,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('¡Bienvenido, ${response.user.name}!'),
-          backgroundColor: const Color(0xFF0E3520),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MainScaffold()),
       );
 
       Navigator.pushReplacement(

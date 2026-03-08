@@ -3,6 +3,8 @@ import 'package:sylvara_frontend/core/widgets/widgets.dart';
 import 'package:sylvara_frontend/features/auth/models/models.dart';
 import 'package:sylvara_frontend/features/auth/services/auth_service.dart';
 import 'package:sylvara_frontend/features/projects/screens/screens.dart';
+import 'package:sylvara_frontend/core/widgets/main_scaffold.dart';
+
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -92,6 +94,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       final response = await _authService.register(request);
 
       if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const MainScaffold()),
+        (route) => false,
+      );
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

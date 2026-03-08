@@ -449,9 +449,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MainScaffold(
-      currentIndex: 1,
-      child: Scaffold(
+    return Scaffold(
         backgroundColor: const Color(0xFFF1F5F9),
         body: Stack(
           children: [
@@ -583,7 +581,6 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
           ),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      ),
     );
   }
 }
