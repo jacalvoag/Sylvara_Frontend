@@ -6,7 +6,5 @@
 // - StudyZoneFormScreen: Formulario para crear/editar zonas
 // - ProjectDetailsScreen: Vista principal de detalles de proyecto con zonas
 
-export 'biodiversity_chart_example.dart';
-export 'study_zone_list_example.dart';
 export 'study_zone_form_screen.dart';
 export 'project_details_screen.dart';
