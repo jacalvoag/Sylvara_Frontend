@@ -355,85 +355,74 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
-      body: Stack(
-        children: [
-          const BackgroundImage(imagePath: 'assets/images/backgrounds/FodoHome.png', height: 612),
-          SafeArea(
-            child: Column(
-              children: [
-                // Header
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(color: const Color(0xFF0E3520), borderRadius: BorderRadius.circular(12)),
-                        child: const Icon(Icons.eco, color: Colors.white, size: 28),
-                      ),
-                      RichText(
-                        text: const TextSpan(
-                          children: [
-                            TextSpan(text: 'Mi ', style: TextStyle(fontFamily: 'Montserrat', fontSize: 22, fontWeight: FontWeight.normal, color: Color(0xFF0E3520))),
-                            TextSpan(text: 'Perfil', style: TextStyle(fontFamily: 'Montserrat', fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF0E3520))),
-                          ],
+        backgroundColor: const Color(0xFFF1F5F9),
+        body: Stack(
+          children: [
+            const BackgroundImage(imagePath: 'assets/images/backgrounds/FodoHome.png', height: 612),
+            SafeArea(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(color: const Color(0xFF0E3520), borderRadius: BorderRadius.circular(12)),
+                          child: const Icon(Icons.eco, color: Colors.white, size: 28),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // Contenido
-                Expanded(
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.only(topLeft: Radius.circular(40), topRight: Radius.circular(40)),
+                        RichText(
+                          text: const TextSpan(
+                            children: [
+                              TextSpan(text: 'Mi ', style: TextStyle(fontFamily: 'Montserrat', fontSize: 22, fontWeight: FontWeight.normal, color: Color(0xFF0E3520))),
+                              TextSpan(text: 'Perfil', style: TextStyle(fontFamily: 'Montserrat', fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF0E3520))),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    child: _isLoading
-                        ? const Center(child: CircularProgressIndicator(color: Color(0xFF0E3520)))
-                        : _hasError
-                            ? Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(Icons.error_outline, color: Color(0xFFD32F2F), size: 64),
-                                    const SizedBox(height: 16),
-                                    const Text('Error al cargar el perfil', style: TextStyle(fontFamily: 'Montserrat', fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF0E3520))),
-                                    const SizedBox(height: 8),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 32),
-                                      child: Text(_errorText, style: const TextStyle(fontFamily: 'Montserrat', fontSize: 13, color: Color(0xFF666666)), textAlign: TextAlign.center),
-                                    ),
-                                    const SizedBox(height: 20),
-                                    ElevatedButton(
-                                      onPressed: _loadProfile,
-                                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0E3520), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                                      child: const Text('Reintentar', style: TextStyle(fontFamily: 'Montserrat', color: Colors.white, fontWeight: FontWeight.w600)),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : _buildForm(),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.only(topLeft: Radius.circular(40), topRight: Radius.circular(40)),
+                      ),
+                      child: _isLoading
+                          ? const Center(child: CircularProgressIndicator(color: Color(0xFF0E3520)))
+                          : _hasError
+                              ? Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(Icons.error_outline, color: Color(0xFFD32F2F), size: 64),
+                                      const SizedBox(height: 16),
+                                      const Text('Error al cargar el perfil', style: TextStyle(fontFamily: 'Montserrat', fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF0E3520))),
+                                      const SizedBox(height: 8),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                                        child: Text(_errorText, style: const TextStyle(fontFamily: 'Montserrat', fontSize: 13, color: Color(0xFF666666)), textAlign: TextAlign.center),
+                                      ),
+                                      const SizedBox(height: 20),
+                                      ElevatedButton(
+                                        onPressed: _loadProfile,
+                                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0E3520), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                                        child: const Text('Reintentar', style: TextStyle(fontFamily: 'Montserrat', color: Colors.white, fontWeight: FontWeight.w600)),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : _buildForm(),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-
-          Positioned(
-            bottom: 20,
-            left: 0,
-            right: 0,
-            child: Center(child: MenuNavegation(currentIndex: 2, onTap: (_) {})),
-          ),
-        ],
-      ),
+          ],
+        ),
     );
   }
 

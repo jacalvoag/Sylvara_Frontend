@@ -452,144 +452,137 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
-      body: Stack(
-        children: [
-          const BackgroundImage(
-            imagePath: 'assets/images/backgrounds/background.png',
-            height: 612,
-          ),
-          SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 28, 16, 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        backgroundColor: const Color(0xFFF1F5F9),
+        body: Stack(
+          children: [
+            const BackgroundImage(
+              imagePath: 'assets/images/backgrounds/background.png',
+              height: 612,
+            ),
+            SafeArea(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 28, 16, 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          width: 50,
+                          height: 54,
+                          decoration: const BoxDecoration(
+                            image: DecorationImage(
+                              image: AssetImage('assets/images/backgrounds/logo.png'),
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
+                        RichText(
+                          text: const TextSpan(
+                            style: TextStyle(fontSize: 22, fontFamily: 'Montserrat', color: Color(0xFF0E3520)),
+                            children: [
+                              TextSpan(text: 'Mis', style: TextStyle(fontWeight: FontWeight.normal)),
+                              TextSpan(text: ' Proyectos', style: TextStyle(fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Stack(
                     children: [
-                      Container(
-                        width: 50,
-                        height: 54,
-                        decoration: BoxDecoration(
-                          image: const DecorationImage(
-                            image: AssetImage('assets/images/backgrounds/logo.png'),
-                            fit: BoxFit.contain,
+                      ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(40),
+                          topRight: Radius.circular(40),
+                        ),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 3.5, sigmaY: 3.5),
+                          child: Container(
+                            height: 70,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFCFFFD).withOpacity(0.1),
+                              border: Border.all(color: Colors.white),
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(40),
+                                topRight: Radius.circular(40),
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                      RichText(
-                        text: const TextSpan(
-                          style: TextStyle(fontSize: 22, fontFamily: 'Montserrat', color: Color(0xFF0E3520)),
-                          children: [
-                            TextSpan(text: 'Mis', style: TextStyle(fontWeight: FontWeight.normal)),
-                            TextSpan(text: ' Proyectos', style: TextStyle(fontWeight: FontWeight.bold)),
-                          ],
+                      Positioned(
+                        top: 16,
+                        left: 24,
+                        right: 24,
+                        child: Container(
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(50),
+                            boxShadow: [
+                              BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 8),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  decoration: InputDecoration(
+                                    hintText: 'Buscar proyecto...',
+                                    hintStyle: TextStyle(fontSize: 14, color: Colors.grey[500], fontFamily: 'Montserrat'),
+                                    border: InputBorder.none,
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                  ),
+                                ),
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.only(right: 14),
+                                child: Icon(Icons.search, color: Color(0xFF0E3520), size: 24),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
                   ),
-                ),
-
-                const SizedBox(height: 10),
-
-                Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(40),
-                        topRight: Radius.circular(40),
-                      ),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 3.5, sigmaY: 3.5),
-                        child: Container(
-                          height: 70,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFCFFFD).withOpacity(0.1),
-                            border: Border.all(color: Colors.white),
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(40),
-                              topRight: Radius.circular(40),
-                            ),
-                          ),
+                  Expanded(
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(40),
+                          topRight: Radius.circular(40),
                         ),
                       ),
+                      child: _buildContent(),
                     ),
-                    Positioned(
-                      top: 16,
-                      left: 24,
-                      right: 24,
-                      child: Container(
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(50),
-                          boxShadow: [
-                            BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 8),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                decoration: InputDecoration(
-                                  hintText: 'Buscar proyecto...',
-                                  hintStyle: TextStyle(fontSize: 14, color: Colors.grey[500], fontFamily: 'Montserrat'),
-                                  border: InputBorder.none,
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                                ),
-                              ),
-                            ),
-                            const Padding(
-                              padding: EdgeInsets.only(right: 14),
-                              child: Icon(Icons.search, color: Color(0xFF0E3520), size: 24),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                Expanded(
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(40),
-                        topRight: Radius.circular(40),
-                      ),
-                    ),
-                    child: _buildContent(),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
-      floatingActionButton: Container(
-        width: 56,
-        height: 56,
-        margin: const EdgeInsets.only(bottom: 60),
-        child: FloatingActionButton(
-          onPressed: () async {
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ProjectFormScreen()),
-            );
-            if (result == true) _loadProjects();
-          },
-          backgroundColor: const Color(0xFF0E3520),
-          elevation: 4,
-          shape: const CircleBorder(),
-          child: const Icon(Icons.add, size: 32, color: Colors.white),
+          ],
         ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(12),
-        child: MenuNavegation(currentIndex: 1, onTap: (_) {}),
-      ),
+        floatingActionButton: Container(
+          width: 56,
+          height: 56,
+          margin: const EdgeInsets.only(bottom: 80),
+          child: FloatingActionButton(
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProjectFormScreen()),
+              );
+              if (result == true) _loadProjects();
+            },
+            backgroundColor: const Color(0xFF0E3520),
+            elevation: 4,
+            shape: const CircleBorder(),
+            child: const Icon(Icons.add, size: 32, color: Colors.white),
+          ),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

@@ -1,86 +1,61 @@
 import 'package:flutter/material.dart';
 import 'package:sylvara_frontend/core/widgets/menu_navegation.dart';
-import 'package:sylvara_frontend/features/projects/screens/screens.dart';
+import 'package:sylvara_frontend/features/projects/screens/pantalla_inicio.dart';
+import 'package:sylvara_frontend/features/projects/screens/project_list_screen.dart';
+import 'package:sylvara_frontend/features/projects/screens/profile_screen.dart';
 
 class MainScaffold extends StatefulWidget {
-  final int currentIndex;
-  final Widget child;
+  final int initialIndex;
 
-  const MainScaffold({
-    super.key,
-    required this.currentIndex,
-    required this.child,
-  });
+  const MainScaffold({super.key, this.initialIndex = 0});
 
   @override
   State<MainScaffold> createState() => _MainScaffoldState();
 }
 
 class _MainScaffoldState extends State<MainScaffold> {
-  void _onNavTap(int index) {
-    if (index == widget.currentIndex) return;
+  late int _currentIndex;
 
-    Widget screen;
-    switch (index) {
-      case 0:
-        screen = const PantallaInicio();
-        break;
-      case 1:
-        screen = const ProjectListScreen();
-        break;
-      case 2:
-        screen = const ProfileScreen();
-        break;
-      default:
-        return;
-    }
+  // Las tres pantallas se instancian UNA sola vez y nunca se destruyen
+  static const List<Widget> _screens = [
+    PantallaInicio(),
+    ProjectListScreen(),
+    ProfileScreen(),
+  ];
 
-    Navigator.pushReplacement(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => screen,
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          final isGoingRight = index > widget.currentIndex;
-
-          final slideIn = Tween<Offset>(
-            begin: Offset(isGoingRight ? 0.08 : -0.08, 0),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutCubic,
-          ));
-
-          return FadeTransition(
-            opacity: CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOut,
-            ),
-            child: SlideTransition(
-              position: slideIn,
-              child: child,
-            ),
-          );
-        },
-        transitionDuration: const Duration(milliseconds: 320),
-      ),
-    );
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        widget.child,
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 28,
-          child: MenuNavegation(
-            currentIndex: widget.currentIndex,
-            onTap: _onNavTap,
+    return Scaffold(
+      backgroundColor: const Color(0xFFF1F5F9),
+      body: Stack(
+        children: [
+          // IndexedStack mantiene las 3 pantallas vivas simultáneamente
+          // Solo muestra la activa, pero no destruye las otras
+          IndexedStack(
+            index: _currentIndex,
+            children: _screens,
           ),
-        ),
-      ],
+          // Navbar fija, siempre en la misma posición, nunca se reconstruye
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 28,
+            child: MenuNavegation(
+              currentIndex: _currentIndex,
+              onTap: (index) {
+                if (index == _currentIndex) return;
+                setState(() => _currentIndex = index);
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

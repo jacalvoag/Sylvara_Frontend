@@ -501,6 +501,10 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
             child: Image.network(
               'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800',
               fit: BoxFit.cover,
+                  frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                    if (wasSynchronouslyLoaded || frame != null) return child;
+                    return Container(color: const Color(0xFF0E3520));
+                  },
               errorBuilder: (context, error, stackTrace) => Container(
                 color: const Color(0xFF0E3520),
               ),
