@@ -1,8 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:sylvara_frontend/core/widgets/background_image.dart';
-import 'package:sylvara_frontend/core/widgets/menu_navegation.dart';
-import 'package:sylvara_frontend/core/widgets/custom_text_field.dart';
+import 'package:sylvara_frontend/core/widgets/widgets.dart';
 import 'package:sylvara_frontend/features/projects/models/dashboard_response.dart';
 import 'package:sylvara_frontend/features/projects/models/update_status_request.dart';
 import 'package:sylvara_frontend/features/projects/models/project_exception.dart';

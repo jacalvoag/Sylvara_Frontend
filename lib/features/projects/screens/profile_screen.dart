@@ -429,7 +429,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildForm() {
     final profile = _profile!;
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
       child: Form(
         key: _formKey,
         child: Column(
