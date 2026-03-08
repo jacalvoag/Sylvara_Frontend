@@ -62,7 +62,6 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
 
   void _autoFillFromCatalog(CatalogSpecies species) {
     setState(() {
-      _selectedSpeciesId = species.speciesId;
       _nameController.text = species.speciesName;
       final functionalType = _functionalTypes.firstWhere(
         (type) => type['name'] == species.functionalTypeName,
@@ -328,23 +327,30 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
     });
 
     try {
-      final request = SpeciesRequest(
-        speciesId: _selectedSpeciesId ?? 0, // Se actualizará según catálogo
-        functionalTypeId: _selectedFunctionalTypeId!,
-        individualCount: int.parse(_individualCountController.text),
-        heightStratumMin: heightMin,
-        heightStratumMax: heightMax,
-        unitId: 1, // Mock - en producción se seleccionaría
-      );
-
-      if (_isEditMode && _editingSpeciesZoneId != null) {
-        // Modo edición
-        await SpeciesService.instance.updateSpeciesRecord(
-          widget.projectId,
-          widget.zoneId,
-          _editingSpeciesZoneId!,
-          request,
+        final request = SpeciesRequest(
+          speciesName: _nameController.text.trim(),
+          functionalTypeId: _selectedFunctionalTypeId!,
+          individualCount: int.parse(_individualCountController.text),
+          heightStratumMin: heightMin,
+          heightStratumMax: heightMax,
         );
+
+        // Modo edición — usa SpeciesUpdateRequest
+        final updateRequest = SpeciesUpdateRequest(
+          speciesName: _nameController.text.trim(),
+          functionalTypeId: _selectedFunctionalTypeId,
+          individualCount: int.parse(_individualCountController.text),
+          heightStratumMin: heightMin,
+          heightStratumMax: heightMax,
+        );
+
+        if (_isEditMode && _editingSpeciesZoneId != null) {
+          await SpeciesService.instance.updateSpeciesRecord(
+            widget.projectId,
+            widget.zoneId,
+            _editingSpeciesZoneId!,
+            updateRequest,
+          );
 
         if (mounted) {
           Navigator.of(context).pop(true);

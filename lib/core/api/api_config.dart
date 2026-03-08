@@ -35,4 +35,28 @@ class ApiConfig {
   static String get csvGenerate => '$baseUrl/benchmarking/csv/generate';
   static String get csvDownload => '$baseUrl/benchmarking/csv/download';
   static String get metrics => '$baseUrl/benchmarking/metrics';
+
+  static String projectZones(int projectId) => '$baseUrl/projects/$projectId/zones';
+  static String projectZoneById(int projectId, int zoneId) => '$baseUrl/projects/$projectId/zones/$zoneId';
+
+  static String speciesInZone(int projectId, int zoneId, {String? cursor, int limit = 20}) {
+    final params = <String, String>{
+      'limit': limit.toString(),
+      if (cursor != null) 'cursor': cursor,
+    };
+    final query = params.entries.map((e) => '${e.key}=${e.value}').join('&');
+    return '$baseUrl/projects/$projectId/zones/$zoneId/species?$query';
+  }
+
+  static String speciesCatalog(int projectId, int zoneId, {String? cursor, int limit = 20}) {
+    final params = <String, String>{
+      'limit': limit.toString(),
+      if (cursor != null) 'cursor': cursor,
+    };
+    final query = params.entries.map((e) => '${e.key}=${e.value}').join('&');
+    return '$baseUrl/projects/$projectId/zones/$zoneId/species/catalog?$query';
+  }
+
+  static String speciesZoneById(int projectId, int zoneId, int speciesZoneId) =>
+      '$baseUrl/projects/$projectId/zones/$zoneId/species/$speciesZoneId';
 }
