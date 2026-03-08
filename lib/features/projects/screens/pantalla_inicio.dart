@@ -36,10 +36,7 @@ class _PantallaInicioState extends State<PantallaInicio> with TickerProviderStat
 
   Future<void> _loadData() async {
     if (!mounted) return;
-    setState(() {
-      _isLoading = true;
-      _hasError = false;
-    });
+    setState(() { _isLoading = true; _hasError = false; });
     try {
       final results = await Future.wait([
         _projectService.getDashboardData(),
@@ -63,55 +60,54 @@ class _PantallaInicioState extends State<PantallaInicio> with TickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
-      body: Stack(
-        children: [
-          const BackgroundImage(imagePath: 'assets/images/backgrounds/FondoHome.png', height: 610),
-          if (_isLoading)
-            const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(color: Color(0xFF0E3520), strokeWidth: 3),
-                  SizedBox(height: 20),
-                  Text('Cargando datos...', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF0E3520), fontFamily: 'Montserrat')),
-                ],
-              ),
-            )
-          else if (_hasError)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
+    return MainScaffold(
+      currentIndex: 0,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF1F5F9),
+        body: Stack(
+          children: [
+            const BackgroundImage(imagePath: 'assets/images/backgrounds/FondoHome.png', height: 610),
+            if (_isLoading)
+              const Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.error_outline, size: 64, color: Color(0xFFAE0000)),
-                    const SizedBox(height: 20),
-                    const Text('Error al cargar los datos', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF0E3520), fontFamily: 'Montserrat'), textAlign: TextAlign.center),
-                    const SizedBox(height: 10),
-                    Text(_errorMessage, style: const TextStyle(fontSize: 14, color: Color(0xFFAE0000), fontFamily: 'Montserrat'), textAlign: TextAlign.center),
-                    const SizedBox(height: 30),
-                    ElevatedButton(
-                      onPressed: _loadData,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0E3520),
-                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                      child: const Text('Reintentar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white, fontFamily: 'Montserrat')),
-                    ),
+                    CircularProgressIndicator(color: Color(0xFF0E3520), strokeWidth: 3),
+                    SizedBox(height: 20),
+                    Text('Cargando datos...', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF0E3520), fontFamily: 'Montserrat')),
                   ],
                 ),
-              ),
-            )
-          else
-            _buildSuccessState(_dashboard!),
-        ],
-      ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(12),
-        child: MenuNavegation(currentIndex: 0, onTap: (_) {}),
+              )
+            else if (_hasError)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline, size: 64, color: Color(0xFFAE0000)),
+                      const SizedBox(height: 20),
+                      const Text('Error al cargar los datos', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF0E3520), fontFamily: 'Montserrat'), textAlign: TextAlign.center),
+                      const SizedBox(height: 10),
+                      Text(_errorMessage, style: const TextStyle(fontSize: 14, color: Color(0xFFAE0000), fontFamily: 'Montserrat'), textAlign: TextAlign.center),
+                      const SizedBox(height: 30),
+                      ElevatedButton(
+                        onPressed: _loadData,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF0E3520),
+                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        child: const Text('Reintentar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white, fontFamily: 'Montserrat')),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              _buildSuccessState(_dashboard!),
+          ],
+        ),
       ),
     );
   }
@@ -198,7 +194,7 @@ class _PantallaInicioState extends State<PantallaInicio> with TickerProviderStat
 
   Widget _buildResumenView(DashboardSummary summary) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
       child: Column(
         children: [
           SummaryCard(title: 'Total de proyectos:', value: summary.totalHistoricalPlots),
@@ -227,7 +223,7 @@ class _PantallaInicioState extends State<PantallaInicio> with TickerProviderStat
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
       itemCount: latestPlots.length,
       itemBuilder: (context, index) {
         final plot = latestPlots[index];
