@@ -336,11 +336,23 @@ Future<void> _downloadMobile(List<int> bytes, String filename) async {
         _isProcessing = false;
       });
     } catch (e) {
-      setState(() {
-        _statusMessage = 'Error al enviar a BigQuery';
-        _isProcessing = false;
-        _isError = true;
-      });
+      final errorMsg = e.toString();
+      final isGoogleExpired = errorMsg.contains('expirado') || errorMsg.contains('expirada');
+
+      if (isGoogleExpired && !_googleConnected) {
+        setState(() {
+          _isProcessing = false;
+          _statusMessage = 'Token de Google expirado. Vuelve a vincular tu cuenta y reintenta.';
+          _isError = true;
+          _googleConnected = false;
+        });
+      } else {
+        setState(() {
+          _statusMessage = 'Error al enviar a BigQuery';
+          _isProcessing = false;
+          _isError = true;
+        });
+      }
     }
   }
 

@@ -3,8 +3,6 @@ import 'package:sylvara_frontend/core/widgets/widgets.dart';
 import 'package:sylvara_frontend/features/auth/models/models.dart';
 import 'package:sylvara_frontend/features/auth/services/auth_service.dart';
 import 'package:sylvara_frontend/features/auth/screens/register_screen.dart';
-import 'package:sylvara_frontend/features/projects/screens/screens.dart';
-import 'package:sylvara_frontend/core/widgets/main_scaffold.dart';
 
 
 
@@ -51,11 +49,6 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MainScaffold()),
-      );
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const PantallaInicio()),
       );
     } on AuthException catch (e) {
       setState(() {
