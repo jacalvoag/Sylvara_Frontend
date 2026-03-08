@@ -3,8 +3,13 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 class ApiConfig {
   static const String _webHost = 'http://localhost:3000/api/v1';
   static const String _mobileHost = 'http://10.0.2.2:3000/api/v1';
+  static const String _physicalDeviceHost = '192.168.1.82';
 
-  static String get baseUrl => kIsWeb ? _webHost : _mobileHost;
+    static String get baseUrl {
+    if (kIsWeb) return _webHost;
+    // Cambia a _physicalDeviceHost cuando pruebes en dispositivo real
+    return _mobileHost;
+  }
 
   static String get login => '$baseUrl/auth/login';
   static String get register => '$baseUrl/auth/register';
@@ -19,7 +24,7 @@ class ApiConfig {
   static String projects({String? status, int? cursor, int limit = 20}) {
     final params = <String, String>{
       'limit': limit.toString(),
-      if (status != null) 'status': status,
+      'status': ?status,
       if (cursor != null) 'cursor': cursor.toString(),
     };
     final query = params.entries.map((e) => '${e.key}=${e.value}').join('&');
@@ -42,7 +47,7 @@ class ApiConfig {
   static String speciesInZone(int projectId, int zoneId, {String? cursor, int limit = 20}) {
     final params = <String, String>{
       'limit': limit.toString(),
-      if (cursor != null) 'cursor': cursor,
+      'cursor': ?cursor,
     };
     final query = params.entries.map((e) => '${e.key}=${e.value}').join('&');
     return '$baseUrl/projects/$projectId/zones/$zoneId/species?$query';
@@ -51,7 +56,7 @@ class ApiConfig {
   static String speciesCatalog(int projectId, int zoneId, {String? cursor, int limit = 20}) {
     final params = <String, String>{
       'limit': limit.toString(),
-      if (cursor != null) 'cursor': cursor,
+      'cursor': ?cursor,
     };
     final query = params.entries.map((e) => '${e.key}=${e.value}').join('&');
     return '$baseUrl/projects/$projectId/zones/$zoneId/species/catalog?$query';

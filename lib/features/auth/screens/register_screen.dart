@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:sylvara_frontend/core/widgets/widgets.dart';
 import 'package:sylvara_frontend/features/auth/models/models.dart';
 import 'package:sylvara_frontend/features/auth/services/auth_service.dart';
-import 'package:sylvara_frontend/features/projects/screens/screens.dart';
-import 'package:sylvara_frontend/core/widgets/main_scaffold.dart';
 
 
 class RegisterScreen extends StatefulWidget {
@@ -99,23 +97,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         MaterialPageRoute(builder: (context) => const MainScaffold()),
         (route) => false,
       );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('¡Bienvenido, ${response.user.name}!'),
-          backgroundColor: const Color(0xFF0E3520),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
-
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const PantallaInicio()),
-        (route) => false,
-      );
+      
     } on AuthException catch (e) {
       setState(() {
         _errorMessage = e.message;
