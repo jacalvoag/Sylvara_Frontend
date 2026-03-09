@@ -463,109 +463,125 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                 
                 const SizedBox(height: 10),
                 
-                // Contenedor con backdrop blur para el buscador (estilo Figma)
-                Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(40),
-                        topRight: Radius.circular(40),
-                      ),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 3.5, sigmaY: 3.5),
-                        child: Container(
-                          height: 156,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFCFFFD).withOpacity(0.1),
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 1,
-                            ),
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(40),
-                              topRight: Radius.circular(40),
+                // Contenedor principal y buscador (superposición)
+                Expanded(
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      // Fondo difuminado (BackdropFilter)
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        child: ClipRRect(
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(40),
+                            topRight: Radius.circular(40),
+                          ),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 3.5, sigmaY: 3.5),
+                            child: Container(
+                              height: 156,
+                              padding: const EdgeInsets.only(top: 11, left: 35, right: 35),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFCFFFD).withOpacity(0.1),
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 1,
+                                ),
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(40),
+                                  topRight: Radius.circular(40),
+                                ),
+                              ),
+                              child: // Barra de búsqueda
+                              Container(
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF1F5F9),
+                                  borderRadius: BorderRadius.circular(50),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.15),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 0),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextField(
+                                        controller: _searchController,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _searchQuery = value.toLowerCase().trim();
+                                          });
+                                        },
+                                        decoration: InputDecoration(
+                                          hintText: 'Buscar proyecto...',
+                                          hintStyle: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.grey[500],
+                                            fontFamily: 'Montserrat',
+                                          ),
+                                          border: InputBorder.none,
+                                          contentPadding: const EdgeInsets.symmetric(
+                                            horizontal: 20,
+                                            vertical: 10,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const Padding(
+                                      padding: EdgeInsets.only(right: 12),
+                                      child: Icon(
+                                        Icons.search,
+                                        color: Color(0xFF0E3520),
+                                        size: 27,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    // Barra de búsqueda
-                    Positioned(
-                      top: 11,
-                      left: 35,
-                      right: 35,
-                      child: Container(
-                        height: 38,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(50),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.15),
-                              blurRadius: 4,
-                              offset: const Offset(0, 0),
+                      
+                      // Contenedor principal blanco con borde redondeado superior (superpuesto)
+                      Positioned(
+                        top: 70, // Superpone el contenedor anterior
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(40),
+                              topRight: Radius.circular(40),
                             ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller: _searchController,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _searchQuery = value.toLowerCase().trim();
-                                  });
-                                },
-                                decoration: InputDecoration(
-                                  hintText: 'Buscar proyecto...',
-                                  hintStyle: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[500],
-                                    fontFamily: 'Montserrat',
-                                  ),
-                                  border: InputBorder.none,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 20,
-                                    vertical: 10,
-                                  ),
-                                ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 10,
+                                offset: const Offset(0, -5),
                               ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(right: 12),
-                              child: Icon(
-                                Icons.search,
-                                color: const Color(0xFF0E3520),
-                                size: 27,
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              const SizedBox(height: 20),
+                              // Lista de proyectos
+                              Expanded(
+                                child: _buildContent(),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                
-                // Contenedor principal con fondo y borde redondeado superior
-                Expanded(
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(40),
-                        topRight: Radius.circular(40),
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        
-                        // Lista de proyectos
-                        Expanded(
-                          child: _buildContent(),
-                        ),
-                      ],
-                    ),
+                    ],
                   ),
                 ),
               ],
