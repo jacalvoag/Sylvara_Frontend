@@ -234,11 +234,11 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
     }
   }
 
-  void _showPasswordDialog(Plot project) {
+  Future<void> _showPasswordDialog(Plot project) async {
     final passwordController = TextEditingController();
     final formKey = GlobalKey<FormState>();
 
-    showDialog(
+    await showDialog(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
@@ -276,7 +276,6 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                 children: [
                   TextButton(
                     onPressed: () {
-                      passwordController.dispose();
                       Navigator.of(dialogContext).pop();
                     },
                     child: const Text('Cancelar', style: TextStyle(color: Color(0xFF757575), fontFamily: 'Montserrat', fontWeight: FontWeight.w600)),
@@ -286,7 +285,6 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                     onPressed: () {
                       if (!formKey.currentState!.validate()) return;
                       final password = passwordController.text;
-                      passwordController.dispose();
                       Navigator.of(dialogContext).pop();
                       _toggleProjectStatus(project, password);
                     },
@@ -305,6 +303,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
         ),
       ),
     );
+    passwordController.dispose();
   }
 
   Future<void> _toggleProjectStatus(Plot project, String password) async {
@@ -443,8 +442,8 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
             },
             onToggleStatus: () => _showPasswordDialog(project),
             onDelete: () => _showDeleteConfirmationDialog(project),
-            onTap: () {
-              Navigator.push(
+            onTap: () async {
+              await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => ProjectDetailsScreen(
@@ -453,6 +452,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                   ),
                 ),
               );
+              if (mounted) _loadProjects();
             },
           ),
         );

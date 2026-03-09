@@ -231,8 +231,8 @@ class _PantallaInicioState extends State<PantallaInicio> with TickerProviderStat
               project: project,
               totalArea: plot.totalArea,
               unitName: plot.unitName,
-              onTap: () {
-                Navigator.push(
+              onTap: () async {
+                await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => ProjectDetailsScreen(
@@ -241,6 +241,7 @@ class _PantallaInicioState extends State<PantallaInicio> with TickerProviderStat
                     ),
                   ),
                 );
+                if (mounted) _loadData();
               },
             ),
           );

@@ -18,7 +18,6 @@ class SummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: 390,
-      height: 160,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: backgroundColor ?? const Color(0xFFF1F5F9),

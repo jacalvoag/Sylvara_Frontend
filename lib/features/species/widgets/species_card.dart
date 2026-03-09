@@ -139,13 +139,6 @@ class SpeciesCard extends StatelessWidget {
                         '${species.heightStratumMin.toStringAsFixed(0)}-${species.heightStratumMax.toStringAsFixed(0)} m',
                       ),
                       
-                      const SizedBox(height: 4),
-                      
-                      // Ciclo
-                      _buildInfoRow(
-                        'Ciclo:',
-                        '${species.cycleNumber}',
-                      ),
                     ],
                   ),
                 ),

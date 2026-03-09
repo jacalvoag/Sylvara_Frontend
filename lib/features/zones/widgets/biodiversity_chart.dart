@@ -178,7 +178,7 @@ class BiodiversityChart extends StatelessWidget {
         BarChartRodData(
           toY: y,
           color: color,
-          width: 32,
+          width: 18,
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(4),
             topRight: Radius.circular(4),

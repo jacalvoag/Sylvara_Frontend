@@ -25,6 +25,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _hasError = false;
   String _errorText = '';
   bool _isSaving = false;
+  bool _isEditingMode = false;
   String _profilePictureUrl = '';
   UserProfile? _profile;
 
@@ -122,7 +123,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
       final updated = await _profileService.updateProfile(request);
       if (!mounted) return;
-      setState(() { _profile = updated; _isSaving = false; });
+      setState(() { _profile = updated; _isSaving = false; _isEditingMode = false; });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Row(children: [
@@ -145,14 +146,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  void _showChangePasswordDialog() {
+  Future<void> _showChangePasswordDialog() async {
     final currentPwdController = TextEditingController();
     final newPwdController = TextEditingController();
     final formKey = GlobalKey<FormState>();
     bool obscureCurrent = true;
     bool obscureNew = true;
 
-    showDialog(
+    await showDialog(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => StatefulBuilder(
@@ -210,8 +211,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         height: 44,
                         child: OutlinedButton(
                           onPressed: () {
-                            currentPwdController.dispose();
-                            newPwdController.dispose();
                             Navigator.of(dialogContext).pop();
                           },
                           style: OutlinedButton.styleFrom(
@@ -231,8 +230,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             if (!formKey.currentState!.validate()) return;
                             final current = currentPwdController.text;
                             final newPwd = newPwdController.text;
-                            currentPwdController.dispose();
-                            newPwdController.dispose();
                             Navigator.of(dialogContext).pop();
                             try {
                               await _profileService.changePassword(UpdatePasswordRequest(currentPassword: current, newPassword: newPwd));
@@ -276,6 +273,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
     );
+    currentPwdController.dispose();
+    newPwdController.dispose();
   }
 
   void _showDeleteAccountDialog() {
@@ -462,19 +461,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           )
                         : null,
                   ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0E3520),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
+                  if (_isEditingMode)
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0E3520),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: const Icon(Icons.camera_alt, color: Colors.white, size: 14),
                       ),
-                      child: const Icon(Icons.camera_alt, color: Colors.white, size: 14),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -497,6 +497,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               placeholder: 'Ej. Gilberto',
               controller: _nombreController,
               keyboardType: TextInputType.name,
+              readOnly: !_isEditingMode,
               validator: (v) => (v == null || v.isEmpty) ? 'Ingresa tu nombre' : null,
             ),
 
@@ -507,6 +508,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               placeholder: 'Ej. Malaga',
               controller: _apellidosController,
               keyboardType: TextInputType.name,
+              readOnly: !_isEditingMode,
               validator: (v) => (v == null || v.isEmpty) ? 'Ingresa tus apellidos' : null,
             ),
 
@@ -517,9 +519,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               placeholder: 'DD/MM/YYYY',
               controller: _fechaNacimientoController,
               readOnly: true,
-              onTap: _selectDate,
+              onTap: _isEditingMode ? _selectDate : null,
               suffixIcon: GestureDetector(
-                onTap: _selectDate,
+                onTap: _isEditingMode ? _selectDate : null,
                 child: const Padding(
                   padding: EdgeInsets.only(right: 12),
                   child: Icon(Icons.calendar_today_rounded, size: 20, color: Color(0xFF0E3520)),
@@ -535,6 +537,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               placeholder: 'correo@ejemplo.com',
               controller: _correoController,
               keyboardType: TextInputType.emailAddress,
+              readOnly: !_isEditingMode,
               validator: (v) {
                 if (v == null || v.isEmpty) return 'Ingresa tu correo';
                 if (!v.contains('@')) return 'Ingresa un correo válido';
@@ -564,74 +567,122 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             const SizedBox(height: 28),
 
-            // Botones guardar / cancelar
-            Row(
-              children: [
-                Expanded(
-                  child: SizedBox(
-                    height: 48,
-                    child: OutlinedButton(
-                      onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFF0E3520), width: 1.5),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            // Action Buttons
+            if (_isEditingMode) ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 48,
+                      child: OutlinedButton(
+                        onPressed: _isSaving
+                            ? null
+                            : () => setState(() {
+                                  _isEditingMode = false;
+                                  _fillFormWithProfile(_profile!);
+                                }),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFF0E3520), width: 1.5),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: const Text('Cancelar',
+                            style: TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0E3520))),
                       ),
-                      child: const Text('Cancelar', style: TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0E3520))),
                     ),
                   ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: SizedBox(
-                    height: 48,
-                    child: ElevatedButton(
-                      onPressed: _isSaving ? null : _handleEdit,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0E3520),
-                        disabledBackgroundColor: const Color(0xFFCBD5E1),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        elevation: 0,
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: SizedBox(
+                      height: 48,
+                      child: ElevatedButton(
+                        onPressed: _isSaving ? null : _handleEdit,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF0E3520),
+                          disabledBackgroundColor: const Color(0xFFCBD5E1),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 0,
+                        ),
+                        child: _isSaving
+                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                            : const Text('Guardar',
+                                style: TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
                       ),
-                      child: _isSaving
-                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                          : const Text('Guardar', style: TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
                     ),
                   ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: OutlinedButton.icon(
-                onPressed: _showChangePasswordDialog,
-                icon: const Icon(Icons.lock_outline, size: 18, color: Color(0xFF0E3520)),
-                label: const Text('Cambiar Contraseña', style: TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF0E3520))),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Color(0xFF0E3520), width: 1.5),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ],
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton.icon(
+                  onPressed: _showChangePasswordDialog,
+                  icon: const Icon(Icons.lock_outline, size: 18, color: Color(0xFF0E3520)),
+                  label: const Text('Cambiar Contraseña',
+                      style: TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF0E3520))),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Color(0xFF0E3520), width: 1.5),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
                 ),
               ),
-            ),
+            ] else ...[
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton.icon(
+                  onPressed: () => setState(() => _isEditingMode = true),
+                  icon: const Icon(Icons.edit_outlined, color: Colors.white, size: 18),
+                  label: const Text('Editar Perfil',
+                      style: TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0E3520),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton.icon(
+                  onPressed: () async {
+                    await TokenStorage.deleteToken();
+                    if (!mounted) return;
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      (_) => false,
+                    );
+                  },
+                  icon: const Icon(Icons.logout, size: 18, color: Color(0xFF0E3520)),
+                  label: const Text('Cerrar Sesión',
+                      style: TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF0E3520))),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Color(0xFF0E3520), width: 1.5),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+            ],
 
             const SizedBox(height: 12),
 
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: OutlinedButton.icon(
-                onPressed: _showDeleteAccountDialog,
-                icon: const Icon(Icons.delete_outline, size: 18, color: Color(0xFFD32F2F)),
-                label: const Text('Eliminar Cuenta', style: TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFFD32F2F))),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Color(0xFFD32F2F), width: 1.5),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            if (!_isEditingMode)
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton.icon(
+                  onPressed: _showDeleteAccountDialog,
+                  icon: const Icon(Icons.delete_outline, size: 18, color: Color(0xFFD32F2F)),
+                  label: const Text('Eliminar Cuenta',
+                      style: TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFFD32F2F))),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Color(0xFFD32F2F), width: 1.5),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),
