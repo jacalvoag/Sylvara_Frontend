@@ -606,13 +606,9 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 40),
       child: Container(
-<<<<<<< HEAD
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.9,
         ),
-=======
-        constraints: const BoxConstraints(maxHeight: 570),
->>>>>>> cae0935b3798205f70b678f88439254584c90d22
         decoration: BoxDecoration(
           color: const Color(0xFFF1F5F9),
           borderRadius: BorderRadius.circular(13),
@@ -896,10 +892,9 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
+      );
   }
 }

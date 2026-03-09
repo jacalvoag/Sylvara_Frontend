@@ -346,6 +346,9 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
     }
   }
 
+
+
+
   Widget _buildContent() {
     if (_isLoading) {
       return const Center(
@@ -390,7 +393,12 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
       );
     }
 
-    if (_allProjects.isEmpty) {
+    // Filtrar por búsqueda
+    final projects = _searchQuery.isEmpty
+        ? _allProjects
+        : _allProjects.where((p) => p.samplingPlotName.toLowerCase().contains(_searchQuery)).toList();
+
+    if (projects.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
@@ -411,9 +419,9 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 80),
-      itemCount: _allProjects.length + (_isLoadingMore ? 1 : 0),
+      itemCount: projects.length + (_isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {
-        if (index == _allProjects.length) {
+        if (index == projects.length) {
           return const Center(
             child: Padding(
               padding: EdgeInsets.all(16),
@@ -421,7 +429,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
             ),
           );
         }
-        final project = _allProjects[index];
+        final project = projects[index];
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: EditableProjectCard(
@@ -455,13 +463,12 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-<<<<<<< HEAD
       backgroundColor: const Color(0xFFF1F5F9),
       body: Stack(
         children: [
           // Imagen de fondo con altura específica de Figma
           const BackgroundImage(
-            imagePath: 'assets/images/backgrounds/background.png',
+            imagePath: 'assets/images/backgrounds/FondoHome.png',
             height: 612,
           ),
           
@@ -615,342 +622,36 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                         
                         // Lista de proyectos
                         Expanded(
-                          child: FutureBuilder<PaginatedProjectsResponse>(
-                            future: _projectsFuture,
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
-                                return Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      CircularProgressIndicator(
-                                        valueColor: AlwaysStoppedAnimation<Color>(
-                                          const Color(0xFF0E3520),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        'Cargando proyectos...',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          color: const Color(0xFF666666),
-                                          fontFamily: 'Montserrat',
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }
-
-                              if (snapshot.hasError) {
-                                return Center(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(32),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.error_outline,
-                                          size: 64,
-                                          color: const Color(0xFFD32F2F),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        Text(
-                                          'Error al cargar proyectos',
-                                          style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                            color: const Color(0xFF0E3520),
-                                            fontFamily: 'Montserrat',
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          snapshot.error.toString(),
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            color: const Color(0xFF666666),
-                                            fontFamily: 'Montserrat',
-                                          ),
-                                        ),
-                                        const SizedBox(height: 24),
-                                        ElevatedButton.icon(
-                                          onPressed: _loadProjects,
-                                          icon: Icon(Icons.refresh),
-                                          label: Text('Reintentar'),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: const Color(0xFF0E3520),
-                                            foregroundColor: Colors.white,
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 32,
-                                              vertical: 16,
-                                            ),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(12),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              }
-
-                              final response = snapshot.data!;
-                              final allLoaded = [...response.data, ..._allProjects];
-
-                              // Guardar nextCursor para paginación
-                              if (_allProjects.isEmpty && response.data.isNotEmpty) {
-                                WidgetsBinding.instance.addPostFrameCallback((_) {
-                                  setState(() {
-                                    _allProjects.addAll(response.data);
-                                    _nextCursor = response.meta.nextCursor;
-                                  });
-                                });
-                              }
-
-                              // Filtrar por búsqueda
-                              final projects = _searchQuery.isEmpty
-                                  ? allLoaded
-                                  : allLoaded
-                                      .where((p) => p.samplingPlotName
-                                          .toLowerCase()
-                                          .contains(_searchQuery))
-                                      .toList();
-
-                              if (projects.isEmpty) {
-                                return Center(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(32),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.folder_open,
-                                          size: 80,
-                                          color: Colors.grey[400],
-                                        ),
-                                        const SizedBox(height: 24),
-                                        Text(
-                                          'No hay proyectos',
-                                          style: TextStyle(
-                                            fontSize: 22,
-                                            fontWeight: FontWeight.bold,
-                                            color: const Color(0xFF0E3520),
-                                            fontFamily: 'Montserrat',
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          'Crea tu primer proyecto usando el botón +',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontSize: 15,
-                                            color: const Color(0xFF666666),
-                                            fontFamily: 'Montserrat',
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              }
-
-                              return ListView.builder(
-                                controller: _scrollController,
-                                padding: const EdgeInsets.fromLTRB(20, 18, 20, 80),
-                                itemCount: projects.length + (_isLoadingMore ? 1 : 0),
-                                itemBuilder: (context, index) {
-                                  // Mostrar indicador de carga al final
-                                  if (index == projects.length) {
-                                    return Center(
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(16),
-                                        child: CircularProgressIndicator(
-                                          valueColor: AlwaysStoppedAnimation<Color>(
-                                            const Color(0xFF0E3520),
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  }
-
-                                  final project = projects[index];
-                                  return Padding(
-                                    padding: const EdgeInsets.only(bottom: 12),
-                                    child: EditableProjectCard(
-                                      project: project,
-                                      onEdit: () async {
-                                        // Navegar a pantalla de edición
-                                        final result = await Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => ProjectFormScreen(
-                                              project: project,
-                                            ),
-                                          ),
-                                        );
-                                        // Si se editó, recargar lista
-                                        if (result == true) {
-                                          _loadProjects();
-                                        }
-                                      },
-                                      onToggleStatus: () {
-                                        _showPasswordDialog(project);
-                                      },
-                                      onDelete: () {
-                                        _showDeleteConfirmationDialog(project);
-                                      },
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => ProjectDetailsScreen(
-                                              projectId: project.samplingPlotId,
-                                              projectName: project.samplingPlotName,
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-=======
-        backgroundColor: const Color(0xFFF1F5F9),
-        body: Stack(
-          children: [
-            const BackgroundImage(
-              imagePath: 'assets/images/backgrounds/background.png',
-              height: 612,
-            ),
-            SafeArea(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 28, 16, 10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          width: 50,
-                          height: 54,
-                          decoration: const BoxDecoration(
-                            image: DecorationImage(
-                              image: AssetImage('assets/images/backgrounds/logo.png'),
-                              fit: BoxFit.contain,
-                            ),
-                          ),
-                        ),
-                        RichText(
-                          text: const TextSpan(
-                            style: TextStyle(fontSize: 22, fontFamily: 'Montserrat', color: Color(0xFF0E3520)),
-                            children: [
-                              TextSpan(text: 'Mis', style: TextStyle(fontWeight: FontWeight.normal)),
-                              TextSpan(text: ' Proyectos', style: TextStyle(fontWeight: FontWeight.bold)),
-                            ],
->>>>>>> cae0935b3798205f70b678f88439254584c90d22
-                          ),
+                          child: _buildContent(),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Stack(
-                    children: [
-                      ClipRRect(
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(40),
-                          topRight: Radius.circular(40),
-                        ),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 3.5, sigmaY: 3.5),
-                          child: Container(
-                            height: 70,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFCFFFD).withOpacity(0.1),
-                              border: Border.all(color: Colors.white),
-                              borderRadius: const BorderRadius.only(
-                                topLeft: Radius.circular(40),
-                                topRight: Radius.circular(40),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        top: 16,
-                        left: 24,
-                        right: 24,
-                        child: Container(
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF1F5F9),
-                            borderRadius: BorderRadius.circular(50),
-                            boxShadow: [
-                              BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 8),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: TextField(
-                                  decoration: InputDecoration(
-                                    hintText: 'Buscar proyecto...',
-                                    hintStyle: TextStyle(fontSize: 14, color: Colors.grey[500], fontFamily: 'Montserrat'),
-                                    border: InputBorder.none,
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                                  ),
-                                ),
-                              ),
-                              const Padding(
-                                padding: EdgeInsets.only(right: 14),
-                                child: Icon(Icons.search, color: Color(0xFF0E3520), size: 24),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Expanded(
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(40),
-                          topRight: Radius.circular(40),
-                        ),
-                      ),
-                      child: _buildContent(),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
-        floatingActionButton: Container(
-          width: 56,
-          height: 56,
-          margin: const EdgeInsets.only(bottom: 80),
-          child: FloatingActionButton(
-            onPressed: () async {
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProjectFormScreen()),
-              );
-              if (result == true) _loadProjects();
-            },
-            backgroundColor: const Color(0xFF0E3520),
-            elevation: 4,
-            shape: const CircleBorder(),
-            child: const Icon(Icons.add, size: 32, color: Colors.white),
           ),
+        ],
+      ),
+      floatingActionButton: Container(
+        width: 56,
+        height: 56,
+        margin: const EdgeInsets.only(bottom: 80),
+        child: FloatingActionButton(
+          onPressed: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ProjectFormScreen()),
+            );
+            if (result == true) _loadProjects();
+          },
+          backgroundColor: const Color(0xFF0E3520),
+          elevation: 4,
+          shape: const CircleBorder(),
+          child: const Icon(Icons.add, size: 32, color: Colors.white),
         ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

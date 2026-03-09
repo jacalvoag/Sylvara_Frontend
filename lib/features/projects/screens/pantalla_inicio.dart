@@ -220,7 +220,6 @@ class _PantallaInicioState extends State<PantallaInicio> with TickerProviderStat
       );
     }
 
-<<<<<<< HEAD
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       child: Column(
@@ -247,18 +246,6 @@ class _PantallaInicioState extends State<PantallaInicio> with TickerProviderStat
           );
         }).toList(),
       ),
-=======
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
-      itemCount: latestPlots.length,
-      itemBuilder: (context, index) {
-        final plot = latestPlots[index];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: ProjectCard(project: plot.toProject(), onTap: () {}),
-        );
-      },
->>>>>>> cae0935b3798205f70b678f88439254584c90d22
     );
   }
 }

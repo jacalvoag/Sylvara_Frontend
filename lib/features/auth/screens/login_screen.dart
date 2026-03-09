@@ -69,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Stack(
         children: [
           const BackgroundImage(
-            imagePath: 'assets/images/backgrounds/auth_background.jpg',
+            imagePath: 'assets/images/backgrounds/FondoAuth.png',
             height: 933,
           ),
           SafeArea(
