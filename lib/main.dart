@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:sylvara_frontend/core/api/token_storage.dart';
 import 'package:sylvara_frontend/core/widgets/main_scaffold.dart';
 import 'package:sylvara_frontend/features/auth/screens/login_screen.dart';
-import 'package:sylvara_frontend/features/projects/screens/pantalla_inicio.dart';
 
 void main() {
   runApp(const MainApp());
@@ -13,9 +12,9 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: PantallaInicio(),
+      home: AuthGate(),
     );
   }
 }
