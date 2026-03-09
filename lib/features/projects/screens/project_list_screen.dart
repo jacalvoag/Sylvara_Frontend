@@ -235,75 +235,15 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
   }
 
   Future<void> _showPasswordDialog(Plot project) async {
-    final passwordController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-
-    await showDialog(
+    final password = await showDialog<String>(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        contentPadding: const EdgeInsets.all(24),
-        content: Form(
-          key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Cambiar estado',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF0E3520), fontFamily: 'Montserrat'),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Ingresa tu contraseña para cambiar el estatus de ${project.name}',
-                style: const TextStyle(fontSize: 14, color: Color(0xFF666666), fontFamily: 'Montserrat'),
-              ),
-              const SizedBox(height: 20),
-              CustomTextField(
-                label: 'Contraseña',
-                placeholder: '••••••••',
-                controller: passwordController,
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) return 'Ingresa tu contraseña';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(dialogContext).pop();
-                    },
-                    child: const Text('Cancelar', style: TextStyle(color: Color(0xFF757575), fontFamily: 'Montserrat', fontWeight: FontWeight.w600)),
-                  ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (!formKey.currentState!.validate()) return;
-                      final password = passwordController.text;
-                      Navigator.of(dialogContext).pop();
-                      _toggleProjectStatus(project, password);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0E3520),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      elevation: 0,
-                    ),
-                    child: const Text('Confirmar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600)),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+      builder: (context) => _PasswordDialog(project: project),
     );
-    passwordController.dispose();
+
+    if (password != null && mounted) {
+      _toggleProjectStatus(project, password);
+    }
   }
 
   Future<void> _toggleProjectStatus(Plot project, String password) async {
@@ -652,6 +592,87 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+    );
+  }
+}
+
+class _PasswordDialog extends StatefulWidget {
+  final Plot project;
+
+  const _PasswordDialog({required this.project});
+
+  @override
+  State<_PasswordDialog> createState() => _PasswordDialogState();
+}
+
+class _PasswordDialogState extends State<_PasswordDialog> {
+  final _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      contentPadding: const EdgeInsets.all(24),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Cambiar estado',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF0E3520), fontFamily: 'Montserrat'),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Ingresa tu contraseña para cambiar el estatus de ${widget.project.name}',
+              style: const TextStyle(fontSize: 14, color: Color(0xFF666666), fontFamily: 'Montserrat'),
+            ),
+            const SizedBox(height: 20),
+            CustomTextField(
+              label: 'Contraseña',
+              placeholder: '••••••••',
+              controller: _passwordController,
+              obscureText: true,
+              validator: (value) {
+                if (value == null || value.isEmpty) return 'Ingresa tu contraseña';
+                return null;
+              },
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancelar', style: TextStyle(color: Color(0xFF757575), fontFamily: 'Montserrat', fontWeight: FontWeight.w600)),
+                ),
+                const SizedBox(width: 12),
+                ElevatedButton(
+                  onPressed: () {
+                    if (!_formKey.currentState!.validate()) return;
+                    Navigator.of(context).pop(_passwordController.text);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0E3520),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    elevation: 0,
+                  ),
+                  child: const Text('Confirmar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600)),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

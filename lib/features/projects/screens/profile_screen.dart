@@ -147,134 +147,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _showChangePasswordDialog() async {
-    final currentPwdController = TextEditingController();
-    final newPwdController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-    bool obscureCurrent = true;
-    bool obscureNew = true;
-
-    await showDialog(
+    final result = await showDialog<Map<String, String>>(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          contentPadding: const EdgeInsets.all(24),
-          content: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Cambiar contraseña', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF0E3520), fontFamily: 'Montserrat')),
-                const SizedBox(height: 8),
-                const Text('Ingresa tu contraseña actual y la nueva', style: TextStyle(fontSize: 13, color: Color(0xFF666666), fontFamily: 'Montserrat')),
-                const SizedBox(height: 20),
-                CustomTextField(
-                  label: 'Contraseña actual',
-                  placeholder: '••••••••',
-                  controller: currentPwdController,
-                  obscureText: obscureCurrent,
-                  suffixIcon: GestureDetector(
-                    onTap: () => setDialogState(() => obscureCurrent = !obscureCurrent),
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 12),
-                      child: Icon(obscureCurrent ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 20, color: const Color(0xFF0E3520).withOpacity(0.5)),
-                    ),
-                  ),
-                  validator: (v) => (v == null || v.isEmpty) ? 'Ingresa tu contraseña actual' : null,
-                ),
-                const SizedBox(height: 16),
-                CustomTextField(
-                  label: 'Nueva contraseña',
-                  placeholder: '••••••••',
-                  controller: newPwdController,
-                  obscureText: obscureNew,
-                  suffixIcon: GestureDetector(
-                    onTap: () => setDialogState(() => obscureNew = !obscureNew),
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 12),
-                      child: Icon(obscureNew ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 20, color: const Color(0xFF0E3520).withOpacity(0.5)),
-                    ),
-                  ),
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return 'Ingresa la nueva contraseña';
-                    if (v.length < 8) return 'Mínimo 8 caracteres';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      child: SizedBox(
-                        height: 44,
-                        child: OutlinedButton(
-                          onPressed: () {
-                            Navigator.of(dialogContext).pop();
-                          },
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFFD0D5DD)),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          ),
-                          child: const Text('Cancelar', style: TextStyle(color: Color(0xFF757575), fontFamily: 'Montserrat', fontWeight: FontWeight.w600)),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: SizedBox(
-                        height: 44,
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            if (!formKey.currentState!.validate()) return;
-                            final current = currentPwdController.text;
-                            final newPwd = newPwdController.text;
-                            Navigator.of(dialogContext).pop();
-                            try {
-                              await _profileService.changePassword(UpdatePasswordRequest(currentPassword: current, newPassword: newPwd));
-                              if (!mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: const Row(children: [Icon(Icons.check_circle, color: Colors.white), SizedBox(width: 12), Text('Contraseña actualizada', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w500))]),
-                                  backgroundColor: const Color(0xFF0E3520),
-                                  behavior: SnackBarBehavior.floating,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                  margin: const EdgeInsets.all(16),
-                                ),
-                              );
-                            } on ProfileException catch (e) {
-                              if (!mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Row(children: [const Icon(Icons.error_outline, color: Colors.white), const SizedBox(width: 12), Expanded(child: Text(e.message, style: const TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w500)))]),
-                                  backgroundColor: const Color(0xFFD32F2F),
-                                  behavior: SnackBarBehavior.floating,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                  margin: const EdgeInsets.all(16),
-                                ),
-                              );
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF0E3520),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            elevation: 0,
-                          ),
-                          child: const Text('Actualizar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600, color: Colors.white)),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+      builder: (context) => const _ChangePasswordDialog(),
     );
-    currentPwdController.dispose();
-    newPwdController.dispose();
+
+    if (result != null && mounted) {
+      try {
+        await _profileService.changePassword(UpdatePasswordRequest(
+            currentPassword: result['current']!,
+            newPassword: result['new']!));
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Row(children: [Icon(Icons.check_circle, color: Colors.white), SizedBox(width: 12), Text('Contraseña actualizada', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w500))]),
+            backgroundColor: const Color(0xFF0E3520),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            margin: const EdgeInsets.all(16),
+          ),
+        );
+      } on ProfileException catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(children: [const Icon(Icons.error_outline, color: Colors.white), const SizedBox(width: 12), Expanded(child: Text(e.message, style: const TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w500)))]),
+            backgroundColor: const Color(0xFFD32F2F),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            margin: const EdgeInsets.all(16),
+          ),
+        );
+      }
+    }
   }
 
   void _showDeleteAccountDialog() {
@@ -683,6 +589,121 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
               ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ChangePasswordDialog extends StatefulWidget {
+  const _ChangePasswordDialog();
+
+  @override
+  State<_ChangePasswordDialog> createState() => _ChangePasswordDialogState();
+}
+
+class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
+  final _currentPwdController = TextEditingController();
+  final _newPwdController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  bool _obscureCurrent = true;
+  bool _obscureNew = true;
+
+  @override
+  void dispose() {
+    _currentPwdController.dispose();
+    _newPwdController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      contentPadding: const EdgeInsets.all(24),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Cambiar contraseña', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF0E3520), fontFamily: 'Montserrat')),
+            const SizedBox(height: 8),
+            const Text('Ingresa tu contraseña actual y la nueva', style: TextStyle(fontSize: 13, color: Color(0xFF666666), fontFamily: 'Montserrat')),
+            const SizedBox(height: 20),
+            CustomTextField(
+              label: 'Contraseña actual',
+              placeholder: '••••••••',
+              controller: _currentPwdController,
+              obscureText: _obscureCurrent,
+              suffixIcon: GestureDetector(
+                onTap: () => setState(() => _obscureCurrent = !_obscureCurrent),
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: Icon(_obscureCurrent ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 20, color: const Color(0xFF0E3520).withOpacity(0.5)),
+                ),
+              ),
+              validator: (v) => (v == null || v.isEmpty) ? 'Ingresa tu contraseña actual' : null,
+            ),
+            const SizedBox(height: 16),
+            CustomTextField(
+              label: 'Nueva contraseña',
+              placeholder: '••••••••',
+              controller: _newPwdController,
+              obscureText: _obscureNew,
+              suffixIcon: GestureDetector(
+                onTap: () => setState(() => _obscureNew = !_obscureNew),
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: Icon(_obscureNew ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 20, color: const Color(0xFF0E3520).withOpacity(0.5)),
+                ),
+              ),
+              validator: (v) {
+                if (v == null || v.isEmpty) return 'Ingresa la nueva contraseña';
+                if (v.length < 8) return 'Mínimo 8 caracteres';
+                return null;
+              },
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 44,
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFFD0D5DD)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      child: const Text('Cancelar', style: TextStyle(color: Color(0xFF757575), fontFamily: 'Montserrat', fontWeight: FontWeight.w600)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: SizedBox(
+                    height: 44,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (!_formKey.currentState!.validate()) return;
+                        Navigator.of(context).pop({
+                          'current': _currentPwdController.text,
+                          'new': _newPwdController.text,
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0E3520),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        elevation: 0,
+                      ),
+                      child: const Text('Actualizar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600, color: Colors.white)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),

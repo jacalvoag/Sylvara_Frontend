@@ -27,7 +27,7 @@ flutter:
 
   assets:
     - assets/images/backgrounds/
-    
+    - assets/images/logos/
   # TODO: Agregar fuentes Montserrat
   # fonts:
   #   - family: Montserrat
