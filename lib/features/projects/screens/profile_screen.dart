@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sylvara_frontend/core/widgets/widgets.dart';
 import 'package:sylvara_frontend/features/profile/models/models.dart';
 import 'package:sylvara_frontend/features/profile/services/profile_service.dart';
+import 'package:sylvara_frontend/core/api/token_storage.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -20,6 +21,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? _errorMessage;
   String? _successMessage;
   bool _isLoading = false;
+  bool _isEditingProfile = false;
   String _profilePictureUrl = '';
   late Future<UserProfile> _profileFuture;
 
@@ -126,6 +128,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() {
           _isLoading = false;
           _successMessage = 'Perfil actualizado exitosamente';
+          _isEditingProfile = false;
           _profileFuture = _profileService.getProfile();
         });
 
@@ -171,7 +174,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _handleCancel() {
-    Navigator.of(context).pop();
+    // Restaurar valores originales y salir del modo edición sin navegar
+    setState(() {
+      _isEditingProfile = false;
+      _errorMessage = null;
+    });
+    // Recargar perfil para restaurar valores
+    _profileFuture = _profileService.getProfile();
+    _profileFuture.then((profile) {
+      if (mounted) {
+        setState(() => _fillFormWithProfile(profile));
+      }
+    });
   }
 
   void _showChangePasswordDialog() {
@@ -858,12 +872,15 @@ onPressed: () async {
                                         placeholder: 'Ej. Gilberto',
                                         controller: _nombreController,
                                         keyboardType: TextInputType.name,
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Por favor ingresa tu nombre';
-                                          }
-                                          return null;
-                                        },
+                                        readOnly: !_isEditingProfile,
+                                        validator: _isEditingProfile
+                                          ? (value) {
+                                              if (value == null || value.isEmpty) {
+                                                return 'Por favor ingresa tu nombre';
+                                              }
+                                              return null;
+                                            }
+                                          : null,
                                       ),
                                       
                                       const SizedBox(height: 20),
@@ -874,12 +891,15 @@ onPressed: () async {
                                         placeholder: 'Ej. Malaga',
                                         controller: _apellidosController,
                                         keyboardType: TextInputType.name,
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Por favor ingresa tus apellidos';
-                                          }
-                                          return null;
-                                        },
+                                        readOnly: !_isEditingProfile,
+                                        validator: _isEditingProfile
+                                          ? (value) {
+                                              if (value == null || value.isEmpty) {
+                                                return 'Por favor ingresa tus apellidos';
+                                              }
+                                              return null;
+                                            }
+                                          : null,
                                       ),
                                       
                                       const SizedBox(height: 20),
@@ -889,31 +909,36 @@ onPressed: () async {
                                         label: 'Fecha de nacimiento',
                                         placeholder: 'Ej.  15/10/2000',
                                         controller: _fechaNacimientoController,
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Por favor selecciona tu fecha de nacimiento';
-                                          }
-                                          return null;
-                                        },
-                                        suffixIcon: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            GestureDetector(
-                                              onTap: () => _selectDate(context),
-                                              child: const Icon(
-                                                Icons.calendar_today,
-                                                size: 18,
-                                                color: Color(0xFF0E3520),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            const Icon(
-                                              Icons.keyboard_arrow_down,
-                                              size: 12,
-                                              color: Color(0xFF0E3520),
-                                            ),
-                                          ],
-                                        ),
+                                        readOnly: !_isEditingProfile,
+                                        validator: _isEditingProfile
+                                          ? (value) {
+                                              if (value == null || value.isEmpty) {
+                                                return 'Por favor selecciona tu fecha de nacimiento';
+                                              }
+                                              return null;
+                                            }
+                                          : null,
+                                        suffixIcon: _isEditingProfile
+                                          ? Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                GestureDetector(
+                                                  onTap: () => _selectDate(context),
+                                                  child: const Icon(
+                                                    Icons.calendar_today,
+                                                    size: 18,
+                                                    color: Color(0xFF0E3520),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                const Icon(
+                                                  Icons.keyboard_arrow_down,
+                                                  size: 12,
+                                                  color: Color(0xFF0E3520),
+                                                ),
+                                              ],
+                                            )
+                                          : null,
                                       ),
                                       
                                       const SizedBox(height: 20),
@@ -924,15 +949,18 @@ onPressed: () async {
                                         placeholder: 'Ej. malagaacos@gmail.com',
                                         controller: _correoController,
                                         keyboardType: TextInputType.emailAddress,
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Por favor ingresa tu correo';
-                                          }
-                                          if (!value.contains('@')) {
-                                            return 'Ingresa un correo válido';
-                                          }
-                                          return null;
-                                        },
+                                        readOnly: !_isEditingProfile,
+                                        validator: _isEditingProfile
+                                          ? (value) {
+                                              if (value == null || value.isEmpty) {
+                                                return 'Por favor ingresa tu correo';
+                                              }
+                                              if (!value.contains('@')) {
+                                                return 'Ingresa un correo válido';
+                                              }
+                                              return null;
+                                            }
+                                          : null,
                                       ),
                                       
                                       const SizedBox(height: 24),
@@ -967,10 +995,48 @@ onPressed: () async {
                                           ),
                                         ),
                                       
-                                      // Botones de guardar
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
+                                      // Botones: Editar o Cancelar+Guardar
+                                      if (!_isEditingProfile)
+                                        // Botón Editar
+                                        SizedBox(
+                                          width: double.infinity,
+                                          child: OutlinedButton.icon(
+                                            onPressed: () {
+                                              setState(() {
+                                                _isEditingProfile = true;
+                                                _errorMessage = null;
+                                              });
+                                            },
+                                            icon: const Icon(
+                                              Icons.edit_outlined,
+                                              size: 16,
+                                              color: Color(0xFF0E3520),
+                                            ),
+                                            label: const Text(
+                                              'Editar perfil',
+                                              style: TextStyle(
+                                                fontFamily: 'Montserrat',
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w600,
+                                                color: Color(0xFF0E3520),
+                                              ),
+                                            ),
+                                            style: OutlinedButton.styleFrom(
+                                              side: const BorderSide(
+                                                color: Color(0xFF0E3520),
+                                                width: 1.5,
+                                              ),
+                                              padding: const EdgeInsets.symmetric(vertical: 10),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(10),
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                      else
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
                                           // Botón Cancelar
                                           GestureDetector(
                                             onTap: _isLoading ? null : _handleCancel,
@@ -1030,12 +1096,10 @@ onPressed: () async {
                                                     ),
                                             ),
                                           ),
-                                        ],
-                                      ),
-
-                                      const SizedBox(height: 24),
-
+                                            ],
+                                          ),
                                       // Botón: Cambiar Contraseña
+                                      const SizedBox(height: 24),
                                       SizedBox(
                                         width: double.infinity,
                                         child: OutlinedButton.icon(
@@ -1047,6 +1111,49 @@ onPressed: () async {
                                           ),
                                           label: const Text(
                                             'Cambiar Contraseña',
+                                            style: TextStyle(
+                                              fontFamily: 'Montserrat',
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                              color: Color(0xFF0E3520),
+                                            ),
+                                          ),
+                                          style: OutlinedButton.styleFrom(
+                                            side: const BorderSide(
+                                              color: Color(0xFF0E3520),
+                                              width: 1.5,
+                                            ),
+                                            padding:
+                                                const EdgeInsets.symmetric(vertical: 10),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(10),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+
+                                      const SizedBox(height: 12),
+
+                                      // Botón: Cerrar Sesión
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: OutlinedButton.icon(
+                                          onPressed: () async {
+                                            await TokenStorage().clear();
+                                            if (mounted) {
+                                              Navigator.of(context).pushNamedAndRemoveUntil(
+                                                '/login',
+                                                (route) => false,
+                                              );
+                                            }
+                                          },
+                                          icon: const Icon(
+                                            Icons.logout,
+                                            size: 16,
+                                            color: Color(0xFF0E3520),
+                                          ),
+                                          label: const Text(
+                                            'Cerrar Sesión',
                                             style: TextStyle(
                                               fontFamily: 'Montserrat',
                                               fontSize: 13,

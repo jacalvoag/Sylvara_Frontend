@@ -119,8 +119,8 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
     }
   }
 
-  void _navigateToSpecies(StudyZone zone) {
-    Navigator.push(
+  Future<void> _navigateToSpecies(StudyZone zone) async {
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => SpeciesListScreen(
@@ -130,6 +130,10 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
         ),
       ),
     );
+    // Recargar zonas e índices al volver (puede haber cambiado el número de especies)
+    if (mounted) {
+      _loadZones();
+    }
   }
 
   void _showComparison(List<StudyZone> allZones) {
@@ -643,27 +647,56 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
           ),
         ],
       ),
-      floatingActionButton: _isComparing
-          ? FloatingActionButton.extended(
-              onPressed: () {
-                final snapshot = _zonesFuture;
-                snapshot.then((response) => _showComparison(response.zones));
-              },
-              backgroundColor: const Color(0xFF4CAF50),
-              icon: const Icon(Icons.bar_chart, color: Color(0xFF0E3520)),
-              label: const Text(
-                'Comparar',
-                style: TextStyle(
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (_isComparing)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: FloatingActionButton.extended(
+                heroTag: 'exit_compare',
+                onPressed: _toggleCompareMode,
+                backgroundColor: const Color(0xFFF1F5F9),
+                icon: const Icon(
+                  Icons.close,
                   color: Color(0xFF0E3520),
-                  fontWeight: FontWeight.w600,
+                ),
+                label: const Text(
+                  'Salir de comparación',
+                  style: TextStyle(
+                    color: Color(0xFF0E3520),
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'Montserrat',
+                  ),
                 ),
               ),
-            )
-          : FloatingActionButton(
-              onPressed: () => _navigateToForm(),
-              backgroundColor: const Color(0xFF0E3520),
-              child: const Icon(Icons.add, color: Color(0xFFF1F5F9)),
             ),
+          _isComparing
+              ? FloatingActionButton.extended(
+                  heroTag: 'compare_btn',
+                  onPressed: () {
+                    final snapshot = _zonesFuture;
+                    snapshot.then((response) => _showComparison(response.zones));
+                  },
+                  backgroundColor: const Color(0xFF4CAF50),
+                  icon: const Icon(Icons.bar_chart, color: Color(0xFF0E3520)),
+                  label: const Text(
+                    'Comparar',
+                    style: TextStyle(
+                      color: Color(0xFF0E3520),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                )
+              : FloatingActionButton(
+                  heroTag: 'add_zone',
+                  onPressed: () => _navigateToForm(),
+                  backgroundColor: const Color(0xFF0E3520),
+                  child: const Icon(Icons.add, color: Color(0xFFF1F5F9)),
+                ),
+        ],
+      ),
     );
   }
 }

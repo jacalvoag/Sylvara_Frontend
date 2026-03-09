@@ -107,37 +107,29 @@ class EditableProjectCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 8),
-                        // Badge de estado
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 2.5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isActive
-                                ? const Color(0xFFC8E6C9).withOpacity(0.25)
-                                : const Color(0xFFE65A5A).withOpacity(0.5),
-                            border: Border.all(
-                              color: isActive
+                        // Badges: estado y área
+                        Row(
+                          children: [
+                            _buildBadge(
+                              isActive ? 'Activo' : 'Inactivo',
+                              isActive
+                                  ? const Color(0xFFC8E6C9)
+                                  : const Color(0xFFFFCDD2),
+                              isActive
                                   ? const Color(0xFF0E3520)
                                   : const Color(0xFF700000),
-                              width: 1,
                             ),
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-                          child: Text(
-                            isActive ? 'Activo' : 'Inactivo',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                              color: isActive
-                                  ? const Color(0xFF0E3520)
-                                  : const Color(0xFF700000),
-                              letterSpacing: 0.5,
-                              fontFamily: 'Montserrat',
-                              height: 1.0,
-                            ),
-                          ),
+                            if (project.totalArea != null &&
+                                project.unitName != null) ...
+                              [
+                                const SizedBox(width: 6),
+                                _buildBadge(
+                                  '${project.totalArea!.toStringAsFixed(1)} ${project.unitName}',
+                                  const Color(0xFFE3F2FD),
+                                  const Color(0xFF0E3520),
+                                ),
+                              ],
+                          ],
                         ),
                       ],
                     ),
@@ -246,6 +238,27 @@ class EditableProjectCard extends StatelessWidget {
           ],
         ),
       ),
+      ),
+    );
+  }
+
+  Widget _buildBadge(String text, Color bgColor, Color textColor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2.5),
+      decoration: BoxDecoration(
+        color: bgColor.withOpacity(0.35),
+        border: Border.all(color: textColor, width: 1),
+        borderRadius: BorderRadius.circular(50),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: textColor,
+          letterSpacing: 0.5,
+          fontFamily: 'Montserrat',
+        ),
       ),
     );
   }

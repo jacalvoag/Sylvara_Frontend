@@ -28,6 +28,10 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
   bool _isLoadingMore = false;
   final List<Plot> _allProjects = [];
 
+  // Búsqueda
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
   @override
   void initState() {
     super.initState();
@@ -38,6 +42,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -594,6 +599,12 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                           children: [
                             Expanded(
                               child: TextField(
+                                controller: _searchController,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _searchQuery = value.toLowerCase().trim();
+                                  });
+                                },
                                 decoration: InputDecoration(
                                   hintText: 'Buscar proyecto...',
                                   hintStyle: TextStyle(
@@ -722,7 +733,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                               }
 
                               final response = snapshot.data!;
-                              final projects = [...response.data, ..._allProjects];
+                              final allLoaded = [...response.data, ..._allProjects];
 
                               // Guardar nextCursor para paginación
                               if (_allProjects.isEmpty && response.data.isNotEmpty) {
@@ -733,6 +744,15 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                   });
                                 });
                               }
+
+                              // Filtrar por búsqueda
+                              final projects = _searchQuery.isEmpty
+                                  ? allLoaded
+                                  : allLoaded
+                                      .where((p) => p.samplingPlotName
+                                          .toLowerCase()
+                                          .contains(_searchQuery))
+                                      .toList();
 
                               if (projects.isEmpty) {
                                 return Center(

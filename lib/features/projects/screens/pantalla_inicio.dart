@@ -4,6 +4,7 @@ import 'package:sylvara_frontend/features/projects/models/models.dart';
 import 'package:sylvara_frontend/features/projects/services/project_service.dart';
 import 'package:sylvara_frontend/core/api/token_storage.dart';
 import 'package:sylvara_frontend/features/benchmarking/screens/screens.dart';
+import 'package:sylvara_frontend/features/zones/screens/project_details_screen.dart';
 
 class PantallaInicio extends StatefulWidget {
   const PantallaInicio({super.key});
@@ -389,25 +390,32 @@ class _PantallaInicioState extends State<PantallaInicio>
       );
     }
 
-    return ListView.builder(
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-      itemCount: latestPlots.length,
-      itemBuilder: (context, index) {
-        final plot = latestPlots[index];
-        // Convertir Plot a Project para compatibilidad con ProjectCard
-        final project = plot.toProject();
-        
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: ProjectCard(
-            project: project,
-            onTap: () {
-              print('Proyecto seleccionado: ${plot.name} (ID: ${plot.id})');
-              // TODO: Navegar a detalles del proyecto
-            },
-          ),
-        );
-      },
+      child: Column(
+        children: latestPlots.map((plot) {
+          final project = plot.toProject();
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: ProjectCard(
+              project: project,
+              totalArea: plot.totalArea,
+              unitName: plot.unitName,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProjectDetailsScreen(
+                      projectId: plot.samplingPlotId,
+                      projectName: plot.samplingPlotName,
+                    ),
+                  ),
+                );
+              },
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 }

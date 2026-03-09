@@ -4,11 +4,15 @@ import 'package:sylvara_frontend/features/projects/models/project_model.dart';
 class ProjectCard extends StatelessWidget {
   final Project project;
   final VoidCallback onTap;
+  final double? totalArea;
+  final String? unitName;
 
   const ProjectCard({
     super.key,
     required this.project,
     required this.onTap,
+    this.totalArea,
+    this.unitName,
   });
 
   @override
@@ -102,39 +106,55 @@ class ProjectCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    // Badge de estado
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 2.5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFC8E6C9).withOpacity(0.25),
-                          border: Border.all(
-                            color: const Color(0xFF0E3520),
-                            width: 1,
-                          ),
-                          borderRadius: BorderRadius.circular(50),
-                        ),
-                        child: Text(
+                    // Badges: estado + área
+                    Row(
+                      children: [
+                        _buildBadge(
                           project.isActive ? 'Activo' : 'Inactivo',
-                          style: const TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF0E3520),
-                            letterSpacing: 0.5,
-                            fontFamily: 'Montserrat',
-                          ),
+                          project.isActive
+                              ? const Color(0xFFC8E6C9)
+                              : const Color(0xFFFFCDD2),
+                          project.isActive
+                              ? const Color(0xFF0E3520)
+                              : const Color(0xFF700000),
                         ),
-                      ),
+                        if (totalArea != null && unitName != null) ...
+                          [
+                            const SizedBox(width: 6),
+                            _buildBadge(
+                              '${totalArea!.toStringAsFixed(1)} $unitName',
+                              const Color(0xFFE3F2FD),
+                              const Color(0xFF0E3520),
+                            ),
+                          ],
+                      ],
                     ),
                   ],
                 ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBadge(String text, Color bgColor, Color textColor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2.5),
+      decoration: BoxDecoration(
+        color: bgColor.withOpacity(0.35),
+        border: Border.all(color: textColor, width: 1),
+        borderRadius: BorderRadius.circular(50),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: textColor,
+          letterSpacing: 0.5,
+          fontFamily: 'Montserrat',
         ),
       ),
     );

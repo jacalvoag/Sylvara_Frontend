@@ -581,7 +581,9 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 40),
       child: Container(
-        constraints: const BoxConstraints(maxHeight: 520),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.9,
+        ),
         decoration: BoxDecoration(
           color: const Color(0xFFF1F5F9),
           borderRadius: BorderRadius.circular(13),
@@ -617,8 +619,7 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
               padding: const EdgeInsets.all(20),
               child: Form(
                 key: _formKey,
-                child: SingleChildScrollView(
-                  child: Column(
+                child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

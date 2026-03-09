@@ -17,7 +17,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: PantallaInicio(), // Cambia a la pantalla que quieras probar
+      home: const AuthGate(), // Cambia a la pantalla que quieras probar
     );
   }
 }
