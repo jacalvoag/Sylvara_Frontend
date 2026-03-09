@@ -196,6 +196,10 @@ class _SpeciesListScreenState extends State<SpeciesListScreen> {
             child: Image.network(
               'https://images.unsplash.com/photo-1511497584788-876760111969?w=1200',
               fit: BoxFit.cover,
+                  frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                    if (wasSynchronouslyLoaded || frame != null) return child;
+                    return Container(color: const Color(0xFF0E3520));
+                  },
               errorBuilder: (context, error, stackTrace) {
                 return Container(
                   color: const Color(0xFF0E3520),

@@ -132,39 +132,34 @@ class PaginatedSpeciesResponse {
 }
 
 /// Request para crear o actualizar una especie en zona
-class SpeciesRequest {
-  final int speciesId;
-  final int functionalTypeId;
-  final int individualCount;
-  final double heightStratumMin;
-  final double heightStratumMax;
-  final int unitId;
+  class SpeciesRequest {
+    final String speciesName;
+    final String? speciesImageUrl;
+    final int functionalTypeId;
+    final int individualCount;
+    final double heightStratumMin;
+    final double heightStratumMax;
 
-  const SpeciesRequest({
-    required this.speciesId,
-    required this.functionalTypeId,
-    required this.individualCount,
-    required this.heightStratumMin,
-    required this.heightStratumMax,
-    required this.unitId,
-  });
+    const SpeciesRequest({
+      required this.speciesName,
+      this.speciesImageUrl,
+      required this.functionalTypeId,
+      required this.individualCount,
+      required this.heightStratumMin,
+      required this.heightStratumMax,
+    });
 
-  Map<String, dynamic> toJson() {
-    return {
-      'speciesId': speciesId,
-      'functionalTypeId': functionalTypeId,
-      'individualCount': individualCount,
-      'heightStratumMin': heightStratumMin,
-      'heightStratumMax': heightStratumMax,
-      'unitId': unitId,
-    };
+    Map<String, dynamic> toJson() {
+      return {
+        'speciesName': speciesName,
+        if (speciesImageUrl != null) 'speciesImageUrl': speciesImageUrl,
+        'functionalTypeId': functionalTypeId,
+        'individualCount': individualCount,
+        'heightStratumMin': heightStratumMin,
+        'heightStratumMax': heightStratumMax,
+      };
+    }
   }
-
-  @override
-  String toString() {
-    return 'SpeciesRequest(speciesId: $speciesId, individualCount: $individualCount)';
-  }
-}
 
 /// Respuesta cuando la especie ya existe en el catálogo (200)
 class SpeciesExistsInCatalogResponse {
@@ -181,11 +176,12 @@ class SpeciesExistsInCatalogResponse {
   });
 
   factory SpeciesExistsInCatalogResponse.fromJson(Map<String, dynamic> json) {
+    final existing = json['existingRecord'] as Map<String, dynamic>;
     return SpeciesExistsInCatalogResponse(
       message: json['message'] as String,
-      speciesId: json['speciesId'] as int,
-      speciesName: json['speciesName'] as String,
-      totalIndividuals: json['totalIndividuals'] as int,
+      speciesId: existing['speciesId'] as int,
+      speciesName: existing['speciesName'] as String,
+      totalIndividuals: 0, // el catálogo no devuelve total en este endpoint
     );
   }
 
@@ -221,12 +217,13 @@ class SpeciesExistsInZoneResponse {
   });
 
   factory SpeciesExistsInZoneResponse.fromJson(Map<String, dynamic> json) {
+    final existing = json['existingRecord'] as Map<String, dynamic>;
     return SpeciesExistsInZoneResponse(
       message: json['message'] as String,
-      speciesZoneId: json['speciesZoneId'] as int,
-      speciesId: json['speciesId'] as int,
-      speciesName: json['speciesName'] as String,
-      individualCount: json['individualCount'] as int,
+      speciesZoneId: existing['speciesZoneId'] as int,
+      speciesId: existing['speciesId'] as int,
+      speciesName: existing['speciesName'] as String,
+      individualCount: existing['individualCount'] as int? ?? 0,
     );
   }
 
@@ -341,5 +338,36 @@ class PaginatedCatalogResponse {
   @override
   String toString() {
     return 'PaginatedCatalogResponse(data: ${data.length} items, hasMore: ${meta.hasMore})';
+  }
+
+  
+}
+
+class SpeciesUpdateRequest {
+  final String? speciesName;
+  final String? speciesImageUrl;
+  final int? functionalTypeId;
+  final int? individualCount;
+  final double? heightStratumMin;
+  final double? heightStratumMax;
+
+  const SpeciesUpdateRequest({
+    this.speciesName,
+    this.speciesImageUrl,
+    this.functionalTypeId,
+    this.individualCount,
+    this.heightStratumMin,
+    this.heightStratumMax,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (speciesName != null) 'speciesName': speciesName,
+      if (speciesImageUrl != null) 'speciesImageUrl': speciesImageUrl,
+      if (functionalTypeId != null) 'functionalTypeId': functionalTypeId,
+      if (individualCount != null) 'individualCount': individualCount,
+      if (heightStratumMin != null) 'heightStratumMin': heightStratumMin,
+      if (heightStratumMax != null) 'heightStratumMax': heightStratumMax,
+    };
   }
 }

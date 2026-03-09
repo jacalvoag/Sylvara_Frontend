@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sylvara_frontend/core/widgets/widgets.dart';
+import 'package:sylvara_frontend/features/auth/screens/login_screen.dart';
 import 'package:sylvara_frontend/features/profile/models/models.dart';
 import 'package:sylvara_frontend/features/profile/services/profile_service.dart';
 import 'package:sylvara_frontend/core/api/token_storage.dart';
@@ -18,26 +19,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _apellidosController = TextEditingController();
   final _fechaNacimientoController = TextEditingController();
   final _correoController = TextEditingController();
+
   String? _errorMessage;
-  String? _successMessage;
-  bool _isLoading = false;
-  bool _isEditingProfile = false;
+  bool _isLoading = true;
+  bool _hasError = false;
+  String _errorText = '';
+  bool _isSaving = false;
   String _profilePictureUrl = '';
-  late Future<UserProfile> _profileFuture;
+  UserProfile? _profile;
 
   @override
   void initState() {
     super.initState();
-    _profileFuture = _profileService.getProfile();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    if (!mounted) return;
+    setState(() { _isLoading = true; _hasError = false; });
+    try {
+      final profile = await _profileService.getProfile();
+      if (!mounted) return;
+      _fillFormWithProfile(profile);
+      setState(() { _profile = profile; _isLoading = false; });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() { _hasError = true; _errorText = e.toString(); _isLoading = false; });
+    }
   }
 
   void _fillFormWithProfile(UserProfile profile) {
     _nombreController.text = profile.userName;
     _apellidosController.text = profile.userLastname;
-    // Convertir YYYY-MM-DD a DD/MM/YYYY para mostrar
-    final dateParts = profile.userBirthday.split('-');
-    if (dateParts.length == 3) {
-      _fechaNacimientoController.text = '${dateParts[2]}/${dateParts[1]}/${dateParts[0]}';
+    final parts = profile.userBirthday.split('-');
+    if (parts.length == 3) {
+      _fechaNacimientoController.text = '${parts[2]}/${parts[1]}/${parts[0]}';
+    } else {
+      _fechaNacimientoController.text = profile.userBirthday;
     }
     _correoController.text = profile.userEmail;
     _profilePictureUrl = profile.profilePictureUrl;
@@ -52,28 +70,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.dispose();
   }
 
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
+  Future<void> _selectDate() async {
+    DateTime initial = DateTime(2000, 1, 1);
+    try {
+      if (_fechaNacimientoController.text.isNotEmpty) {
+        final parts = _fechaNacimientoController.text.split('/');
+        if (parts.length == 3) {
+          initial = DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+        }
+      }
+    } catch (_) {}
+
+    final picked = await showDatePicker(
       context: context,
-      initialDate: _fechaNacimientoController.text.isNotEmpty
-          ? _parseDateFromDisplay(_fechaNacimientoController.text)
-          : DateTime(2000, 1, 1),
+      initialDate: initial,
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Color(0xFF0E3520),
-              onPrimary: Colors.white,
-              onSurface: Color(0xFF0E3520),
-            ),
-          ),
-          child: child!,
-        );
-      },
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: const ColorScheme.light(primary: Color(0xFF0E3520), onPrimary: Colors.white, onSurface: Color(0xFF0E3520)),
+        ),
+        child: child!,
+      ),
     );
-    if (picked != null) {
+
+    if (picked != null && mounted) {
       setState(() {
         _fechaNacimientoController.text =
             '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
@@ -81,126 +102,62 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  DateTime _parseDateFromDisplay(String displayDate) {
-    try {
-      final parts = displayDate.split('/');
-      if (parts.length == 3) {
-        return DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
-      }
-    } catch (e) {
-      // Ignore
-    }
-    return DateTime(2000, 1, 1);
-  }
-
-  String _convertDateToApiFormat(String displayDate) {
-    // Convertir DD/MM/YYYY a YYYY-MM-DD
-    final parts = displayDate.split('/');
-    if (parts.length == 3) {
-      return '${parts[2]}-${parts[1]}-${parts[0]}';
-    }
-    return displayDate;
+  String _dateToApiFormat(String display) {
+    final parts = display.split('/');
+    if (parts.length == 3) return '${parts[2]}-${parts[1]}-${parts[0]}';
+    return display;
   }
 
   Future<void> _handleEdit() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-      _successMessage = null;
-    });
+    if (!_formKey.currentState!.validate()) return;
+    setState(() { _isSaving = true; _errorMessage = null; });
 
     try {
       final request = UpdateProfileRequest(
         userName: _nombreController.text.trim(),
         userLastname: _apellidosController.text.trim(),
-        userBirthday: _convertDateToApiFormat(_fechaNacimientoController.text.trim()),
+        userBirthday: _dateToApiFormat(_fechaNacimientoController.text.trim()),
         userEmail: _correoController.text.trim(),
         profilePictureUrl: _profilePictureUrl,
       );
-
-      await _profileService.updateProfile(request);
-
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _successMessage = 'Perfil actualizado exitosamente';
-          _isEditingProfile = false;
-          _profileFuture = _profileService.getProfile();
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle, color: Colors.white),
-                const SizedBox(width: 12),
-                Text(
-                  _successMessage!,
-                  style: const TextStyle(
-                    fontFamily: 'Montserrat',
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: const Color(0xFF0E3520),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            margin: const EdgeInsets.all(16),
-          ),
-        );
-      }
+      final updated = await _profileService.updateProfile(request);
+      if (!mounted) return;
+      setState(() { _profile = updated; _isSaving = false; });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(children: [
+            Icon(Icons.check_circle, color: Colors.white),
+            SizedBox(width: 12),
+            Text('Perfil actualizado exitosamente', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w500)),
+          ]),
+          backgroundColor: const Color(0xFF0E3520),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
     } on ProfileException catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _errorMessage = e.message;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _errorMessage = 'Error al actualizar el perfil';
-        });
-      }
+      if (!mounted) return;
+      setState(() { _errorMessage = e.message; _isSaving = false; });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() { _errorMessage = 'Error al actualizar el perfil'; _isSaving = false; });
     }
   }
 
-  void _handleCancel() {
-    // Restaurar valores originales y salir del modo edición sin navegar
-    setState(() {
-      _isEditingProfile = false;
-      _errorMessage = null;
-    });
-    // Recargar perfil para restaurar valores
-    _profileFuture = _profileService.getProfile();
-    _profileFuture.then((profile) {
-      if (mounted) {
-        setState(() => _fillFormWithProfile(profile));
-      }
-    });
-  }
-
   void _showChangePasswordDialog() {
-    final currentPasswordController = TextEditingController();
-    final newPasswordController = TextEditingController();
+    final currentPwdController = TextEditingController();
+    final newPwdController = TextEditingController();
     final formKey = GlobalKey<FormState>();
+    bool obscureCurrent = true;
+    bool obscureNew = true;
 
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           contentPadding: const EdgeInsets.all(24),
           content: Form(
             key: formKey,
@@ -208,173 +165,106 @@ class _ProfileScreenState extends State<ProfileScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Cambiar contraseña',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0E3520),
-                    fontFamily: 'Montserrat',
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Ingresa tu contraseña actual y la nueva contraseña',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF666666),
-                    fontFamily: 'Montserrat',
-                  ),
-                ),
+                const Text('Cambiar contraseña', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF0E3520), fontFamily: 'Montserrat')),
+                const SizedBox(height: 8),
+                const Text('Ingresa tu contraseña actual y la nueva', style: TextStyle(fontSize: 13, color: Color(0xFF666666), fontFamily: 'Montserrat')),
                 const SizedBox(height: 20),
                 CustomTextField(
                   label: 'Contraseña actual',
                   placeholder: '••••••••',
-                  controller: currentPasswordController,
-                  obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Ingresa tu contraseña actual';
-                    }
-                    return null;
-                  },
+                  controller: currentPwdController,
+                  obscureText: obscureCurrent,
+                  suffixIcon: GestureDetector(
+                    onTap: () => setDialogState(() => obscureCurrent = !obscureCurrent),
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: Icon(obscureCurrent ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 20, color: const Color(0xFF0E3520).withOpacity(0.5)),
+                    ),
+                  ),
+                  validator: (v) => (v == null || v.isEmpty) ? 'Ingresa tu contraseña actual' : null,
                 ),
                 const SizedBox(height: 16),
                 CustomTextField(
                   label: 'Nueva contraseña',
                   placeholder: '••••••••',
-                  controller: newPasswordController,
-                  obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Ingresa la nueva contraseña';
-                    }
-                    if (value.length < 8) {
-                      return 'Mínimo 8 caracteres';
-                    }
+                  controller: newPwdController,
+                  obscureText: obscureNew,
+                  suffixIcon: GestureDetector(
+                    onTap: () => setDialogState(() => obscureNew = !obscureNew),
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: Icon(obscureNew ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 20, color: const Color(0xFF0E3520).withOpacity(0.5)),
+                    ),
+                  ),
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Ingresa la nueva contraseña';
+                    if (v.length < 8) return 'Mínimo 8 caracteres';
                     return null;
                   },
                 ),
                 const SizedBox(height: 24),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    TextButton(
-onPressed: () {
-  Navigator.of(dialogContext).pop();
-},
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text(
-                        'Cancelar',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF757575),
-                          fontFamily: 'Montserrat',
+                    Expanded(
+                      child: SizedBox(
+                        height: 44,
+                        child: OutlinedButton(
+                          onPressed: () {
+                            currentPwdController.dispose();
+                            newPwdController.dispose();
+                            Navigator.of(dialogContext).pop();
+                          },
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Color(0xFFD0D5DD)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          child: const Text('Cancelar', style: TextStyle(color: Color(0xFF757575), fontFamily: 'Montserrat', fontWeight: FontWeight.w600)),
                         ),
                       ),
                     ),
                     const SizedBox(width: 12),
-                    ElevatedButton(
-onPressed: () async {
-  if (!formKey.currentState!.validate()) {
-    return;
-  }
-
-  final currentPwd = currentPasswordController.text;
-  final newPwd = newPasswordController.text;
-
-  Navigator.of(dialogContext).pop();
-
-  try {
-    final request = UpdatePasswordRequest(
-      currentPassword: currentPwd,
-      newPassword: newPwd,
-    );
-
-    await _profileService.changePassword(request);
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Row(
-            children: [
-              Icon(Icons.check_circle, color: Colors.white),
-              SizedBox(width: 12),
-              Text(
-                'Contraseña actualizada exitosamente',
-                style: TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: const Color(0xFF0E3520),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          margin: const EdgeInsets.all(16),
-        ),
-      );
-    }
-  } on ProfileException catch (e) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.error_outline, color: Colors.white),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  e.message,
-                  style: const TextStyle(
-                    fontFamily: 'Montserrat',
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: const Color(0xFFD32F2F),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          margin: const EdgeInsets.all(16),
-        ),
-      );
-    }
-  }
-},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0E3520),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Text(
-                        'Actualizar',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          fontFamily: 'Montserrat',
+                    Expanded(
+                      child: SizedBox(
+                        height: 44,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            if (!formKey.currentState!.validate()) return;
+                            final current = currentPwdController.text;
+                            final newPwd = newPwdController.text;
+                            currentPwdController.dispose();
+                            newPwdController.dispose();
+                            Navigator.of(dialogContext).pop();
+                            try {
+                              await _profileService.changePassword(UpdatePasswordRequest(currentPassword: current, newPassword: newPwd));
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const Row(children: [Icon(Icons.check_circle, color: Colors.white), SizedBox(width: 12), Text('Contraseña actualizada', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w500))]),
+                                  backgroundColor: const Color(0xFF0E3520),
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  margin: const EdgeInsets.all(16),
+                                ),
+                              );
+                            } on ProfileException catch (e) {
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Row(children: [const Icon(Icons.error_outline, color: Colors.white), const SizedBox(width: 12), Expanded(child: Text(e.message, style: const TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w500)))]),
+                                  backgroundColor: const Color(0xFFD32F2F),
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  margin: const EdgeInsets.all(16),
+                                ),
+                              );
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF0E3520),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            elevation: 0,
+                          ),
+                          child: const Text('Actualizar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600, color: Colors.white)),
                         ),
                       ),
                     ),
@@ -383,206 +273,82 @@ onPressed: () async {
               ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
   void _showDeleteAccountDialog() {
     showDialog(
       context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: Row(
-            children: [
-              const Icon(
-                Icons.warning_amber_rounded,
-                color: Color(0xFFD32F2F),
-                size: 28,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Color(0xFFD32F2F), size: 28),
+            SizedBox(width: 12),
+            Expanded(child: Text('¿Eliminar cuenta?', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF0E3520), fontFamily: 'Montserrat'))),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('¿Estás seguro de eliminar tu cuenta permanentemente?', style: TextStyle(fontSize: 14, color: Color(0xFF666666), fontFamily: 'Montserrat')),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF3E0),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFFFB74D)),
               ),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Text(
-                  '¿Eliminar cuenta?',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0E3520),
-                    fontFamily: 'Montserrat',
-                  ),
-                ),
-              ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                '¿Estás seguro de eliminar tu cuenta permanentemente?',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF666666),
-                  fontFamily: 'Montserrat',
-                ),
-              ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF3E0),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: const Color(0xFFFFB74D),
-                    width: 1,
-                  ),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: Color(0xFFE65100),
-                      size: 20,
-                    ),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Esta acción no se puede deshacer',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFFE65100),
-                          fontFamily: 'Montserrat',
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              style: TextButton.styleFrom(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const Text(
-                'Cancelar',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF757575),
-                  fontFamily: 'Montserrat',
-                ),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.of(dialogContext).pop();
-
-                try {
-                  await _profileService.deleteAccount();
-
-                  if (mounted) {
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                      '/login',
-                      (route) => false,
-                    );
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Row(
-                          children: [
-                            const Icon(Icons.check_circle,
-                                color: Colors.white),
-                            const SizedBox(width: 12),
-                            const Text(
-                              'Cuenta eliminada exitosamente',
-                              style: TextStyle(
-                                fontFamily: 'Montserrat',
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                        backgroundColor: const Color(0xFF0E3520),
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        margin: const EdgeInsets.all(16),
-                      ),
-                    );
-                  }
-                } on ProfileException catch (e) {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Row(
-                          children: [
-                            const Icon(Icons.error_outline,
-                                color: Colors.white),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                e.message,
-                                style: const TextStyle(
-                                  fontFamily: 'Montserrat',
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        backgroundColor: const Color(0xFFD32F2F),
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        margin: const EdgeInsets.all(16),
-                      ),
-                    );
-                  }
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFD32F2F),
-                foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 0,
-              ),
-              child: const Text(
-                'Eliminar',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'Montserrat',
-                ),
+              child: const Row(
+                children: [
+                  Icon(Icons.info_outline, color: Color(0xFFE65100), size: 20),
+                  SizedBox(width: 8),
+                  Expanded(child: Text('Esta acción no se puede deshacer', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFFE65100), fontFamily: 'Montserrat'))),
+                ],
               ),
             ),
           ],
-        );
-      },
-    );
-  }
-
-  void _handleImageUpload() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Función de subida de imagen próximamente'),
-        backgroundColor: Color(0xFF0E3520),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancelar', style: TextStyle(color: Color(0xFF757575), fontFamily: 'Montserrat', fontWeight: FontWeight.w600)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.of(dialogContext).pop();
+              try {
+                await _profileService.deleteAccount();
+                if (!mounted) return;
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  (_) => false,
+                );
+              } on ProfileException catch (e) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Row(children: [const Icon(Icons.error_outline, color: Colors.white), const SizedBox(width: 12), Expanded(child: Text(e.message, style: const TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w500)))]),
+                    backgroundColor: const Color(0xFFD32F2F),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    margin: const EdgeInsets.all(16),
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFD32F2F),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+            ),
+            child: const Text('Eliminar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600)),
+          ),
+        ],
       ),
     );
   }
@@ -590,254 +356,58 @@ onPressed: () async {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
-      body: Stack(
-        children: [
-          // Background image
-          const BackgroundImage(
-            imagePath: 'assets/images/backgrounds/FodoHome.png',
-            height: 612,
-          ),
-          
-          // Content
-          SafeArea(
-            child: FutureBuilder<UserProfile>(
-              future: _profileFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(
-                      color: Color(0xFF0E3520),
-                    ),
-                  );
-                }
-
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+        backgroundColor: const Color(0xFFF1F5F9),
+        body: Stack(
+          children: [
+            const BackgroundImage(imagePath: 'assets/images/backgrounds/FodoHome.png', height: 612),
+            SafeArea(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Icon(
-                          Icons.error_outline,
-                          color: Color(0xFFD32F2F),
-                          size: 64,
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(color: const Color(0xFF0E3520), borderRadius: BorderRadius.circular(12)),
+                          child: const Icon(Icons.eco, color: Colors.white, size: 28),
                         ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          'Error al cargar el perfil',
-                          style: TextStyle(
-                            fontFamily: 'Montserrat',
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF0E3520),
+                        RichText(
+                          text: const TextSpan(
+                            children: [
+                              TextSpan(text: 'Mi ', style: TextStyle(fontFamily: 'Montserrat', fontSize: 22, fontWeight: FontWeight.normal, color: Color(0xFF0E3520))),
+                              TextSpan(text: 'Perfil', style: TextStyle(fontFamily: 'Montserrat', fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF0E3520))),
+                            ],
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          snapshot.error.toString(),
-                          style: const TextStyle(
-                            fontFamily: 'Montserrat',
-                            fontSize: 14,
-                            color: Color(0xFF666666),
-                          ),
-                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
-                  );
-                }
-
-                if (!snapshot.hasData) {
-                  return const Center(
-                    child: Text(
-                      'No se encontró el perfil',
-                      style: TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 16,
-                        color: Color(0xFF666666),
+                  ),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.only(topLeft: Radius.circular(40), topRight: Radius.circular(40)),
                       ),
-                    ),
-                  );
-                }
-
-                final profile = snapshot.data!;
-
-                // Prellenar formulario con los datos del perfil
-                if (_nombreController.text.isEmpty) {
-                  _fillFormWithProfile(profile);
-                }
-
-                return Column(
-                  children: [
-                    // Header
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 36),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          // Logo SYLVARA
-                          Container(
-                            width: 50,
-                            height: 54,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF0E3520),
-                            ),
-                            child: const Icon(
-                              Icons.eco,
-                              color: Colors.white,
-                              size: 32,
-                            ),
-                          ),
-                          
-                          // Título "Mis Perfil"
-                          RichText(
-                            text: const TextSpan(
-                              children: [
-                                TextSpan(
-                                  text: 'Mis',
-                                  style: TextStyle(
-                                    fontFamily: 'Montserrat',
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.normal,
-                                    color: Color(0xFF0E3520),
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: ' Perfil',
-                                  style: TextStyle(
-                                    fontFamily: 'Montserrat',
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF0E3520),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    
-                    // Content with form
-                    Expanded(
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            // Glassmorphism header
-                            Container(
-                              width: double.infinity,
-                              height: 200,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFCFFFD).withOpacity(0.1),
-                                border: Border.all(
-                                  color: Colors.white,
-                                  width: 1,
-                                ),
-                                borderRadius: const BorderRadius.only(
-                                  topLeft: Radius.circular(40),
-                                  topRight: Radius.circular(40),
-                                ),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.only(left: 84, top: 50),
-                                child: Align(
-                                  alignment: Alignment.topLeft,
-                                  child: RichText(
-                                    text: const TextSpan(
-                                      children: [
-                                        TextSpan(
-                                          text: 'Configura ',
-                                          style: TextStyle(
-                                            fontFamily: 'Montserrat',
-                                            fontSize: 22,
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF0E3520),
-                                          ),
-                                        ),
-                                        TextSpan(
-                                          text: 'tú cuenta',
-                                          style: TextStyle(
-                                            fontFamily: 'Montserrat',
-                                            fontSize: 22,
-                                            fontWeight: FontWeight.normal,
-                                            color: Color(0xFF0E3520),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            
-                            // Form container
-                            Transform.translate(
-                              offset: const Offset(0, -141),
-                              child: Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 30,
-                                  vertical: 28,
-                                ),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFF1F5F9),
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(40),
-                                    topRight: Radius.circular(40),
-                                  ),
-                                ),
-                                child: Form(
-                                  key: _formKey,
+                      child: _isLoading
+                          ? const Center(child: CircularProgressIndicator(color: Color(0xFF0E3520)))
+                          : _hasError
+                              ? Center(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      // Foto de perfil
-                                      GestureDetector(
-                                        onTap: _handleImageUpload,
-                                        child: Stack(
-                                          children: [
-                                            CircleAvatar(
-                                              radius: 40,
-                                              backgroundColor: const Color(0xFF0E3520),
-                                              backgroundImage:
-                                                  _profilePictureUrl.isNotEmpty
-                                                      ? NetworkImage(_profilePictureUrl)
-                                                      : null,
-                                              child: _profilePictureUrl.isEmpty
-                                                  ? Text(
-                                                      profile.userName[0].toUpperCase(),
-                                                      style: const TextStyle(
-                                                        fontFamily: 'Montserrat',
-                                                        fontSize: 32,
-                                                        fontWeight: FontWeight.bold,
-                                                        color: Colors.white,
-                                                      ),
-                                                    )
-                                                  : null,
-                                            ),
-                                            Positioned(
-                                              bottom: 0,
-                                              right: 0,
-                                              child: Container(
-                                                padding: const EdgeInsets.all(6),
-                                                decoration: BoxDecoration(
-                                                  color: const Color(0xFF0E3520),
-                                                  shape: BoxShape.circle,
-                                                  border: Border.all(
-                                                    color: Colors.white,
-                                                    width: 2,
-                                                  ),
-                                                ),
-                                                child: const Icon(
-                                                  Icons.camera_alt,
-                                                  color: Colors.white,
-                                                  size: 14,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                      const Icon(Icons.error_outline, color: Color(0xFFD32F2F), size: 64),
+                                      const SizedBox(height: 16),
+                                      const Text('Error al cargar el perfil', style: TextStyle(fontFamily: 'Montserrat', fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF0E3520))),
+                                      const SizedBox(height: 8),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                                        child: Text(_errorText, style: const TextStyle(fontFamily: 'Montserrat', fontSize: 13, color: Color(0xFF666666)), textAlign: TextAlign.center),
                                       ),
+<<<<<<< HEAD
 
                                       const SizedBox(height: 12),
 
@@ -1211,36 +781,234 @@ onPressed: () async {
                                       ),
                                       
                                       const SizedBox(height: 80),
+=======
+                                      const SizedBox(height: 20),
+                                      ElevatedButton(
+                                        onPressed: _loadProfile,
+                                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0E3520), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                                        child: const Text('Reintentar', style: TextStyle(fontFamily: 'Montserrat', color: Colors.white, fontWeight: FontWeight.w600)),
+                                      ),
+>>>>>>> cae0935b3798205f70b678f88439254584c90d22
                                     ],
                                   ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                                )
+                              : _buildForm(),
                     ),
-                  ],
-                );
-              },
-            ),
-          ),
-          
-          // Bottom navbar
-          Positioned(
-            bottom: 20,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: MenuNavegation(
-                currentIndex: 2,
-                onTap: (index) {
-                  // La navegación se maneja dentro de MenuNavegation
-                },
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
+    );
+  }
+
+  Widget _buildForm() {
+    final profile = _profile!;
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Text(
+              'Configura tu cuenta',
+              style: TextStyle(fontFamily: 'Montserrat', fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF0E3520)),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Avatar
+            GestureDetector(
+              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Función próximamente'), backgroundColor: Color(0xFF0E3520)),
+              ),
+              child: Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 44,
+                    backgroundColor: const Color(0xFF0E3520),
+                    backgroundImage: _profilePictureUrl.isNotEmpty ? NetworkImage(_profilePictureUrl) : null,
+                    child: _profilePictureUrl.isEmpty
+                        ? Text(
+                            profile.userName.isNotEmpty ? profile.userName[0].toUpperCase() : '?',
+                            style: const TextStyle(fontFamily: 'Montserrat', fontSize: 34, fontWeight: FontWeight.bold, color: Colors.white),
+                          )
+                        : null,
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0E3520),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: const Icon(Icons.camera_alt, color: Colors.white, size: 14),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            Text(
+              '${profile.userName} ${profile.userLastname}',
+              style: const TextStyle(fontFamily: 'Montserrat', fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF0E3520)),
+            ),
+            Text(
+              profile.userRole,
+              style: const TextStyle(fontFamily: 'Montserrat', fontSize: 13, color: Color(0xFF666666)),
+            ),
+
+            const SizedBox(height: 28),
+
+            CustomTextField(
+              label: 'Nombre',
+              placeholder: 'Ej. Gilberto',
+              controller: _nombreController,
+              keyboardType: TextInputType.name,
+              validator: (v) => (v == null || v.isEmpty) ? 'Ingresa tu nombre' : null,
+            ),
+
+            const SizedBox(height: 18),
+
+            CustomTextField(
+              label: 'Apellidos',
+              placeholder: 'Ej. Malaga',
+              controller: _apellidosController,
+              keyboardType: TextInputType.name,
+              validator: (v) => (v == null || v.isEmpty) ? 'Ingresa tus apellidos' : null,
+            ),
+
+            const SizedBox(height: 18),
+
+            CustomTextField(
+              label: 'Fecha de nacimiento',
+              placeholder: 'DD/MM/YYYY',
+              controller: _fechaNacimientoController,
+              readOnly: true,
+              onTap: _selectDate,
+              suffixIcon: GestureDetector(
+                onTap: _selectDate,
+                child: const Padding(
+                  padding: EdgeInsets.only(right: 12),
+                  child: Icon(Icons.calendar_today_rounded, size: 20, color: Color(0xFF0E3520)),
+                ),
+              ),
+              validator: (v) => (v == null || v.isEmpty) ? 'Selecciona tu fecha de nacimiento' : null,
+            ),
+
+            const SizedBox(height: 18),
+
+            CustomTextField(
+              label: 'Correo electrónico',
+              placeholder: 'correo@ejemplo.com',
+              controller: _correoController,
+              keyboardType: TextInputType.emailAddress,
+              validator: (v) {
+                if (v == null || v.isEmpty) return 'Ingresa tu correo';
+                if (!v.contains('@')) return 'Ingresa un correo válido';
+                return null;
+              },
+            ),
+
+            if (_errorMessage != null) ...[
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF2F2),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFFECACA)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.error_outline_rounded, color: Color(0xFFDC2626), size: 18),
+                    const SizedBox(width: 10),
+                    Expanded(child: Text(_errorMessage!, style: const TextStyle(fontFamily: 'Montserrat', fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFFDC2626)))),
+                  ],
+                ),
+              ),
+            ],
+
+            const SizedBox(height: 28),
+
+            // Botones guardar / cancelar
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 48,
+                    child: OutlinedButton(
+                      onPressed: _isSaving ? null : () => Navigator.of(context).pop(),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFF0E3520), width: 1.5),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Cancelar', style: TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0E3520))),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: SizedBox(
+                    height: 48,
+                    child: ElevatedButton(
+                      onPressed: _isSaving ? null : _handleEdit,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0E3520),
+                        disabledBackgroundColor: const Color(0xFFCBD5E1),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        elevation: 0,
+                      ),
+                      child: _isSaving
+                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          : const Text('Guardar', style: TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: OutlinedButton.icon(
+                onPressed: _showChangePasswordDialog,
+                icon: const Icon(Icons.lock_outline, size: 18, color: Color(0xFF0E3520)),
+                label: const Text('Cambiar Contraseña', style: TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF0E3520))),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Color(0xFF0E3520), width: 1.5),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: OutlinedButton.icon(
+                onPressed: _showDeleteAccountDialog,
+                icon: const Icon(Icons.delete_outline, size: 18, color: Color(0xFFD32F2F)),
+                label: const Text('Eliminar Cuenta', style: TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFFD32F2F))),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Color(0xFFD32F2F), width: 1.5),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

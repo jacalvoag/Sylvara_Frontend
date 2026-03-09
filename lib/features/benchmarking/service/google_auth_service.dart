@@ -11,6 +11,7 @@ class GoogleAuthService {
   final _apiClient = ApiClient();
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId: '530170205990-ed6rjnd9mgjamin33ksukunj0f9ppngb.apps.googleusercontent.com',
     serverClientId: '530170205990-ed6rjnd9mgjamin33ksukunj0f9ppngb.apps.googleusercontent.com',
     scopes: ['https://www.googleapis.com/auth/bigquery'],
   );

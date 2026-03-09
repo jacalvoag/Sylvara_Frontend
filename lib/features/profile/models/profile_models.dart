@@ -19,13 +19,13 @@ class UserProfile {
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
-      userId: json['id'] as int,
-      userName: json['name'] as String,
-      userLastname: json['lastname'] as String,
-      userBirthday: json['birthday']?.toString() ?? '',
-      userEmail: json['email'] as String,
-      profilePictureUrl: (json['pictureUrl'] as String?) ?? '',
-      userRole: json['role'] as String? ?? 'USER',
+      userId: json['userId'] as int,
+      userName: json['userName'] as String,
+      userLastname: json['userLastname'] as String,
+      userBirthday: json['userBirthday']?.toString() ?? '',
+      userEmail: json['userEmail'] as String,
+      profilePictureUrl: (json['profilePictureUrl'] as String?) ?? '',
+      userRole: json['userRole'] as String? ?? 'USER',
     );
   }
 
@@ -77,15 +77,13 @@ class UpdateProfileRequest {
     required this.profilePictureUrl,
   });
 
-  Map<String, dynamic> toJson() {
-    return {
-      'name': userName,
-      'lastname': userLastname,
-      'birthday': userBirthday,
-      'email': userEmail,
-      if (profilePictureUrl.isNotEmpty) 'pictureUrl': profilePictureUrl,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+    if (userName.isNotEmpty) 'userName': userName,
+    if (userLastname.isNotEmpty) 'userLastname': userLastname,
+    if (userBirthday.isNotEmpty) 'userBirthday': userBirthday,
+    if (userEmail.isNotEmpty) 'userEmail': userEmail,
+    if (profilePictureUrl.isNotEmpty) 'profilePictureUrl': profilePictureUrl,
+  };
 }
 
 class UpdatePasswordRequest {
@@ -97,12 +95,10 @@ class UpdatePasswordRequest {
     required this.newPassword,
   });
 
-  Map<String, dynamic> toJson() {
-    return {
-      'currentPassword': currentPassword,
-      'newPassword': newPassword,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+    'currentPassword': currentPassword,
+    'newPassword': newPassword,
+  };
 }
 
 class ProfileException implements Exception {

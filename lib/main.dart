@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:sylvara_frontend/features/auth/screens/login_screen.dart';
-import 'package:sylvara_frontend/features/projects/screens/screens.dart';
-import 'package:sylvara_frontend/features/zones/screens/project_details_screen.dart';
-import 'package:sylvara_frontend/features/zones/widgets/biodiversity_chart.dart';
 import 'package:sylvara_frontend/core/api/token_storage.dart';
-
+import 'package:sylvara_frontend/core/widgets/main_scaffold.dart';
+import 'package:sylvara_frontend/features/auth/screens/login_screen.dart';
 
 void main() {
   runApp(const MainApp());
@@ -15,9 +12,9 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const AuthGate(), // Cambia a la pantalla que quieras probar
+      home: AuthGate(),
     );
   }
 }
@@ -53,13 +50,10 @@ class _AuthGateState extends State<AuthGate> {
       return const Scaffold(
         backgroundColor: Color(0xFFF4F7F5),
         body: Center(
-          child: CircularProgressIndicator(
-            color: Color(0xFF0E3520),
-          ),
+          child: CircularProgressIndicator(color: Color(0xFF0E3520)),
         ),
       );
     }
-
-    return _authenticated ? const PantallaInicio() : const LoginScreen();
+    return _authenticated ? const MainScaffold() : const LoginScreen();
   }
 }
