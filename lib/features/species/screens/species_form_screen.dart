@@ -25,21 +25,27 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _individualCountController = TextEditingController();
-  final _heightController = TextEditingController();
+  final _heightMinController = TextEditingController();
+  final _heightMaxController = TextEditingController();
 
-  int? _selectedSpeciesId;
   int? _selectedFunctionalTypeId;
   bool _isEditMode = false;
   int? _editingSpeciesZoneId;
   bool _isSubmitting = false;
 
-  // Tipos funcionales (mock - en producción vendrían del backend)
+  // Tipos funcionales sincronizados con la BD (functional_types)
   final List<Map<String, dynamic>> _functionalTypes = [
-    {'id': 1, 'name': 'Árbol'},
-    {'id': 2, 'name': 'Arbusto'},
-    {'id': 3, 'name': 'Hierba'},
-    {'id': 4, 'name': 'Trepadora'},
-    {'id': 5, 'name': 'Otro'},
+    {'id': 1, 'name': 'Frutal'},
+    {'id': 2, 'name': 'Cerco vivo'},
+    {'id': 3, 'name': 'Maderable'},
+    {'id': 4, 'name': 'Medicinal'},
+    {'id': 5, 'name': 'Medicinal y plaguicida'},
+    {'id': 6, 'name': 'Ornamental'},
+    {'id': 7, 'name': 'Maderable y medicinal'},
+    {'id': 8, 'name': 'Frutal trepadora'},
+    {'id': 9, 'name': 'Medicinal y ornamental'},
+    {'id': 10, 'name': 'Medicinal y forrajero'},
+    {'id': 11, 'name': 'Frutal y forrajero'},
   ];
 
   @override
@@ -53,11 +59,11 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
   }
 
   void _loadSpeciesData(SpeciesRecord species) {
-    _selectedSpeciesId = species.speciesId;
     _nameController.text = species.speciesName;
     _individualCountController.text = species.individualCount.toString();
     _selectedFunctionalTypeId = species.functionalTypeId;
-    _heightController.text = '${species.heightStratumMin}-${species.heightStratumMax}';
+    _heightMinController.text = species.heightStratumMin.toString();
+    _heightMaxController.text = species.heightStratumMax.toString();
   }
 
   void _autoFillFromCatalog(CatalogSpecies species) {
@@ -184,28 +190,10 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
                                               height: 50,
                                               fit: BoxFit.cover,
                                               errorBuilder: (context, error, stackTrace) {
-                                                return Container(
-                                                  width: 50,
-                                                  height: 50,
-                                                  color: const Color(0xFF0E3520).withOpacity(0.1),
-                                                  child: const Icon(
-                                                    Icons.eco,
-                                                    color: Color(0xFF0E3520),
-                                                    size: 24,
-                                                  ),
-                                                );
+                                                return _buildCatalogPlaceholder();
                                               },
                                             )
-                                          : Container(
-                                              width: 50,
-                                              height: 50,
-                                              color: const Color(0xFF0E3520).withOpacity(0.1),
-                                              child: const Icon(
-                                                Icons.eco,
-                                                color: Color(0xFF0E3520),
-                                                size: 24,
-                                              ),
-                                            ),
+                                          : _buildCatalogPlaceholder(),
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
@@ -270,10 +258,21 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
     }
   }
 
+  Widget _buildCatalogPlaceholder() {
+    return Container(
+      width: 50,
+      height: 50,
+      color: const Color(0xFF0E3520).withOpacity(0.1),
+      child: const Icon(
+        Icons.eco,
+        color: Color(0xFF0E3520),
+        size: 24,
+      ),
+    );
+  }
+
   Future<void> _handleSubmit() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     if (_selectedFunctionalTypeId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -289,13 +288,14 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
       return;
     }
 
-    // Parsear altura
-    final heightParts = _heightController.text.split('-');
-    if (heightParts.length != 2) {
+    final heightMin = double.tryParse(_heightMinController.text.trim());
+    final heightMax = double.tryParse(_heightMaxController.text.trim());
+
+    if (heightMin! >= heightMax!) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Formato de altura inválido. Usa: min-max (ej. 10-20)',
+            'La altura mínima debe ser menor a la altura máxima',
             style: TextStyle(fontFamily: 'Montserrat'),
           ),
           backgroundColor: Color(0xFFAE0000),
@@ -305,37 +305,10 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
       return;
     }
 
-    final heightMin = double.tryParse(heightParts[0].trim());
-    final heightMax = double.tryParse(heightParts[1].trim());
-
-    if (heightMin == null || heightMax == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Los valores de altura deben ser numéricos',
-            style: TextStyle(fontFamily: 'Montserrat'),
-          ),
-          backgroundColor: Color(0xFFAE0000),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
-
-    setState(() {
-      _isSubmitting = true;
-    });
+    setState(() => _isSubmitting = true);
 
     try {
-        final request = SpeciesRequest(
-          speciesName: _nameController.text.trim(),
-          functionalTypeId: _selectedFunctionalTypeId!,
-          individualCount: int.parse(_individualCountController.text),
-          heightStratumMin: heightMin,
-          heightStratumMax: heightMax,
-        );
-
-        // Modo edición — usa SpeciesUpdateRequest
+      if (_isEditMode && _editingSpeciesZoneId != null) {
         final updateRequest = SpeciesUpdateRequest(
           speciesName: _nameController.text.trim(),
           functionalTypeId: _selectedFunctionalTypeId,
@@ -344,13 +317,12 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
           heightStratumMax: heightMax,
         );
 
-        if (_isEditMode && _editingSpeciesZoneId != null) {
-          await SpeciesService.instance.updateSpeciesRecord(
-            widget.projectId,
-            widget.zoneId,
-            _editingSpeciesZoneId!,
-            updateRequest,
-          );
+        await SpeciesService.instance.updateSpeciesRecord(
+          widget.projectId,
+          widget.zoneId,
+          _editingSpeciesZoneId!,
+          updateRequest,
+        );
 
         if (mounted) {
           Navigator.of(context).pop(true);
@@ -366,7 +338,14 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
           );
         }
       } else {
-        // Modo creación
+        final request = SpeciesRequest(
+          speciesName: _nameController.text.trim(),
+          functionalTypeId: _selectedFunctionalTypeId!,
+          individualCount: int.parse(_individualCountController.text),
+          heightStratumMin: heightMin,
+          heightStratumMax: heightMax,
+        );
+
         final result = await SpeciesService.instance.registerSpecies(
           widget.projectId,
           widget.zoneId,
@@ -375,10 +354,8 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
 
         if (!mounted) return;
 
-        // Pattern matching con sealed class
         switch (result) {
           case SpeciesCreated(:final record):
-            // 201: Especie creada exitosamente
             Navigator.of(context).pop(true);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -392,16 +369,11 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
             );
 
           case SpeciesExistsInCatalog(:final response):
-            // 200: Existe en catálogo
             final useBase = await _showExistsInCatalogDialog(response);
             if (useBase && mounted) {
-              // Autocompletar con datos del catálogo
               setState(() {
-                _selectedSpeciesId = response.speciesId;
                 _nameController.text = response.speciesName;
-                // Mantener los valores que el usuario ya puso
               });
-              
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text(
@@ -415,25 +387,36 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
             }
 
           case SpeciesExistsInZone(:final response):
-            // 409: Ya existe en esta zona
             final shouldEdit = await _showExistsInZoneDialog(response);
             if (shouldEdit && mounted) {
-              // Cambiar a modo edición
-              setState(() {
-                _isEditMode = true;
-                _editingSpeciesZoneId = response.speciesZoneId;
-              });
-              
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'Modo edición activado. Modifica los datos y guarda',
-                    style: TextStyle(fontFamily: 'Montserrat'),
-                  ),
-                  backgroundColor: Color(0xFF2E7D32),
-                  behavior: SnackBarBehavior.floating,
-                ),
+              final updateRequest = SpeciesUpdateRequest(
+                speciesName: _nameController.text.trim(),
+                functionalTypeId: _selectedFunctionalTypeId,
+                individualCount: int.parse(_individualCountController.text),
+                heightStratumMin: heightMin,
+                heightStratumMax: heightMax,
               );
+
+              await SpeciesService.instance.updateSpeciesRecord(
+                widget.projectId,
+                widget.zoneId,
+                response.speciesZoneId,
+                updateRequest,
+              );
+
+              if (mounted) {
+                Navigator.of(context).pop(true);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Especie actualizada correctamente',
+                      style: TextStyle(fontFamily: 'Montserrat'),
+                    ),
+                    backgroundColor: Color(0xFF4CAF50),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
             }
         }
       }
@@ -451,135 +434,171 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
         );
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
-      }
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
   Future<bool> _showExistsInCatalogDialog(SpeciesExistsInCatalogResponse response) async {
     return await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        title: const Text(
-          'Especie en Catálogo',
-          style: TextStyle(
-            fontFamily: 'Montserrat',
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF0E3520),
-          ),
-        ),
-        content: Text(
-          'Esta especie "${response.speciesName}" ya existe en el proyecto con ${response.totalIndividuals} individuos registrados.\n\n¿Deseas usar sus datos base?',
-          style: const TextStyle(
-            fontFamily: 'Montserrat',
-            fontSize: 14,
-            color: Color(0xFF0E3520),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text(
-              'Cancelar',
-              style: TextStyle(
-                fontFamily: 'Montserrat',
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF0E3520),
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0E3520),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            child: const Text(
-              'Usar Datos',
+          context: context,
+          builder: (context) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: const Text(
+              'Especie en Catálogo',
               style: TextStyle(
                 fontFamily: 'Montserrat',
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: Color(0xFF0E3520),
               ),
             ),
+            content: Text(
+              'Esta especie "${response.speciesName}" ya existe en el proyecto con ${response.totalIndividuals} individuos registrados.\n\n¿Deseas usar sus datos base?',
+              style: const TextStyle(
+                fontFamily: 'Montserrat',
+                fontSize: 14,
+                color: Color(0xFF0E3520),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text(
+                  'Cancelar',
+                  style: TextStyle(
+                    fontFamily: 'Montserrat',
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF0E3520),
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0E3520),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: const Text(
+                  'Usar Datos',
+                  style: TextStyle(
+                    fontFamily: 'Montserrat',
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-    ) ?? false;
+        ) ??
+        false;
   }
 
   Future<bool> _showExistsInZoneDialog(SpeciesExistsInZoneResponse response) async {
     return await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        title: const Text(
-          'Especie Ya Registrada',
-          style: TextStyle(
-            fontFamily: 'Montserrat',
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF0E3520),
-          ),
-        ),
-        content: Text(
-          'Ya registraste "${response.speciesName}" en esta zona con ${response.individualCount} individuos.\n\n¿Deseas modificarla?',
-          style: const TextStyle(
-            fontFamily: 'Montserrat',
-            fontSize: 14,
-            color: Color(0xFF0E3520),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text(
-              'Cancelar',
-              style: TextStyle(
-                fontFamily: 'Montserrat',
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF0E3520),
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0E3520),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            child: const Text(
-              'Modificar',
+          context: context,
+          builder: (context) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: const Text(
+              'Especie Ya Registrada',
               style: TextStyle(
                 fontFamily: 'Montserrat',
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: Color(0xFF0E3520),
               ),
             ),
+            content: Text(
+              'Ya registraste "${response.speciesName}" en esta zona con ${response.individualCount} individuos.\n\n¿Deseas modificarla?',
+              style: const TextStyle(
+                fontFamily: 'Montserrat',
+                fontSize: 14,
+                color: Color(0xFF0E3520),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text(
+                  'Cancelar',
+                  style: TextStyle(
+                    fontFamily: 'Montserrat',
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF0E3520),
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0E3520),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: const Text(
+                  'Modificar',
+                  style: TextStyle(
+                    fontFamily: 'Montserrat',
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-    ) ?? false;
+        ) ??
+        false;
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _individualCountController.dispose();
-    _heightController.dispose();
+    _heightMinController.dispose();
+    _heightMaxController.dispose();
     super.dispose();
   }
+
+  InputDecoration _fieldDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(
+        fontFamily: 'Montserrat',
+        fontSize: 9,
+        color: const Color(0xFF0E3520).withOpacity(0.75),
+      ),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(5),
+        borderSide: const BorderSide(color: Color(0xFF0E3520)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(5),
+        borderSide: const BorderSide(color: Color(0xFF0E3520)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(5),
+        borderSide: const BorderSide(color: Color(0xFF0E3520), width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(5),
+        borderSide: const BorderSide(color: Color(0xFFAE0000)),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(5),
+        borderSide: const BorderSide(color: Color(0xFFAE0000), width: 2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+    );
+  }
+
+  TextStyle get _fieldTextStyle => const TextStyle(
+        fontFamily: 'Montserrat',
+        fontSize: 13,
+        color: Color(0xFF0E3520),
+      );
+
+  TextStyle get _labelStyle => const TextStyle(
+        fontFamily: 'Montserrat',
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: Color(0xFF0E3520),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -587,7 +606,7 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 40),
       child: Container(
-        constraints: const BoxConstraints(maxHeight: 520),
+        constraints: const BoxConstraints(maxHeight: 570),
         decoration: BoxDecoration(
           color: const Color(0xFFF1F5F9),
           borderRadius: BorderRadius.circular(13),
@@ -601,7 +620,6 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
         ),
         child: Stack(
           children: [
-            // Border decorativo
             Positioned.fill(
               left: 5,
               right: 5,
@@ -609,16 +627,12 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
               bottom: 5,
               child: Container(
                 decoration: BoxDecoration(
-                  border: Border.all(
-                    color: const Color(0xFF0E3520),
-                    width: 1,
-                  ),
+                  border: Border.all(color: const Color(0xFF0E3520), width: 1),
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
             ),
-            
-            // Contenido
+
             Padding(
               padding: const EdgeInsets.all(20),
               child: Form(
@@ -628,7 +642,6 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Título
                       Row(
                         children: [
                           Expanded(
@@ -642,301 +655,148 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
                                 children: [
                                   TextSpan(
                                     text: _isEditMode ? 'Editar ' : 'Crear ',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                    style: const TextStyle(fontWeight: FontWeight.bold),
                                   ),
                                   const TextSpan(
                                     text: 'Especie',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.normal,
-                                    ),
+                                    style: TextStyle(fontWeight: FontWeight.normal),
                                   ),
                                 ],
                               ),
                             ),
                           ),
-                          // Botón de catálogo
                           if (!_isEditMode)
                             IconButton(
                               onPressed: _showCatalogModal,
-                              icon: const Icon(
-                                Icons.search,
-                                color: Color(0xFF0E3520),
-                              ),
+                              icon: const Icon(Icons.search, color: Color(0xFF0E3520)),
                               tooltip: 'Buscar en catálogo',
                             ),
                         ],
                       ),
-                      
-                      const SizedBox(height: 20),
-                      
-                      // Nombre común
-                      const Text(
-                        'Nombre común',
-                        style: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF0E3520),
-                        ),
-                      ),
+
+                      const SizedBox(height: 16),
+
+                      Text('Nombre común', style: _labelStyle),
                       const SizedBox(height: 6),
                       TextFormField(
                         controller: _nameController,
-                        decoration: InputDecoration(
-                          hintText: 'Ej. Corazón Bonito',
-                          hintStyle: TextStyle(
-                            fontFamily: 'Montserrat',
-                            fontSize: 9,
-                            color: const Color(0xFF0E3520).withOpacity(0.75),
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(5),
-                            borderSide: const BorderSide(
-                              color: Color(0xFF0E3520),
-                            ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(5),
-                            borderSide: const BorderSide(
-                              color: Color(0xFF0E3520),
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(5),
-                            borderSide: const BorderSide(
-                              color: Color(0xFF0E3520),
-                              width: 2,
-                            ),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 10,
-                          ),
-                        ),
-                        style: const TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 13,
-                          color: Color(0xFF0E3520),
-                        ),
+                        decoration: _fieldDecoration('Ej. Corazón Bonito'),
+                        style: _fieldTextStyle,
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Campo requerido';
-                          }
+                          if (value == null || value.trim().isEmpty) return 'Campo requerido';
+                          if (value.trim().length < 1) return 'Mínimo 1 carácter';
                           return null;
                         },
                       ),
-                      
-                      const SizedBox(height: 16),
-                      
-                      // Número de individuos
-                      const Text(
-                        'Número de individuos',
-                        style: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF0E3520),
-                        ),
-                      ),
+
+                      const SizedBox(height: 14),
+
+                      Text('Número de individuos', style: _labelStyle),
                       const SizedBox(height: 6),
                       TextFormField(
                         controller: _individualCountController,
                         keyboardType: TextInputType.number,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                        ],
-                        decoration: InputDecoration(
-                          hintText: 'Ej. 20',
-                          hintStyle: TextStyle(
-                            fontFamily: 'Montserrat',
-                            fontSize: 9,
-                            color: const Color(0xFF0E3520).withOpacity(0.75),
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(5),
-                            borderSide: const BorderSide(
-                              color: Color(0xFF0E3520),
-                            ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(5),
-                            borderSide: const BorderSide(
-                              color: Color(0xFF0E3520),
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(5),
-                            borderSide: const BorderSide(
-                              color: Color(0xFF0E3520),
-                              width: 2,
-                            ),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 10,
-                          ),
-                        ),
-                        style: const TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 13,
-                          color: Color(0xFF0E3520),
-                        ),
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        decoration: _fieldDecoration('Ej. 20'),
+                        style: _fieldTextStyle,
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Campo requerido';
-                          }
+                          if (value == null || value.isEmpty) return 'Campo requerido';
                           final count = int.tryParse(value);
-                          if (count == null || count <= 0) {
-                            return 'Debe ser mayor a 0';
-                          }
+                          if (count == null || count < 1) return 'Debe ser mayor a 0';
                           return null;
                         },
                       ),
-                      
-                      const SizedBox(height: 16),
-                      
-                      // Tipo funcional
-                      const Text(
-                        'Tipo funcional',
-                        style: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF0E3520),
-                        ),
-                      ),
+
+                      const SizedBox(height: 14),
+
+                      Text('Tipo funcional', style: _labelStyle),
                       const SizedBox(height: 6),
                       DropdownButtonFormField<int>(
-                        initialValue: _selectedFunctionalTypeId,
-                        decoration: InputDecoration(
-                          hintText: 'Seleccione una opción',
-                          hintStyle: TextStyle(
-                            fontFamily: 'Montserrat',
-                            fontSize: 9,
-                            color: const Color(0xFF0E3520).withOpacity(0.75),
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(5),
-                            borderSide: const BorderSide(
-                              color: Color(0xFF0E3520),
-                            ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(5),
-                            borderSide: const BorderSide(
-                              color: Color(0xFF0E3520),
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(5),
-                            borderSide: const BorderSide(
-                              color: Color(0xFF0E3520),
-                              width: 2,
-                            ),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 10,
-                          ),
-                        ),
-                        style: const TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 13,
-                          color: Color(0xFF0E3520),
-                        ),
+                        value: _selectedFunctionalTypeId,
+                        decoration: _fieldDecoration('Seleccione una opción'),
+                        style: _fieldTextStyle,
+                        isExpanded: true,
                         items: _functionalTypes.map((type) {
                           return DropdownMenuItem<int>(
                             value: type['id'],
-                            child: Text(type['name']),
+                            child: Text(
+                              type['name'],
+                              style: _fieldTextStyle,
+                            ),
                           );
                         }).toList(),
                         onChanged: (value) {
-                          setState(() {
-                            _selectedFunctionalTypeId = value;
-                          });
+                          setState(() => _selectedFunctionalTypeId = value);
                         },
-                      ),
-                      
-                      const SizedBox(height: 16),
-                      
-                      // Altura o estrato
-                      const Text(
-                        'Altura o estrato',
-                        style: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF0E3520),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        controller: _heightController,
-                        decoration: InputDecoration(
-                          hintText: 'Ej. 10-20m',
-                          hintStyle: TextStyle(
-                            fontFamily: 'Montserrat',
-                            fontSize: 9,
-                            color: const Color(0xFF0E3520).withOpacity(0.75),
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(5),
-                            borderSide: const BorderSide(
-                              color: Color(0xFF0E3520),
-                            ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(5),
-                            borderSide: const BorderSide(
-                              color: Color(0xFF0E3520),
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(5),
-                            borderSide: const BorderSide(
-                              color: Color(0xFF0E3520),
-                              width: 2,
-                            ),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 10,
-                          ),
-                        ),
-                        style: const TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 13,
-                          color: Color(0xFF0E3520),
-                        ),
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Campo requerido';
-                          }
-                          if (!value.contains('-')) {
-                            return 'Formato: min-max (ej. 10-20)';
-                          }
+                          if (value == null) return 'Selecciona un tipo funcional';
                           return null;
                         },
                       ),
-                      
-                      const SizedBox(height: 16),
-                      
-                      // Fotografía
-                      const Text(
-                        'Fotografia',
-                        style: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF0E3520),
-                        ),
+
+                      const SizedBox(height: 14),
+
+                      Text('Altura o estrato (m)', style: _labelStyle),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _heightMinController,
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                              ],
+                              decoration: _fieldDecoration('Mín. Ej. 10'),
+                              style: _fieldTextStyle,
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) return 'Requerido';
+                                final v = double.tryParse(value.trim());
+                                if (v == null) return 'Número inválido';
+                                if (v < 0) return 'Debe ser ≥ 0';
+                                return null;
+                              },
+                            ),
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 8),
+                            child: Text(
+                              '—',
+                              style: TextStyle(
+                                fontFamily: 'Montserrat',
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF0E3520),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: TextFormField(
+                              controller: _heightMaxController,
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                              ],
+                              decoration: _fieldDecoration('Máx. Ej. 20'),
+                              style: _fieldTextStyle,
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) return 'Requerido';
+                                final v = double.tryParse(value.trim());
+                                if (v == null) return 'Número inválido';
+                                if (v <= 0) return 'Debe ser > 0';
+                                return null;
+                              },
+                            ),
+                          ),
+                        ],
                       ),
+
+                      const SizedBox(height: 14),
+
+                      Text('Fotografía', style: _labelStyle),
                       const SizedBox(height: 6),
                       ElevatedButton.icon(
                         onPressed: () {
-                          // TODO: Implementar subida de imagen
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text(
@@ -954,10 +814,7 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(5),
                           ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         ),
                         icon: const Icon(Icons.image, size: 16),
                         label: const Text(
@@ -969,10 +826,9 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
                           ),
                         ),
                       ),
-                      
-                      const SizedBox(height: 24),
-                      
-                      // Botones de acción
+
+                      const SizedBox(height: 20),
+
                       Row(
                         children: [
                           Expanded(
@@ -981,10 +837,7 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
                                   ? null
                                   : () => Navigator.of(context).pop(false),
                               style: OutlinedButton.styleFrom(
-                                side: const BorderSide(
-                                  color: Color(0xFF0E3520),
-                                  width: 2,
-                                ),
+                                side: const BorderSide(color: Color(0xFF0E3520), width: 2),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
@@ -1018,9 +871,7 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
                                       height: 20,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.white,
-                                        ),
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                       ),
                                     )
                                   : const Text(
