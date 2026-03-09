@@ -115,7 +115,7 @@ class _PantallaInicioState extends State<PantallaInicio> with TickerProviderStat
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.only(left: 16, right: 16, top: 14, bottom: 230),
+            padding: const EdgeInsets.only(left: 16, right: 16, top: 14, bottom: 200),
             child: CustomBienvenida(nombre: dashboard.user.userName),
           ),
           if (_isAdmin)

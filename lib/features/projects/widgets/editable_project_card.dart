@@ -24,7 +24,6 @@ class EditableProjectCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 96,
         width: double.infinity,
         padding: const EdgeInsets.all(5),
         decoration: BoxDecoration(

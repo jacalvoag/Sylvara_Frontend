@@ -23,7 +23,6 @@ class ProjectCard extends StatelessWidget {
         onTap: onTap,
         child: Container(
           width: 390,
-          height: 110,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: const Color(0xFFF1F5F9),

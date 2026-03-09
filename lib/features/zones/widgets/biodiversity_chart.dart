@@ -79,6 +79,7 @@ class BiodiversityChart extends StatelessWidget {
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
+                reservedSize: 32,
                 getTitlesWidget: (value, meta) {
                   const style = TextStyle(
                     color: Color(0xFF1B5E20),

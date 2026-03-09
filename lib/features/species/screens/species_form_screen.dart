@@ -639,9 +639,10 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
               padding: const EdgeInsets.all(20),
               child: Form(
                 key: _formKey,
-                child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                child: SingleChildScrollView(
+                  child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
@@ -891,6 +892,7 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
                     ],
                   ),
                 ),
+               ),
               ),
             ],
           ),
