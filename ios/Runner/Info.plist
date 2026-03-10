@@ -66,5 +66,12 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<!-- Permisos requeridos por image_picker -->
+	<key>NSCameraUsageDescription</key>
+	<string>Sylvara necesita acceso a la cámara para fotografiar especies y tu perfil.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Sylvara necesita acceso a tu galería para seleccionar imágenes de especies y de perfil.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Sylvara puede guardar imágenes en tu galería.</string>
 </dict>
 </plist>

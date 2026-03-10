@@ -403,7 +403,6 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
       body: Stack(
         children: [
           // Imagen de fondo con altura específica de Figma
@@ -426,11 +425,11 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                       Container(
                         width: 50,
                         height: 54,
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: AssetImage('assets/images/backgrounds/logo.png'),
-                            fit: BoxFit.contain,
-                          ),
+                        decoration: const BoxDecoration(
+                          // image: DecorationImage(
+                          //   image: AssetImage('assets/images/backgrounds/logo.png'),
+                          //   fit: BoxFit.contain,
+                          // ),
                         ),
                       ),
                       // Título "Mis Proyectos"
@@ -481,8 +480,8 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                           child: BackdropFilter(
                             filter: ImageFilter.blur(sigmaX: 3.5, sigmaY: 3.5),
                             child: Container(
-                              height: 156,
-                              padding: const EdgeInsets.only(top: 11, left: 35, right: 35),
+                              height: 120,
+                              padding: const EdgeInsets.only(top: 20, left: 55, right: 55),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFFCFFFD).withOpacity(0.1),
                                 border: Border.all(
@@ -494,8 +493,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                   topRight: Radius.circular(40),
                                 ),
                               ),
-                              child: // Barra de búsqueda
-                              Container(
+                              child: Container(
                                 height: 38,
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFF1F5F9),

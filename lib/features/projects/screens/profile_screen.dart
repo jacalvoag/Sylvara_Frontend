@@ -4,6 +4,7 @@ import 'package:sylvara_frontend/features/auth/screens/login_screen.dart';
 import 'package:sylvara_frontend/features/profile/models/models.dart';
 import 'package:sylvara_frontend/features/profile/services/profile_service.dart';
 import 'package:sylvara_frontend/core/api/token_storage.dart';
+import 'package:sylvara_frontend/core/services/cloudinary_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -26,6 +27,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _errorText = '';
   bool _isSaving = false;
   bool _isEditingMode = false;
+  bool _uploadingProfileImage = false;
   String _profilePictureUrl = '';
   UserProfile? _profile;
 
@@ -349,24 +351,67 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             const SizedBox(height: 20),
 
-            // Avatar
+            // Avatar con botón de cámara funcional
             GestureDetector(
-              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Función próximamente'), backgroundColor: Color(0xFF0E3520)),
-              ),
+              onTap: _isEditingMode
+                  ? () async {
+                      if (_uploadingProfileImage) return;
+                      setState(() => _uploadingProfileImage = true);
+                      try {
+                        final url = await CloudinaryService.pickSourceAndUpload(context);
+                        if (url != null && mounted) {
+                          setState(() => _profilePictureUrl = url);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Foto actualizada. Guarda para confirmar.'),
+                              backgroundColor: Color(0xFF4CAF50),
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Error al subir foto: $e'),
+                              backgroundColor: const Color(0xFFD32F2F),
+                            ),
+                          );
+                        }
+                      } finally {
+                        if (mounted) setState(() => _uploadingProfileImage = false);
+                      }
+                    }
+                  : null,
               child: Stack(
                 children: [
-                  CircleAvatar(
-                    radius: 44,
-                    backgroundColor: const Color(0xFF0E3520),
-                    backgroundImage: _profilePictureUrl.isNotEmpty ? NetworkImage(_profilePictureUrl) : null,
-                    child: _profilePictureUrl.isEmpty
-                        ? Text(
-                            profile.userName.isNotEmpty ? profile.userName[0].toUpperCase() : '?',
-                            style: const TextStyle(fontFamily: 'Montserrat', fontSize: 34, fontWeight: FontWeight.bold, color: Colors.white),
-                          )
-                        : null,
-                  ),
+                  _uploadingProfileImage
+                      ? const SizedBox(
+                          width: 88,
+                          height: 88,
+                          child: CircularProgressIndicator(
+                            color: Color(0xFF0E3520),
+                            strokeWidth: 3,
+                          ),
+                        )
+                      : CircleAvatar(
+                          radius: 44,
+                          backgroundColor: const Color(0xFF0E3520),
+                          backgroundImage: _profilePictureUrl.isNotEmpty
+                              ? NetworkImage(_profilePictureUrl)
+                              : null,
+                          child: _profilePictureUrl.isEmpty
+                              ? Text(
+                                  profile.userName.isNotEmpty
+                                      ? profile.userName[0].toUpperCase()
+                                      : '?',
+                                  style: const TextStyle(
+                                      fontFamily: 'Montserrat',
+                                      fontSize: 34,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white),
+                                )
+                              : null,
+                        ),
                   if (_isEditingMode)
                     Positioned(
                       bottom: 0,

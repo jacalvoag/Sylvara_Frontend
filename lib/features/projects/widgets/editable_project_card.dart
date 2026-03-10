@@ -151,9 +151,12 @@ class EditableProjectCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 elevation: 8,
+                padding: EdgeInsets.zero,
                 itemBuilder: (BuildContext context) => [
                   PopupMenuItem<String>(
                     value: 'edit',
+                    height: 36,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Row(
                       children: [
                         const Icon(
@@ -174,8 +177,11 @@ class EditableProjectCard extends StatelessWidget {
                       ],
                     ),
                   ),
+                  const PopupMenuDivider(height: 1),
                   PopupMenuItem<String>(
                     value: 'toggle_status',
+                    height: 36,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Row(
                       children: [
                         Icon(
@@ -196,8 +202,11 @@ class EditableProjectCard extends StatelessWidget {
                       ],
                     ),
                   ),
+                  const PopupMenuDivider(height: 1),
                   PopupMenuItem<String>(
                     value: 'delete',
+                    height: 36,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Row(
                       children: [
                         const Icon(

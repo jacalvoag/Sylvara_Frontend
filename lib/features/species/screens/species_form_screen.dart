@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/models.dart';
 import '../services/services.dart';
+import '../../../core/services/cloudinary_service.dart';
 
 class SpeciesFormScreen extends StatefulWidget {
   final int projectId;
@@ -32,6 +33,8 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
   bool _isEditMode = false;
   int? _editingSpeciesZoneId;
   bool _isSubmitting = false;
+  String? _uploadedImageUrl;
+  bool _uploadingImage = false;
 
   // Tipos funcionales sincronizados con la BD (functional_types)
   final List<Map<String, dynamic>> _functionalTypes = [
@@ -64,6 +67,7 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
     _selectedFunctionalTypeId = species.functionalTypeId;
     _heightMinController.text = species.heightStratumMin.toString();
     _heightMaxController.text = species.heightStratumMax.toString();
+    _uploadedImageUrl = species.speciesImageUrl;
   }
 
   void _autoFillFromCatalog(CatalogSpecies species) {
@@ -315,6 +319,7 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
           individualCount: int.parse(_individualCountController.text),
           heightStratumMin: heightMin,
           heightStratumMax: heightMax,
+          speciesImageUrl: _uploadedImageUrl,
         );
 
         await SpeciesService.instance.updateSpeciesRecord(
@@ -344,6 +349,7 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
           individualCount: int.parse(_individualCountController.text),
           heightStratumMin: heightMin,
           heightStratumMax: heightMax,
+          speciesImageUrl: _uploadedImageUrl,
         );
 
         final result = await SpeciesService.instance.registerSpecies(
@@ -797,31 +803,96 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
 
                       Text('Fotografía', style: _labelStyle),
                       const SizedBox(height: 6),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Subida de imágenes no implementada aún',
-                                style: TextStyle(fontFamily: 'Montserrat'),
-                              ),
-                              backgroundColor: Color(0xFF2E7D32),
-                              behavior: SnackBarBehavior.floating,
+                      // Preview de imagen si ya se subió
+                      if (_uploadedImageUrl != null) ...
+                      [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.network(
+                            _uploadedImageUrl!,
+                            height: 140,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              height: 140,
+                              color: const Color(0xFF0E3520).withOpacity(0.1),
+                              child: const Icon(Icons.broken_image,
+                                  color: Color(0xFF0E3520)),
                             ),
-                          );
-                        },
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                      ElevatedButton.icon(
+                        onPressed: _uploadingImage
+                            ? null
+                            : () async {
+                                setState(() => _uploadingImage = true);
+                                try {
+                                  final url =
+                                      await CloudinaryService.pickSourceAndUpload(
+                                          context);
+                                  if (url != null && mounted) {
+                                    setState(() => _uploadedImageUrl = url);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Imagen subida correctamente',
+                                          style: TextStyle(
+                                              fontFamily: 'Montserrat'),
+                                        ),
+                                        backgroundColor: Color(0xFF4CAF50),
+                                        behavior: SnackBarBehavior.floating,
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Error al subir imagen: $e',
+                                          style: const TextStyle(
+                                              fontFamily: 'Montserrat'),
+                                        ),
+                                        backgroundColor:
+                                            const Color(0xFFAE0000),
+                                        behavior: SnackBarBehavior.floating,
+                                      ),
+                                    );
+                                  }
+                                } finally {
+                                  if (mounted) {
+                                    setState(() => _uploadingImage = false);
+                                  }
+                                }
+                              },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF0E3520),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(5),
                           ),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
                         ),
-                        icon: const Icon(Icons.image, size: 16),
-                        label: const Text(
-                          'Subir Fotografía',
-                          style: TextStyle(
+                        icon: _uploadingImage
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(Icons.image, size: 16),
+                        label: Text(
+                          _uploadingImage
+                              ? 'Subiendo...'
+                              : (_uploadedImageUrl != null
+                                  ? 'Cambiar Fotografía'
+                                  : 'Subir Fotografía'),
+                          style: const TextStyle(
                             fontFamily: 'Montserrat',
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
