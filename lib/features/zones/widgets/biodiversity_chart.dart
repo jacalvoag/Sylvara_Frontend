@@ -19,41 +19,56 @@ class BiodiversityChart extends StatelessWidget {
     this.height = 250,
   });
 
+  double get _maxY {
+    final values = [indices.shannon, indices.simpson, indices.margalef, indices.pielou];
+    final max = values.reduce((a, b) => a > b ? a : b);
+    // Añadir un 30% de margen superior para que las barras no toquen el tope
+    return (max * 1.3).clamp(1.0, double.infinity);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final maxY = _maxY;
     return Container(
       height: height,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(8, 16, 16, 8),
       child: BarChart(
         BarChartData(
           alignment: BarChartAlignment.spaceAround,
-          maxY: 5.0, // Valor máximo para normalizar las barras
+          maxY: maxY,
           barTouchData: BarTouchData(
             enabled: true,
             touchTooltipData: BarTouchTooltipData(
               getTooltipItem: (group, groupIndex, rod, rodIndex) {
                 String label;
+                double realValue;
                 switch (group.x.toInt()) {
                   case 0:
-                    label = 'Shannon (S\')';
+                    label = "Shannon (S')";
+                    realValue = indices.shannon;
                     break;
                   case 1:
                     label = 'Simpson (D)';
+                    realValue = indices.simpson;
                     break;
                   case 2:
                     label = 'Margalef (d)';
+                    realValue = indices.margalef;
                     break;
                   case 3:
-                    label = 'Pielou (J\')';
+                    label = "Pielou (J')";
+                    realValue = indices.pielou;
                     break;
                   default:
                     label = '';
+                    realValue = 0;
                 }
                 return BarTooltipItem(
-                  '$label\n${rod.toY.toStringAsFixed(2)}',
+                  '$label\n${realValue.toStringAsFixed(3)}',
                   const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
+                    fontSize: 12,
                   ),
                 );
               },
@@ -64,16 +79,17 @@ class BiodiversityChart extends StatelessWidget {
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
+                reservedSize: 32,
                 getTitlesWidget: (value, meta) {
                   const style = TextStyle(
                     color: Color(0xFF1B5E20),
                     fontWeight: FontWeight.w600,
-                    fontSize: 14,
+                    fontSize: 13,
                   );
                   String text;
                   switch (value.toInt()) {
                     case 0:
-                      text = 'S\'';
+                      text = "S'";
                       break;
                     case 1:
                       text = 'D';
@@ -82,13 +98,13 @@ class BiodiversityChart extends StatelessWidget {
                       text = 'd';
                       break;
                     case 3:
-                      text = 'J\'';
+                      text = "J'";
                       break;
                     default:
                       text = '';
                   }
                   return Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
+                    padding: const EdgeInsets.only(top: 6.0),
                     child: Text(text, style: style),
                   );
                 },
@@ -97,13 +113,15 @@ class BiodiversityChart extends StatelessWidget {
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
-                reservedSize: 40,
+                reservedSize: 44,
+                interval: maxY / 5,
                 getTitlesWidget: (value, meta) {
+                  if (value == 0) return const SizedBox.shrink();
                   return Text(
                     value.toStringAsFixed(1),
                     style: const TextStyle(
                       color: Color(0xFF2E7D32),
-                      fontSize: 12,
+                      fontSize: 11,
                     ),
                   );
                 },
@@ -119,7 +137,7 @@ class BiodiversityChart extends StatelessWidget {
           gridData: FlGridData(
             show: true,
             drawVerticalLine: false,
-            horizontalInterval: 1.0,
+            horizontalInterval: maxY / 5,
             getDrawingHorizontalLine: (value) {
               return FlLine(
                 color: const Color(0xFF2E7D32).withValues(alpha: 0.2),
@@ -144,12 +162,12 @@ class BiodiversityChart extends StatelessWidget {
     return [
       // Shannon (S')
       _buildBarGroup(0, indices.shannon, const Color(0xFF1B5E20)),
-      // Simpson (D) - normalizado multiplicando por 5 para mejor visualización
-      _buildBarGroup(1, indices.simpson * 5, const Color(0xFF2E7D32)),
+      // Simpson (D) - valor real sin normalización
+      _buildBarGroup(1, indices.simpson, const Color(0xFF2E7D32)),
       // Margalef (d)
       _buildBarGroup(2, indices.margalef, const Color(0xFF1B5E20)),
-      // Pielou (J') - normalizado multiplicando por 5 para mejor visualización
-      _buildBarGroup(3, indices.pielou * 5, const Color(0xFF2E7D32)),
+      // Pielou (J') - valor real sin normalización
+      _buildBarGroup(3, indices.pielou, const Color(0xFF2E7D32)),
     ];
   }
 
@@ -160,7 +178,7 @@ class BiodiversityChart extends StatelessWidget {
         BarChartRodData(
           toY: y,
           color: color,
-          width: 32,
+          width: 18,
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(4),
             topRight: Radius.circular(4),

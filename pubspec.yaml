@@ -9,12 +9,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  http: ^1.2.0
+  http: ^1.6.0
   flutter_secure_storage: ^9.2.4
   url_launcher: ^6.3.2
   google_sign_in: ^6.2.2
   path_provider: ^2.1.5
   fl_chart: ^0.68.0
+  image_picker: ^1.2.1
   
 
 dev_dependencies:
@@ -27,7 +28,7 @@ flutter:
 
   assets:
     - assets/images/backgrounds/
-    
+    - assets/images/logos/
   # TODO: Agregar fuentes Montserrat
   # fonts:
   #   - family: Montserrat

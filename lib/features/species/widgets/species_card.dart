@@ -16,7 +16,7 @@ class SpeciesCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 141,
+      height: 160,
       decoration: BoxDecoration(
         color: const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(25),
@@ -92,9 +92,9 @@ class SpeciesCard extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.only(
                     left: 10,
-                    top: 19,
-                    right: 40,
-                    bottom: 12,
+                    top: 14,
+                    right: 46,
+                    bottom: 10,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -105,25 +105,17 @@ class SpeciesCard extends StatelessWidget {
                         species.speciesName,
                         style: const TextStyle(
                           fontFamily: 'Montserrat',
-                          fontSize: 19,
+                          fontSize: 17,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF0E3520),
-                          letterSpacing: 0.95,
-                          height: 1.0,
+                          letterSpacing: 0.85,
+                          height: 1.1,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       
-                      const SizedBox(height: 8),
-                      
-                      // Unidad de muestreo
-                      _buildInfoRow(
-                        'Unidad de muestreo:',
-                        species.unitName,
-                      ),
-                      
-                      const SizedBox(height: 5),
+                      const SizedBox(height: 6),
                       
                       // Tipo funcional
                       _buildInfoRow(
@@ -131,21 +123,22 @@ class SpeciesCard extends StatelessWidget {
                         species.functionalTypeName,
                       ),
                       
-                      const SizedBox(height: 5),
+                      const SizedBox(height: 4),
                       
                       // Número de individuos
                       _buildInfoRow(
-                        'Número de individuos:',
+                        'Individuos:',
                         '${species.individualCount}',
                       ),
                       
-                      const SizedBox(height: 5),
+                      const SizedBox(height: 4),
                       
                       // Altura o estrato
                       _buildInfoRow(
-                        'Altura o estrato:',
-                        '${species.heightStratumMin}-${species.heightStratumMax}m',
+                        'Altura:',
+                        '${species.heightStratumMin.toStringAsFixed(0)}-${species.heightStratumMax.toStringAsFixed(0)} m',
                       ),
+                      
                     ],
                   ),
                 ),
@@ -153,10 +146,10 @@ class SpeciesCard extends StatelessWidget {
             ],
           ),
           
-          // Menú de opciones (3 puntos)
+          // Menú de opciones (3 puntos) - siempre en la esquina superior derecha
           Positioned(
-            right: 15,
-            top: 102,
+            right: 10,
+            top: 10,
             child: PopupMenuButton<String>(
               icon: Icon(
                 Icons.more_vert,

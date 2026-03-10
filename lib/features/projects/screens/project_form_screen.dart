@@ -213,9 +213,10 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
                     Expanded(
                       child: TextFormField(
                         controller: _areaController,
@@ -244,7 +245,6 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
                       ),
                     ),
                     Container(
-                      height: 48,
                       decoration: BoxDecoration(
                         color: const Color(0xFFF1F5F9),
                         borderRadius: const BorderRadius.only(
@@ -278,6 +278,7 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
                       ),
                     ),
                   ],
+                ),
                 ),
 
                 const SizedBox(height: 36),

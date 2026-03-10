@@ -27,6 +27,10 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
   bool _hasError = false;
   String _errorMessage = '';
 
+  // Búsqueda
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
   @override
   void initState() {
     super.initState();
@@ -38,6 +42,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -229,77 +234,16 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
     }
   }
 
-  void _showPasswordDialog(Plot project) {
-    final passwordController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-
-    showDialog(
+  Future<void> _showPasswordDialog(Plot project) async {
+    final password = await showDialog<String>(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        contentPadding: const EdgeInsets.all(24),
-        content: Form(
-          key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Cambiar estado',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF0E3520), fontFamily: 'Montserrat'),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Ingresa tu contraseña para cambiar el estatus de ${project.name}',
-                style: const TextStyle(fontSize: 14, color: Color(0xFF666666), fontFamily: 'Montserrat'),
-              ),
-              const SizedBox(height: 20),
-              CustomTextField(
-                label: 'Contraseña',
-                placeholder: '••••••••',
-                controller: passwordController,
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) return 'Ingresa tu contraseña';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      passwordController.dispose();
-                      Navigator.of(dialogContext).pop();
-                    },
-                    child: const Text('Cancelar', style: TextStyle(color: Color(0xFF757575), fontFamily: 'Montserrat', fontWeight: FontWeight.w600)),
-                  ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (!formKey.currentState!.validate()) return;
-                      final password = passwordController.text;
-                      passwordController.dispose();
-                      Navigator.of(dialogContext).pop();
-                      _toggleProjectStatus(project, password);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0E3520),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      elevation: 0,
-                    ),
-                    child: const Text('Confirmar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600)),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+      builder: (context) => _PasswordDialog(project: project),
     );
+
+    if (password != null && mounted) {
+      _toggleProjectStatus(project, password);
+    }
   }
 
   Future<void> _toggleProjectStatus(Plot project, String password) async {
@@ -340,6 +284,9 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
       );
     }
   }
+
+
+
 
   Widget _buildContent() {
     if (_isLoading) {
@@ -385,7 +332,12 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
       );
     }
 
-    if (_allProjects.isEmpty) {
+    // Filtrar por búsqueda
+    final projects = _searchQuery.isEmpty
+        ? _allProjects
+        : _allProjects.where((p) => p.samplingPlotName.toLowerCase().contains(_searchQuery)).toList();
+
+    if (projects.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
@@ -406,9 +358,9 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 80),
-      itemCount: _allProjects.length + (_isLoadingMore ? 1 : 0),
+      itemCount: projects.length + (_isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {
-        if (index == _allProjects.length) {
+        if (index == projects.length) {
           return const Center(
             child: Padding(
               padding: EdgeInsets.all(16),
@@ -416,7 +368,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
             ),
           );
         }
-        final project = _allProjects[index];
+        final project = projects[index];
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: EditableProjectCard(
@@ -430,8 +382,8 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
             },
             onToggleStatus: () => _showPasswordDialog(project),
             onDelete: () => _showDeleteConfirmationDialog(project),
-            onTap: () {
-              Navigator.push(
+            onTap: () async {
+              await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => ProjectDetailsScreen(
@@ -440,6 +392,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                   ),
                 ),
               );
+              if (mounted) _loadProjects();
             },
           ),
         );
@@ -450,94 +403,177 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: const Color(0xFFF1F5F9),
-        body: Stack(
-          children: [
-            const BackgroundImage(
-              imagePath: 'assets/images/backgrounds/background.png',
-              height: 612,
-            ),
-            SafeArea(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 28, 16, 10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          width: 50,
-                          height: 54,
-                          decoration: const BoxDecoration(
-                            image: DecorationImage(
-                              image: AssetImage('assets/images/backgrounds/logo.png'),
-                              fit: BoxFit.contain,
-                            ),
-                          ),
-                        ),
-                        RichText(
-                          text: const TextSpan(
-                            style: TextStyle(fontSize: 22, fontFamily: 'Montserrat', color: Color(0xFF0E3520)),
-                            children: [
-                              TextSpan(text: 'Mis', style: TextStyle(fontWeight: FontWeight.normal)),
-                              TextSpan(text: ' Proyectos', style: TextStyle(fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Stack(
+      body: Stack(
+        children: [
+          // Imagen de fondo con altura específica de Figma
+          const BackgroundImage(
+            imagePath: 'assets/images/backgrounds/FondoHome.png',
+            height: 612,
+          ),
+          
+          // Contenido principal
+          SafeArea(
+            child: Column(
+              children: [
+                // Header con logo y título "Mis Proyectos"
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 28, 10, 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      ClipRRect(
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(40),
-                          topRight: Radius.circular(40),
+                      // Logo de Sylvara
+                      Container(
+                        width: 50,
+                        height: 54,
+                        decoration: const BoxDecoration(
+                          // image: DecorationImage(
+                          //   image: AssetImage('assets/images/backgrounds/logo.png'),
+                          //   fit: BoxFit.contain,
+                          // ),
                         ),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 3.5, sigmaY: 3.5),
-                          child: Container(
-                            height: 70,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFCFFFD).withOpacity(0.1),
-                              border: Border.all(color: Colors.white),
-                              borderRadius: const BorderRadius.only(
-                                topLeft: Radius.circular(40),
-                                topRight: Radius.circular(40),
+                      ),
+                      // Título "Mis Proyectos"
+                      RichText(
+                        text: TextSpan(
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontFamily: 'Montserrat',
+                            color: const Color(0xFF0E3520),
+                          ),
+                          children: [
+                            TextSpan(
+                              text: 'Mis',
+                              style: TextStyle(
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                            TextSpan(
+                              text: ' Proyectos',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 10),
+                
+                // Contenedor principal y buscador (superposición)
+                Expanded(
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      // Fondo difuminado (BackdropFilter)
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        child: ClipRRect(
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(40),
+                            topRight: Radius.circular(40),
+                          ),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 3.5, sigmaY: 3.5),
+                            child: Container(
+                              height: 120,
+                              padding: const EdgeInsets.only(top: 20, left: 55, right: 55),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFCFFFD).withOpacity(0.1),
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 1,
+                                ),
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(40),
+                                  topRight: Radius.circular(40),
+                                ),
+                              ),
+                              child: Container(
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF1F5F9),
+                                  borderRadius: BorderRadius.circular(50),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.15),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 0),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextField(
+                                        controller: _searchController,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _searchQuery = value.toLowerCase().trim();
+                                          });
+                                        },
+                                        decoration: InputDecoration(
+                                          hintText: 'Buscar proyecto...',
+                                          hintStyle: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.grey[500],
+                                            fontFamily: 'Montserrat',
+                                          ),
+                                          border: InputBorder.none,
+                                          contentPadding: const EdgeInsets.symmetric(
+                                            horizontal: 20,
+                                            vertical: 10,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const Padding(
+                                      padding: EdgeInsets.only(right: 12),
+                                      child: Icon(
+                                        Icons.search,
+                                        color: Color(0xFF0E3520),
+                                        size: 27,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
                         ),
                       ),
+                      
+                      // Contenedor principal blanco con borde redondeado superior (superpuesto)
                       Positioned(
-                        top: 16,
-                        left: 24,
-                        right: 24,
+                        top: 70, // Superpone el contenedor anterior
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
                         child: Container(
-                          height: 44,
                           decoration: BoxDecoration(
                             color: const Color(0xFFF1F5F9),
-                            borderRadius: BorderRadius.circular(50),
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(40),
+                              topRight: Radius.circular(40),
+                            ),
                             boxShadow: [
-                              BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 8),
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 10,
+                                offset: const Offset(0, -5),
+                              ),
                             ],
                           ),
-                          child: Row(
+                          child: Column(
                             children: [
+                              const SizedBox(height: 20),
+                              // Lista de proyectos
                               Expanded(
-                                child: TextField(
-                                  decoration: InputDecoration(
-                                    hintText: 'Buscar proyecto...',
-                                    hintStyle: TextStyle(fontSize: 14, color: Colors.grey[500], fontFamily: 'Montserrat'),
-                                    border: InputBorder.none,
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                                  ),
-                                ),
-                              ),
-                              const Padding(
-                                padding: EdgeInsets.only(right: 14),
-                                child: Icon(Icons.search, color: Color(0xFF0E3520), size: 24),
+                                child: _buildContent(),
                               ),
                             ],
                           ),
@@ -545,42 +581,112 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                       ),
                     ],
                   ),
-                  Expanded(
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(40),
-                          topRight: Radius.circular(40),
-                        ),
-                      ),
-                      child: _buildContent(),
-                    ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: Container(
+        width: 56,
+        height: 56,
+        margin: const EdgeInsets.only(bottom: 80),
+        child: FloatingActionButton(
+          onPressed: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ProjectFormScreen()),
+            );
+            if (result == true) _loadProjects();
+          },
+          backgroundColor: const Color(0xFF0E3520),
+          elevation: 4,
+          shape: const CircleBorder(),
+          child: const Icon(Icons.add, size: 32, color: Colors.white),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+    );
+  }
+}
+
+class _PasswordDialog extends StatefulWidget {
+  final Plot project;
+
+  const _PasswordDialog({required this.project});
+
+  @override
+  State<_PasswordDialog> createState() => _PasswordDialogState();
+}
+
+class _PasswordDialogState extends State<_PasswordDialog> {
+  final _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      contentPadding: const EdgeInsets.all(24),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Cambiar estado',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF0E3520), fontFamily: 'Montserrat'),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Ingresa tu contraseña para cambiar el estatus de ${widget.project.name}',
+              style: const TextStyle(fontSize: 14, color: Color(0xFF666666), fontFamily: 'Montserrat'),
+            ),
+            const SizedBox(height: 20),
+            CustomTextField(
+              label: 'Contraseña',
+              placeholder: '••••••••',
+              controller: _passwordController,
+              obscureText: true,
+              validator: (value) {
+                if (value == null || value.isEmpty) return 'Ingresa tu contraseña';
+                return null;
+              },
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancelar', style: TextStyle(color: Color(0xFF757575), fontFamily: 'Montserrat', fontWeight: FontWeight.w600)),
+                ),
+                const SizedBox(width: 12),
+                ElevatedButton(
+                  onPressed: () {
+                    if (!_formKey.currentState!.validate()) return;
+                    Navigator.of(context).pop(_passwordController.text);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0E3520),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    elevation: 0,
                   ),
-                ],
-              ),
+                  child: const Text('Confirmar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600)),
+                ),
+              ],
             ),
           ],
         ),
-        floatingActionButton: Container(
-          width: 56,
-          height: 56,
-          margin: const EdgeInsets.only(bottom: 80),
-          child: FloatingActionButton(
-            onPressed: () async {
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProjectFormScreen()),
-              );
-              if (result == true) _loadProjects();
-            },
-            backgroundColor: const Color(0xFF0E3520),
-            elevation: 4,
-            shape: const CircleBorder(),
-            child: const Icon(Icons.add, size: 32, color: Colors.white),
-          ),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      ),
     );
   }
 }

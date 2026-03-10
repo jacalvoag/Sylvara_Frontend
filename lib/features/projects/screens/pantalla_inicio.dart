@@ -4,6 +4,7 @@ import 'package:sylvara_frontend/features/projects/models/models.dart';
 import 'package:sylvara_frontend/features/projects/services/project_service.dart';
 import 'package:sylvara_frontend/core/api/token_storage.dart';
 import 'package:sylvara_frontend/features/benchmarking/screens/screens.dart';
+import 'package:sylvara_frontend/features/zones/screens/project_details_screen.dart';
 
 class PantallaInicio extends StatefulWidget {
   const PantallaInicio({super.key});
@@ -114,7 +115,7 @@ class _PantallaInicioState extends State<PantallaInicio> with TickerProviderStat
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.only(left: 16, right: 16, top: 14, bottom: 230),
+            padding: const EdgeInsets.only(left: 16, right: 16, top: 14, bottom: 200),
             child: CustomBienvenida(nombre: dashboard.user.userName),
           ),
           if (_isAdmin)
@@ -219,16 +220,33 @@ class _PantallaInicioState extends State<PantallaInicio> with TickerProviderStat
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
-      itemCount: latestPlots.length,
-      itemBuilder: (context, index) {
-        final plot = latestPlots[index];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: ProjectCard(project: plot.toProject(), onTap: () {}),
-        );
-      },
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      child: Column(
+        children: latestPlots.map((plot) {
+          final project = plot.toProject();
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: ProjectCard(
+              project: project,
+              totalArea: plot.totalArea,
+              unitName: plot.unitName,
+              onTap: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProjectDetailsScreen(
+                      projectId: plot.samplingPlotId,
+                      projectName: plot.samplingPlotName,
+                    ),
+                  ),
+                );
+                if (mounted) _loadData();
+              },
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 }

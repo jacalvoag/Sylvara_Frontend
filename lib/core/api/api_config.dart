@@ -1,14 +1,5 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
-
 class ApiConfig {
-  static const String _webHost = 'http://localhost:3000/api/v1';
-  static const String _mobileHost = 'http://10.0.2.2:3000/api/v1';
-  static const String _physicalDeviceHost = 'http://192.168.1.82:3000/api/v1';
-
-    static String get baseUrl {
-      if (kIsWeb) return _webHost;
-      return _physicalDeviceHost; // ← este era el problema
-    }
+  static const String baseUrl = 'https://sylvara-api-backend-7d2u.onrender.com/api/v1';
 
   static String get login => '$baseUrl/auth/login';
   static String get register => '$baseUrl/auth/register';

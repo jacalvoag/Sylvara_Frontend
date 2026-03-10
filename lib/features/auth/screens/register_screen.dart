@@ -119,7 +119,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         children: [
           const BackgroundImage(
             imagePath: 'assets/images/backgrounds/FondoAuth.png',
-            height: 612,
+            height: 933,
           ),
           SafeArea(
             child: Column(
