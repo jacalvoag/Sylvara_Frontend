@@ -762,6 +762,7 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
                                 final v = double.tryParse(value.trim());
                                 if (v == null) return 'Número inválido';
                                 if (v < 0) return 'Debe ser ≥ 0';
+                                if (v > 250) return 'Máx 250m';
                                 return null;
                               },
                             ),
@@ -792,6 +793,7 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
                                 final v = double.tryParse(value.trim());
                                 if (v == null) return 'Número inválido';
                                 if (v <= 0) return 'Debe ser > 0';
+                                if (v > 250) return 'Máx 250m';
                                 return null;
                               },
                             ),

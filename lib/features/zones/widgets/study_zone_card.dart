@@ -207,35 +207,40 @@ class _StudyZoneCardState extends State<StudyZoneCard> {
         color: Color(0xFF0E3520),
         size: 24,
       ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(13),
-        side: const BorderSide(
-          color: Color(0xFF0E3520),
-          width: 1,
-        ),
-      ),
-      color: const Color(0xFFF1F5F9),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: Colors.white,
       offset: const Offset(0, 40),
-      elevation: 10,
+      elevation: 6,
       itemBuilder: (BuildContext context) => [
-        _buildMenuItem(
+        const PopupMenuItem<String>(
           value: 'edit',
-          text: 'Editar',
-          backgroundColor: const Color(0xFF0E3520),
-          textColor: const Color(0xFFF1F5F9),
+          child: Row(
+            children: [
+              Icon(Icons.edit_outlined, color: Color(0xFF0E3520), size: 20),
+              SizedBox(width: 12),
+              Text('Editar', style: TextStyle(color: Color(0xFF0E3520), fontFamily: 'Montserrat', fontSize: 14)),
+            ],
+          ),
         ),
-        _buildMenuItem(
+        const PopupMenuItem<String>(
           value: 'flora_fauna',
-          text: 'Flora y Fauna',
-          backgroundColor: const Color(0xFF4CAF50),
-          textColor: const Color(0xFF0E3520),
-          hasBorder: true,
+          child: Row(
+            children: [
+              Icon(Icons.eco_outlined, color: Color(0xFF2E7D32), size: 20),
+              SizedBox(width: 12),
+              Text('Flora y Fauna', style: TextStyle(color: Color(0xFF0E3520), fontFamily: 'Montserrat', fontSize: 14)),
+            ],
+          ),
         ),
-        _buildMenuItem(
+        const PopupMenuItem<String>(
           value: 'delete',
-          text: 'Eliminar',
-          backgroundColor: const Color(0xFFAE0000),
-          textColor: const Color(0xFFF1F5F9),
+          child: Row(
+            children: [
+              Icon(Icons.delete_outline, color: Color(0xFFAE0000), size: 20),
+              SizedBox(width: 12),
+              Text('Eliminar', style: TextStyle(color: Color(0xFFAE0000), fontFamily: 'Montserrat', fontSize: 14)),
+            ],
+          ),
         ),
       ],
       onSelected: (String value) {
@@ -251,40 +256,6 @@ class _StudyZoneCardState extends State<StudyZoneCard> {
             break;
         }
       },
-    );
-  }
-
-  PopupMenuItem<String> _buildMenuItem({
-    required String value,
-    required String text,
-    required Color backgroundColor,
-    required Color textColor,
-    bool hasBorder = false,
-  }) {
-    return PopupMenuItem<String>(
-      value: value,
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-      child: Container(
-        width: 123,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(7),
-          border: hasBorder
-              ? Border.all(color: const Color(0xFF0E3520))
-              : null,
-        ),
-        child: Text(
-          text,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontFamily: 'Montserrat',
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: textColor,
-          ),
-        ),
-      ),
     );
   }
 

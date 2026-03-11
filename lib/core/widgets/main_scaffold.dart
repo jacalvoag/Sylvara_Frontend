@@ -16,18 +16,21 @@ class MainScaffold extends StatefulWidget {
 class _MainScaffoldState extends State<MainScaffold> {
   late int _currentIndex;
 
-  // Las tres pantallas se instancian UNA sola vez y nunca se destruyen
-  static const List<Widget> _screens = [
-    PantallaInicio(),
-    ProjectListScreen(),
-    ProfileScreen(),
-  ];
+  // GlobalKeys so we can call refresh() on each screen when switching tabs
+  final _dashboardKey   = GlobalKey<PantallaInicioState>();
+  final _projectListKey = GlobalKey<ProjectListScreenState>();
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
   }
+
+  List<Widget> get _screens => [
+    PantallaInicio(key: _dashboardKey),
+    ProjectListScreen(key: _projectListKey),
+    const ProfileScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -51,6 +54,9 @@ class _MainScaffoldState extends State<MainScaffold> {
               onTap: (index) {
                 if (index == _currentIndex) return;
                 setState(() => _currentIndex = index);
+                // Refresh the target tab when switching to it
+                if (index == 0) _dashboardKey.currentState?.refresh();
+                if (index == 1) _projectListKey.currentState?.refresh();
               },
             ),
           ),

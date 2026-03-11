@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../services/services.dart';
@@ -22,11 +23,19 @@ class SpeciesListScreen extends StatefulWidget {
 
 class _SpeciesListScreenState extends State<SpeciesListScreen> {
   late Future<PaginatedSpeciesResponse> _speciesFuture;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     _loadSpecies();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   void _loadSpecies() {
@@ -42,53 +51,29 @@ class _SpeciesListScreenState extends State<SpeciesListScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        title: const Text(
-          'Eliminar Especie',
-          style: TextStyle(
-            fontFamily: 'Montserrat',
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF0E3520),
-          ),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(children: [
+          const Icon(Icons.warning_amber_rounded, color: Color(0xFFF57C00), size: 26),
+          const SizedBox(width: 10),
+          const Text('Eliminar Especie', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.bold, color: Color(0xFF0E3520), fontSize: 18)),
+        ]),
         content: Text(
           '¿Estás seguro de eliminar "${species.speciesName}"?',
-          style: const TextStyle(
-            fontFamily: 'Montserrat',
-            fontSize: 14,
-            color: Color(0xFF0E3520),
-          ),
+          style: const TextStyle(fontFamily: 'Montserrat', fontSize: 14, color: Color(0xFF0E3520)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text(
-              'Cancelar',
-              style: TextStyle(
-                fontFamily: 'Montserrat',
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF0E3520),
-              ),
-            ),
+            child: const Text('Cancelar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600, color: Color(0xFF757575))),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFAE0000),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
-            child: const Text(
-              'Eliminar',
-              style: TextStyle(
-                fontFamily: 'Montserrat',
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
+            child: const Text('Eliminar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -101,23 +86,18 @@ class _SpeciesListScreenState extends State<SpeciesListScreen> {
           widget.zoneId,
           species.speciesZoneId,
         );
-        
         _loadSpecies();
-        
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                'Especie "${species.speciesName}" eliminada correctamente',
-                style: const TextStyle(
-                  fontFamily: 'Montserrat',
-                ),
-              ),
-              backgroundColor: const Color(0xFF4CAF50),
+              content: Row(children: [
+                const Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 10),
+                Expanded(child: Text('"${species.speciesName}" eliminada', style: const TextStyle(fontFamily: 'Montserrat'))),
+              ]),
+              backgroundColor: const Color(0xFF0E3520),
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
           );
         }
@@ -125,17 +105,10 @@ class _SpeciesListScreenState extends State<SpeciesListScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                'Error al eliminar: ${e.toString()}',
-                style: const TextStyle(
-                  fontFamily: 'Montserrat',
-                ),
-              ),
+              content: Text('Error al eliminar: ${e.toString()}', style: const TextStyle(fontFamily: 'Montserrat')),
               backgroundColor: const Color(0xFFAE0000),
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
           );
         }
@@ -153,241 +126,181 @@ class _SpeciesListScreenState extends State<SpeciesListScreen> {
         species: species,
       ),
     );
-    
-    if (result == true && mounted) {
-      _loadSpecies();
-    }
+    if (result == true && mounted) _loadSpecies();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.white.withOpacity(0.3),
-                width: 1,
-              ),
-            ),
-            child: IconButton(
-              icon: const Icon(
-                Icons.arrow_back,
-                color: Colors.white,
-              ),
-              onPressed: () => Navigator.of(context).pop(),
-              padding: EdgeInsets.zero,
-            ),
-          ),
-        ),
-      ),
+      backgroundColor: const Color(0xFFF1F5F9),
       body: Stack(
         children: [
-          // Background image
-          Positioned.fill(
-            child: Image.network(
-              'https://images.unsplash.com/photo-1511497584788-876760111969?w=1200',
-              fit: BoxFit.cover,
-                  frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-                    if (wasSynchronouslyLoaded || frame != null) return child;
-                    return Container(color: const Color(0xFF0E3520));
-                  },
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  color: const Color(0xFF0E3520),
-                );
-              },
+          // ── BACKGROUND PHOTO ─────────────────────────────────────
+          Positioned(
+            top: 0, left: 0, right: 0,
+            child: SizedBox(
+              height: 250,
+              child: Image.asset(
+                'assets/images/backgrounds/FondoHome.png',
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const ColoredBox(color: Color(0xFF0E3520)),
+              ),
             ),
           ),
-          
-          // Content
+          // Dark gradient overlay
+          Positioned(
+            top: 0, left: 0, right: 0,
+            child: Container(
+              height: 250,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [const Color(0xFF0E3520).withOpacity(0.55), const Color(0xFF0E3520).withOpacity(0.25)],
+                ),
+              ),
+            ),
+          ),
+
           SafeArea(
             child: Column(
               children: [
-                const SizedBox(height: 20),
-                
-                // Header con glassmorphism
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 20),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 16,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFCFFFD).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(40),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      RichText(
-                        textAlign: TextAlign.center,
-                        text: const TextSpan(
-                          style: TextStyle(
-                            fontFamily: 'Montserrat',
-                            fontSize: 22,
-                            color: Color(0xFFF1F5F9),
-                            height: 1.2,
-                          ),
+                // ── HEADER with glassmorphism ────────────────────────
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.white.withOpacity(0.25), width: 1),
+                        ),
+                        child: Row(
                           children: [
-                            TextSpan(
-                              text: 'Especies ',
-                              style: TextStyle(
-                                fontWeight: FontWeight.normal,
+                            GestureDetector(
+                              onTap: () => Navigator.of(context).pop(),
+                              child: Container(
+                                width: 40, height: 40,
+                                decoration: BoxDecoration(color: Colors.white.withOpacity(0.15), shape: BoxShape.circle),
+                                child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
                               ),
                             ),
-                            TextSpan(
-                              text: 'Registradas',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                const Text(
+                                  'Flora y Fauna',
+                                  style: TextStyle(fontFamily: 'Montserrat', fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                                ),
+                                Text(
+                                  widget.zoneName,
+                                  style: const TextStyle(fontFamily: 'Montserrat', fontSize: 12, color: Colors.white70),
+                                  maxLines: 1, overflow: TextOverflow.ellipsis,
+                                ),
+                              ]),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        widget.zoneName,
-                        style: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 14,
-                          color: const Color(0xFFF1F5F9).withOpacity(0.8),
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                    ),
                   ),
                 ),
-                
-                const SizedBox(height: 15),
-                
-                // Content area con especies
+
+                const SizedBox(height: 14),
+
+                // ── SEARCH BAR ───────────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: Container(
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(22),
+                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.10), blurRadius: 8)],
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (v) => setState(() => _searchQuery = v.trim().toLowerCase()),
+                      style: const TextStyle(fontFamily: 'Montserrat', fontSize: 14, color: Color(0xFF0E3520)),
+                      decoration: InputDecoration(
+                        hintText: 'Buscar especie...',
+                        hintStyle: const TextStyle(fontFamily: 'Montserrat', fontSize: 13, color: Color(0xFF9E9E9E)),
+                        prefixIcon: const Icon(Icons.search, color: Color(0xFF0E3520), size: 20),
+                        suffixIcon: _searchQuery.isNotEmpty
+                            ? GestureDetector(
+                                onTap: () { _searchController.clear(); setState(() => _searchQuery = ''); },
+                                child: const Icon(Icons.close, color: Color(0xFF9E9E9E), size: 18),
+                              )
+                            : null,
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // ── WHITE CONTENT CARD ───────────────────────────────
                 Expanded(
                   child: Container(
                     decoration: const BoxDecoration(
                       color: Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(40),
-                        topRight: Radius.circular(40),
-                      ),
+                      borderRadius: BorderRadius.only(topLeft: Radius.circular(40), topRight: Radius.circular(40)),
                     ),
                     child: FutureBuilder<PaginatedSpeciesResponse>(
                       future: _speciesFuture,
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const Center(
-                            child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Color(0xFF0E3520),
-                              ),
-                            ),
-                          );
+                          return const Center(child: CircularProgressIndicator(color: Color(0xFF0E3520)));
                         }
 
                         if (snapshot.hasError) {
                           return Center(
                             child: Padding(
                               padding: const EdgeInsets.all(20),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(
-                                    Icons.error_outline,
-                                    color: Color(0xFFAE0000),
-                                    size: 60,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'Error al cargar las especies',
-                                    style: const TextStyle(
-                                      fontFamily: 'Montserrat',
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF0E3520),
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    snapshot.error.toString(),
-                                    style: const TextStyle(
-                                      fontFamily: 'Montserrat',
-                                      fontSize: 14,
-                                      color: Color(0xFF0E3520),
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  ElevatedButton(
-                                    onPressed: _loadSpecies,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF0E3520),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                    child: const Text(
-                                      'Reintentar',
-                                      style: TextStyle(
-                                        fontFamily: 'Montserrat',
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                                const Icon(Icons.error_outline, color: Color(0xFFAE0000), size: 60),
+                                const SizedBox(height: 16),
+                                const Text('Error al cargar las especies', style: TextStyle(fontFamily: 'Montserrat', fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0E3520)), textAlign: TextAlign.center),
+                                const SizedBox(height: 16),
+                                ElevatedButton(
+                                  onPressed: _loadSpecies,
+                                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0E3520), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                                  child: const Text('Reintentar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.bold, color: Colors.white)),
+                                ),
+                              ]),
                             ),
                           );
                         }
 
                         final response = snapshot.data!;
-                        
-                        if (response.data.isEmpty) {
+                        final allSpecies = response.data;
+                        final filtered = _searchQuery.isEmpty
+                            ? allSpecies
+                            : allSpecies.where((s) => s.speciesName.toLowerCase().contains(_searchQuery)).toList();
+
+                        if (filtered.isEmpty) {
                           return Center(
                             child: Padding(
                               padding: const EdgeInsets.all(20),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.terrain,
-                                    color: const Color(0xFF0E3520).withOpacity(0.3),
-                                    size: 80,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  const Text(
-                                    'No hay especies registradas',
-                                    style: TextStyle(
-                                      fontFamily: 'Montserrat',
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF0E3520),
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Presiona el botón + para registrar tu primera especie',
-                                    style: TextStyle(
-                                      fontFamily: 'Montserrat',
-                                      fontSize: 14,
-                                      color: const Color(0xFF0E3520).withOpacity(0.7),
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
+                              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                                Icon(Icons.eco, color: const Color(0xFF0E3520).withOpacity(0.3), size: 80),
+                                const SizedBox(height: 16),
+                                Text(
+                                  allSpecies.isEmpty ? 'No hay especies registradas' : 'Sin resultados para "$_searchQuery"',
+                                  style: const TextStyle(fontFamily: 'Montserrat', fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0E3520)),
+                                  textAlign: TextAlign.center,
+                                ),
+                                if (allSpecies.isEmpty) ...const [
+                                  SizedBox(height: 8),
+                                  Text('Presiona + para registrar la primera especie', style: TextStyle(fontFamily: 'Montserrat', fontSize: 14, color: Color(0xFF5C7C6A)), textAlign: TextAlign.center),
                                 ],
-                              ),
+                              ]),
                             ),
                           );
                         }
@@ -396,15 +309,10 @@ class _SpeciesListScreenState extends State<SpeciesListScreen> {
                           onRefresh: () async => _loadSpecies(),
                           color: const Color(0xFF0E3520),
                           child: ListView.builder(
-                            padding: const EdgeInsets.only(
-                              left: 20,
-                              right: 20,
-                              top: 15,
-                              bottom: 90,
-                            ),
-                            itemCount: response.data.length,
+                            padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+                            itemCount: filtered.length,
                             itemBuilder: (context, index) {
-                              final species = response.data[index];
+                              final species = filtered[index];
                               return Padding(
                                 padding: const EdgeInsets.only(bottom: 14),
                                 child: SpeciesCard(
@@ -428,11 +336,7 @@ class _SpeciesListScreenState extends State<SpeciesListScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () => _navigateToForm(),
         backgroundColor: const Color(0xFF0E3520),
-        child: const Icon(
-          Icons.add,
-          color: Color(0xFFF1F5F9),
-          size: 32,
-        ),
+        child: const Icon(Icons.add, color: Color(0xFFF1F5F9), size: 32),
       ),
     );
   }

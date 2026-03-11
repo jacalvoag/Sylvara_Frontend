@@ -1,5 +1,5 @@
 class ApiConfig {
-  static const String baseUrl = 'https://sylvara-api-backend-7d2u.onrender.com/api/v1';
+  static const String baseUrl = 'http://206.189.200.58/api/v1';
 
   static String get login => '$baseUrl/auth/login';
   static String get register => '$baseUrl/auth/register';
