@@ -1,6 +1,6 @@
 {
-    "name": "sylvara_frontend",
-    "short_name": "sylvara_frontend",
+    "name": "Sylvara",
+    "short_name": "Sylvara",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#FFFFFF",
