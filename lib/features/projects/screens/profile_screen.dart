@@ -84,11 +84,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     } catch (_) {}
 
+    final now = DateTime.now();
+    final firstAllowedDate = DateTime(now.year - 100, now.month, now.day);
+    final lastAllowedDate = DateTime(now.year - 15, now.month, now.day);
+
+    if (initial.isBefore(firstAllowedDate)) {
+      initial = firstAllowedDate;
+    } else if (initial.isAfter(lastAllowedDate)) {
+      initial = lastAllowedDate;
+    }
+
     final picked = await showDatePicker(
       context: context,
       initialDate: initial,
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
+      firstDate: firstAllowedDate,
+      lastDate: lastAllowedDate,
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
           colorScheme: const ColorScheme.light(primary: Color(0xFF0E3520), onPrimary: Colors.white, onSurface: Color(0xFF0E3520)),
