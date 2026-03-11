@@ -400,13 +400,13 @@ class ProjectListScreenState extends State<ProjectListScreen> {
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(10, 28, 10, 10),
+                  padding: const EdgeInsets.fromLTRB(16, 28, 16, 10),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                        width: 50,
-                        height: 54,
+                        width: 65,
+                        height: 70,
                         decoration: const BoxDecoration(
                           image: DecorationImage(
                             image: AssetImage('assets/images/logos/sylvara_logo.png'),

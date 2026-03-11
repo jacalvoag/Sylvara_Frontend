@@ -17,6 +17,7 @@ dependencies:
   fl_chart: ^0.68.0
   image_picker: ^1.2.1
   image_cropper: ^9.0.0
+  google_fonts: ^8.0.2
   
 
 dev_dependencies:
@@ -31,16 +32,7 @@ flutter:
   assets:
     - assets/images/backgrounds/
     - assets/images/logos/
-  # TODO: Agregar fuentes Montserrat
-  # fonts:
-  #   - family: Montserrat
-  #     fonts:
-  #       - asset: fonts/Montserrat-Regular.ttf
-  #         weight: 400
-  #       - asset: fonts/Montserrat-SemiBold.ttf
-  #         weight: 600
-  #       - asset: fonts/Montserrat-Bold.ttf
-  #         weight: 700
+  # Se removerá la fuente Montserrat local ya que se usará google_fonts
 
 flutter_launcher_icons:
   android: true
