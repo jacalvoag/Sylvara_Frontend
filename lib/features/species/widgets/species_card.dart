@@ -148,60 +148,34 @@ class SpeciesCard extends StatelessWidget {
             right: 10,
             top: 10,
             child: PopupMenuButton<String>(
-              icon: Icon(
+              icon: const Icon(
                 Icons.more_vert,
-                color: const Color(0xFF0E3520),
+                color: Color(0xFF0E3520),
                 size: 24,
               ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              offset: const Offset(-10, 0),
-              itemBuilder: (context) => [
-                PopupMenuItem<String>(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              color: Colors.white,
+              offset: const Offset(0, 40),
+              elevation: 6,
+              itemBuilder: (BuildContext context) => [
+                const PopupMenuItem<String>(
                   value: 'edit',
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0E3520),
-                      borderRadius: BorderRadius.circular(7),
-                    ),
-                    child: const Text(
-                      'Editar',
-                      style: TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFFF1F5F9),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.edit_outlined, color: Color(0xFF0E3520), size: 20),
+                      SizedBox(width: 12),
+                      Text('Editar', style: TextStyle(color: Color(0xFF0E3520), fontFamily: 'Montserrat', fontSize: 14)),
+                    ],
                   ),
                 ),
-                PopupMenuItem<String>(
+                const PopupMenuItem<String>(
                   value: 'delete',
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFAE0000),
-                      borderRadius: BorderRadius.circular(7),
-                    ),
-                    child: const Text(
-                      'Eliminar',
-                      style: TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFFF1F5F9),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete_outline, color: Color(0xFFAE0000), size: 20),
+                      SizedBox(width: 12),
+                      Text('Eliminar', style: TextStyle(color: Color(0xFFAE0000), fontFamily: 'Montserrat', fontSize: 14)),
+                    ],
                   ),
                 ),
               ],
