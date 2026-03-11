@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
+import 'package:sylvara_frontend/core/utils/legal_texts.dart';
 import 'package:sylvara_frontend/core/widgets/widgets.dart';
 import 'package:sylvara_frontend/features/auth/models/models.dart';
 import 'package:sylvara_frontend/features/auth/services/auth_service.dart';
@@ -26,6 +28,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
+  bool _acceptTerms = false;
 
   @override
   void dispose() {
@@ -75,6 +78,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (_passwordController.text != _confirmPasswordController.text) {
       setState(() => _errorMessage = 'Las contraseñas no coinciden');
+      return;
+    }
+
+    if (!_acceptTerms) {
+      setState(() => _errorMessage = 'Debes aceptar los términos y condiciones y el aviso de privacidad.');
       return;
     }
 
@@ -378,6 +386,75 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   },
                                 ),
 
+                                const SizedBox(height: 18),
+
+                                // Checkbox Términos y Condiciones
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: Checkbox(
+                                        value: _acceptTerms,
+                                        activeColor: const Color(0xFF0E3520),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _acceptTerms = value ?? false;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: RichText(
+                                        text: TextSpan(
+                                          style: const TextStyle(
+                                            fontFamily: 'Montserrat',
+                                            fontSize: 12,
+                                            color: Color(0xFF0E3520),
+                                            height: 1.4,
+                                          ),
+                                          children: [
+                                            const TextSpan(text: 'He leído y acepto los '),
+                                            TextSpan(
+                                              text: 'Términos y Condiciones',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                decoration: TextDecoration.underline,
+                                                color: Color(0xFF2E7D32),
+                                              ),
+                                              recognizer: TapGestureRecognizer()
+                                                ..onTap = () => _showLegalTextDialog(
+                                                  'Términos y Condiciones',
+                                                  LegalTexts.terminosYCondiciones,
+                                                ),
+                                            ),
+                                            const TextSpan(text: ' y el '),
+                                            TextSpan(
+                                              text: 'Aviso de Privacidad',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                decoration: TextDecoration.underline,
+                                                color: Color(0xFF2E7D32),
+                                              ),
+                                              recognizer: TapGestureRecognizer()
+                                                ..onTap = () => _showLegalTextDialog(
+                                                  'Aviso de Privacidad',
+                                                  LegalTexts.avisoPrivacidad,
+                                                ),
+                                            ),
+                                            const TextSpan(text: '.'),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
                                 // Error message
                                 if (_errorMessage != null) ...[
                                   const SizedBox(height: 20),
@@ -513,6 +590,63 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showLegalTextDialog(String title, String content) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          backgroundColor: const Color(0xFFF1F5F9),
+          child: Container(
+            constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0E3520),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Color(0xFF0E3520)),
+                      onPressed: () => Navigator.pop(context),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Text(
+                      content,
+                      style: const TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 14,
+                        color: Color(0xFF0E3520),
+                        height: 1.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
