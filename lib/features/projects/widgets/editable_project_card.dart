@@ -142,88 +142,42 @@ class EditableProjectCard extends StatelessWidget {
               bottom: 5,
               child: PopupMenuButton<String>(
                 icon: const Icon(
-                  Icons.more_horiz,
+                  Icons.more_vert,
                   color: Color(0xFF0E3520),
                   size: 24,
                 ),
-                offset: const Offset(-10, 35),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 8,
-                padding: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                color: Colors.white,
+                offset: const Offset(0, 40),
+                elevation: 6,
                 itemBuilder: (BuildContext context) => [
-                  PopupMenuItem<String>(
+                  const PopupMenuItem<String>(
                     value: 'edit',
-                    height: 36,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Row(
                       children: [
-                        const Icon(
-                          Icons.edit_outlined,
-                          color: Color(0xFF0E3520),
-                          size: 20,
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'Editar',
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF0E3520),
-                            fontFamily: 'Montserrat',
-                          ),
-                        ),
+                        Icon(Icons.edit_outlined, color: Color(0xFF0E3520), size: 20),
+                        SizedBox(width: 12),
+                        Text('Editar', style: TextStyle(color: Color(0xFF0E3520), fontFamily: 'Montserrat', fontSize: 14)),
                       ],
                     ),
                   ),
-                  const PopupMenuDivider(height: 1),
                   PopupMenuItem<String>(
                     value: 'toggle_status',
-                    height: 36,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Row(
                       children: [
-                        Icon(
-                          isActive ? Icons.toggle_on : Icons.toggle_off,
-                          color: const Color(0xFF0E3520),
-                          size: 20,
-                        ),
+                        Icon(isActive ? Icons.toggle_on : Icons.toggle_off, color: const Color(0xFF0E3520), size: 20),
                         const SizedBox(width: 12),
-                        Text(
-                          isActive ? 'Desactivar' : 'Activar',
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF0E3520),
-                            fontFamily: 'Montserrat',
-                          ),
-                        ),
+                        Text(isActive ? 'Desactivar' : 'Activar', style: const TextStyle(color: Color(0xFF0E3520), fontFamily: 'Montserrat', fontSize: 14)),
                       ],
                     ),
                   ),
-                  const PopupMenuDivider(height: 1),
-                  PopupMenuItem<String>(
+                  const PopupMenuItem<String>(
                     value: 'delete',
-                    height: 36,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Row(
                       children: [
-                        const Icon(
-                          Icons.delete_outline,
-                          color: Color(0xFFD32F2F),
-                          size: 20,
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'Eliminar',
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFFD32F2F),
-                            fontFamily: 'Montserrat',
-                          ),
-                        ),
+                        Icon(Icons.delete_outline, color: Color(0xFFAE0000), size: 20),
+                        SizedBox(width: 12),
+                        Text('Eliminar', style: TextStyle(color: Color(0xFFAE0000), fontFamily: 'Montserrat', fontSize: 14)),
                       ],
                     ),
                   ),

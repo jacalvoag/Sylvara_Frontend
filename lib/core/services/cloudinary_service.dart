@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
 
+import 'package:image_cropper/image_cropper.dart';
 
 /// Servicio para subir imágenes a Cloudinary usando un preset unsigned.
 /// Usa [http.MultipartRequest] ya disponible en el proyecto.
@@ -16,10 +17,11 @@ class CloudinaryService {
 
   static final _picker = ImagePicker();
 
-  /// Abre el selector de fuente (cámara o galería) y sube la imagen elegida a
-  /// Cloudinary. Retorna la `secure_url` de la imagen o `null` si el usuario
-  /// canceló. Lanza una excepción con mensaje legible si el upload falla.
-  static Future<String?> pickAndUpload({
+  /// Abre el selector de fuente (cámara o galería), recorta la imagen elegida, 
+  /// y la sube a Cloudinary. Retorna la `secure_url` de la imagen o `null` si 
+  /// el usuario canceló. Lanza una excepción con mensaje legible si falla.
+  static Future<String?> pickAndUpload(
+    BuildContext context, {
     required ImageSource source,
     int imageQuality = 85,
     double? maxWidth,
@@ -32,12 +34,38 @@ class CloudinaryService {
     );
 
     if (image == null) return null; // Usuario canceló
+    
+    if (!context.mounted) return null;
 
-    // 2. Subir a Cloudinary con MultipartRequest
+    // 2. Recortar imagen
+    CroppedFile? croppedFile = await ImageCropper().cropImage(
+      sourcePath: image.path,
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Ajustar imagen',
+          toolbarColor: const Color(0xFF0E3520),
+          toolbarWidgetColor: Colors.white,
+          initAspectRatio: CropAspectRatioPreset.original,
+          lockAspectRatio: false,
+        ),
+        IOSUiSettings(
+          title: 'Ajustar imagen',
+          cancelButtonTitle: 'Cancelar',
+          doneButtonTitle: 'Hecho',
+        ),
+        WebUiSettings(
+          context: context,
+        ),
+      ],
+    );
+
+    if (croppedFile == null) return null; // Usuario canceló el recorte
+
+    // 3. Subir a Cloudinary con MultipartRequest
     final uri = Uri.parse(_uploadUrl);
     final request = http.MultipartRequest('POST', uri)
       ..fields['upload_preset'] = _uploadPreset
-      ..files.add(await http.MultipartFile.fromPath('file', image.path));
+      ..files.add(await http.MultipartFile.fromPath('file', croppedFile.path));
 
     final streamedResponse = await request.send();
     final responseBody = await streamedResponse.stream.bytesToString();
@@ -54,7 +82,7 @@ class CloudinaryService {
 
   /// Muestra un BottomSheet para elegir entre cámara y galería y sube la imagen.
   /// Retorna la URL o null si el usuario canceló.
-  static Future<String?> pickSourceAndUpload(context) async {
+  static Future<String?> pickSourceAndUpload(BuildContext context) async {
     ImageSource? source;
 
     await showModalBottomSheet<void>(
@@ -119,6 +147,6 @@ class CloudinaryService {
     );
 
     if (source == null) return null;
-    return pickAndUpload(source: source!);
+    return pickAndUpload(context, source: source!);
   }
 }

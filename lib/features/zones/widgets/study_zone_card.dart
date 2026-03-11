@@ -11,6 +11,7 @@ import 'biodiversity_chart.dart';
 /// - Modo comparación: checkbox para seleccionar zonas
 class StudyZoneCard extends StatefulWidget {
   final StudyZone zone;
+  final int index;
   final bool isComparing;
   final bool isSelected;
   final VoidCallback? onEdit;
@@ -22,6 +23,7 @@ class StudyZoneCard extends StatefulWidget {
   const StudyZoneCard({
     super.key,
     required this.zone,
+    required this.index,
     this.isComparing = false,
     this.isSelected = false,
     this.onEdit,
@@ -133,7 +135,7 @@ class _StudyZoneCardState extends State<StudyZoneCard> {
                     const SizedBox(height: 4),
                     // Descripción (ciclo)
                     Text(
-                      'Zona de estudio ${widget.zone.cycleNumber}',
+                      'Zona de estudio ${widget.index}',
                       style: const TextStyle(
                         fontFamily: 'Montserrat',
                         fontSize: 12,

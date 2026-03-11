@@ -402,6 +402,7 @@ class _StudyZoneListScreenState extends State<StudyZoneListScreen> {
                                 padding: const EdgeInsets.only(bottom: 14),
                                 child: StudyZoneCard(
                                   zone: zone,
+                                  index: zones.indexOf(zone) + 1,
                                   isComparing: _isComparing,
                                   isSelected: _selectedZones.contains(zone.studyZoneId),
                                   onEdit: () => _navigateToForm(zone: zone),
