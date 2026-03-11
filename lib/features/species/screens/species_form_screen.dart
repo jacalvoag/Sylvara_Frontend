@@ -692,7 +692,7 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
                         style: _fieldTextStyle,
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) return 'Campo requerido';
-                          if (value.trim().length < 1) return 'Mínimo 1 carácter';
+                          if (value.trim().isEmpty) return 'Mínimo 1 carácter';
                           return null;
                         },
                       ),
@@ -720,7 +720,7 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
                       Text('Tipo funcional', style: _labelStyle),
                       const SizedBox(height: 6),
                       DropdownButtonFormField<int>(
-                        value: _selectedFunctionalTypeId,
+                        initialValue: _selectedFunctionalTypeId,
                         decoration: _fieldDecoration('Seleccione una opción'),
                         style: _fieldTextStyle,
                         isExpanded: true,
@@ -815,7 +815,7 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
                             height: 140,
                             width: double.infinity,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
+                            errorBuilder: (_, _, _) => Container(
                               height: 140,
                               color: const Color(0xFF0E3520).withOpacity(0.1),
                               child: const Icon(Icons.broken_image,

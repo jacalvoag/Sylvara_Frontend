@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../services/services.dart';
-import '../widgets/widgets.dart';
 import 'study_zone_list_screen.dart';
 
 /// Pantalla de detalles de un proyecto que muestra las zonas de estudio.

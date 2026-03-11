@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:sylvara_frontend/core/widgets/widgets.dart';
 import 'package:sylvara_frontend/features/projects/models/dashboard_response.dart';
@@ -454,117 +453,83 @@ class ProjectListScreenState extends State<ProjectListScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 10),
+                const SizedBox(height: 16),
 
-                // Contenedor principal con buscador superpuesto
+                // ── Barra de búsqueda ──────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(50),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.12),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _searchController,
+                            onChanged: (v) => setState(
+                              () => _searchQuery = v.toLowerCase().trim(),
+                            ),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF0E3520),
+                              fontFamily: 'Montserrat',
+                            ),
+                            decoration: InputDecoration(
+                              hintText: 'Buscar proyecto...',
+                              hintStyle: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[400],
+                                fontFamily: 'Montserrat',
+                              ),
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 14,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(right: 16),
+                          child: Icon(
+                            Icons.search,
+                            color: const Color(0xFF0E3520).withOpacity(0.7),
+                            size: 22,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // ── White card con lista de proyectos ─────────────────
                 Expanded(
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      // ── Glassmorphism panel (franja superior con buscador) ──
-                      Positioned(
-                        top: 0, left: 0, right: 0,
-                        child: ClipRRect(
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(40),
-                            topRight: Radius.circular(40),
-                          ),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 3.5, sigmaY: 3.5),
-                            child: Container(
-                              height: 115,
-                              padding: const EdgeInsets.only(
-                                top: 22,
-                                left: 32,
-                                right: 32,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFCFFFD).withOpacity(0.1),
-                                border: Border.all(color: Colors.white, width: 1),
-                                borderRadius: const BorderRadius.only(
-                                  topLeft: Radius.circular(40),
-                                  topRight: Radius.circular(40),
-                                ),
-                              ),
-                              child: Container(
-                                height: 38,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF1F5F9),
-                                  borderRadius: BorderRadius.circular(50),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.15),
-                                      blurRadius: 4,
-                                    ),
-                                  ],
-                                ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: TextField(
-                                        controller: _searchController,
-                                        onChanged: (v) => setState(
-                                          () => _searchQuery = v.toLowerCase().trim(),
-                                        ),
-                                        decoration: InputDecoration(
-                                          hintText: 'Buscar proyecto...',
-                                          hintStyle: TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.grey[500],
-                                            fontFamily: 'Montserrat',
-                                          ),
-                                          border: InputBorder.none,
-                                          contentPadding: const EdgeInsets.symmetric(
-                                            horizontal: 20,
-                                            vertical: 12,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    const Padding(
-                                      padding: EdgeInsets.only(right: 12),
-                                      child: Icon(
-                                        Icons.search,
-                                        color: Color(0xFF0E3520),
-                                        size: 27,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(40),
+                        topRight: Radius.circular(40),
                       ),
-
-                      // ── White card (empieza justo debajo del buscador) ──
-                      Positioned(
-                        top: 85,
-                        left: 0, right: 0, bottom: 0,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF1F5F9),
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(40),
-                              topRight: Radius.circular(40),
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 10,
-                                offset: const Offset(0, -5),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-                              const SizedBox(height: 20),
-                              Expanded(child: _buildContent()),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 16),
+                        Expanded(child: _buildContent()),
+                      ],
+                    ),
                   ),
                 ),
               ],
