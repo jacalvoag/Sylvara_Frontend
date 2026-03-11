@@ -50,32 +50,75 @@ class _SpeciesListScreenState extends State<SpeciesListScreen> {
   Future<void> _confirmDelete(SpeciesRecord species) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(children: [
-          const Icon(Icons.warning_amber_rounded, color: Color(0xFFF57C00), size: 26),
-          const SizedBox(width: 10),
-          const Text('Eliminar Especie', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.bold, color: Color(0xFF0E3520), fontSize: 18)),
-        ]),
-        content: Text(
-          '¿Estás seguro de eliminar "${species.speciesName}"?',
-          style: const TextStyle(fontFamily: 'Montserrat', fontSize: 14, color: Color(0xFF0E3520)),
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F5F9),
+            borderRadius: BorderRadius.circular(25),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.18), blurRadius: 20, offset: const Offset(0, 4))],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF0E3520),
+                  borderRadius: BorderRadius.only(topLeft: Radius.circular(25), topRight: Radius.circular(25)),
+                ),
+                child: Column(
+                  children: [
+                    const Icon(Icons.eco_outlined, color: Colors.white, size: 36),
+                    const SizedBox(height: 10),
+                    const Text('Eliminar especie', style: TextStyle(fontFamily: 'Montserrat', fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                    const SizedBox(height: 4),
+                    Text(species.speciesName, style: const TextStyle(fontFamily: 'Montserrat', fontSize: 13, color: Colors.white70), maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+                child: Column(
+                  children: [
+                    const Text('Esta acción eliminará el registro de la especie y no se puede deshacer.', style: TextStyle(fontFamily: 'Montserrat', fontSize: 13, color: Color(0xFF0E3520), height: 1.4), textAlign: TextAlign.center),
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.of(context).pop(false),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Color(0xFF0E3520), width: 1.5),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+                              padding: const EdgeInsets.symmetric(vertical: 13),
+                            ),
+                            child: const Text('Cancelar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF0E3520))),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.of(context).pop(true),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFD32F2F),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+                              padding: const EdgeInsets.symmetric(vertical: 13),
+                            ),
+                            child: const Text('Eliminar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600, fontSize: 14)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600, color: Color(0xFF757575))),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFAE0000),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            child: const Text('Eliminar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.bold)),
-          ),
-        ],
       ),
     );
 
@@ -135,7 +178,6 @@ class _SpeciesListScreenState extends State<SpeciesListScreen> {
       backgroundColor: const Color(0xFFF1F5F9),
       body: Stack(
         children: [
-          // ── BACKGROUND PHOTO ─────────────────────────────────────
           Positioned(
             top: 0, left: 0, right: 0,
             child: SizedBox(
@@ -147,7 +189,6 @@ class _SpeciesListScreenState extends State<SpeciesListScreen> {
               ),
             ),
           ),
-          // Dark gradient overlay
           Positioned(
             top: 0, left: 0, right: 0,
             child: Container(
@@ -161,11 +202,9 @@ class _SpeciesListScreenState extends State<SpeciesListScreen> {
               ),
             ),
           ),
-
           SafeArea(
             child: Column(
               children: [
-                // ── HEADER with glassmorphism ────────────────────────
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
                   child: ClipRRect(
@@ -192,15 +231,8 @@ class _SpeciesListScreenState extends State<SpeciesListScreen> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                const Text(
-                                  'Flora y Fauna',
-                                  style: TextStyle(fontFamily: 'Montserrat', fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
-                                ),
-                                Text(
-                                  widget.zoneName,
-                                  style: const TextStyle(fontFamily: 'Montserrat', fontSize: 12, color: Colors.white70),
-                                  maxLines: 1, overflow: TextOverflow.ellipsis,
-                                ),
+                                const Text('Flora y Fauna', style: TextStyle(fontFamily: 'Montserrat', fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                                Text(widget.zoneName, style: const TextStyle(fontFamily: 'Montserrat', fontSize: 12, color: Colors.white70), maxLines: 1, overflow: TextOverflow.ellipsis),
                               ]),
                             ),
                           ],
@@ -209,10 +241,7 @@ class _SpeciesListScreenState extends State<SpeciesListScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 14),
-
-                // ── SEARCH BAR ───────────────────────────────────────
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40),
                   child: Container(
@@ -242,10 +271,7 @@ class _SpeciesListScreenState extends State<SpeciesListScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
-                // ── WHITE CONTENT CARD ───────────────────────────────
                 Expanded(
                   child: Container(
                     decoration: const BoxDecoration(
@@ -258,7 +284,6 @@ class _SpeciesListScreenState extends State<SpeciesListScreen> {
                         if (snapshot.connectionState == ConnectionState.waiting) {
                           return const Center(child: CircularProgressIndicator(color: Color(0xFF0E3520)));
                         }
-
                         if (snapshot.hasError) {
                           return Center(
                             child: Padding(
@@ -277,12 +302,9 @@ class _SpeciesListScreenState extends State<SpeciesListScreen> {
                             ),
                           );
                         }
-
                         final response = snapshot.data!;
                         final allSpecies = response.data;
-                        final filtered = _searchQuery.isEmpty
-                            ? allSpecies
-                            : allSpecies.where((s) => s.speciesName.toLowerCase().contains(_searchQuery)).toList();
+                        final filtered = _searchQuery.isEmpty ? allSpecies : allSpecies.where((s) => s.speciesName.toLowerCase().contains(_searchQuery)).toList();
 
                         if (filtered.isEmpty) {
                           return Center(

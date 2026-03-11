@@ -6,8 +6,6 @@ import '../widgets/widgets.dart';
 import 'study_zone_form_screen.dart';
 import '../../species/screens/species_list_screen.dart';
 
-/// Pantalla de lista de zonas de estudio para un proyecto.
-/// Tiene buscador, FAB para agregar, y tarjetas con opciones.
 class StudyZoneListScreen extends StatefulWidget {
   final int projectId;
   final String? projectName;
@@ -71,51 +69,78 @@ class _StudyZoneListScreenState extends State<StudyZoneListScreen> {
   Future<void> _confirmDelete(StudyZone zone) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            const Icon(Icons.warning_amber_rounded, color: Color(0xFFF57C00), size: 26),
-            const SizedBox(width: 10),
-            const Expanded(
-              child: Text(
-                '¿Eliminar zona?',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0E3520), fontFamily: 'Montserrat'),
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F5F9),
+            borderRadius: BorderRadius.circular(25),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.18), blurRadius: 20, offset: const Offset(0, 4))],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF0E3520),
+                  borderRadius: BorderRadius.only(topLeft: Radius.circular(25), topRight: Radius.circular(25)),
+                ),
+                child: Column(
+                  children: [
+                    const Icon(Icons.terrain, color: Colors.white, size: 36),
+                    const SizedBox(height: 10),
+                    const Text('Eliminar zona', style: TextStyle(fontFamily: 'Montserrat', fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                    const SizedBox(height: 4),
+                    Text(zone.nameStudyZone, style: const TextStyle(fontFamily: 'Montserrat', fontSize: 13, color: Colors.white70), maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Estás a punto de eliminar:', style: TextStyle(color: Color(0xFF666666), fontFamily: 'Montserrat', fontSize: 13)),
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFE0E0E0))),
-              child: Row(children: [
-                const Icon(Icons.terrain, color: Color(0xFF0E3520), size: 22),
-                const SizedBox(width: 10),
-                Expanded(child: Text(zone.nameStudyZone, style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF0E3520), fontFamily: 'Montserrat', fontSize: 15))),
-              ]),
-            ),
-            const SizedBox(height: 12),
-            const Text('Esta acción no se puede deshacer.', style: TextStyle(color: Color(0xFFD32F2F), fontSize: 12, fontWeight: FontWeight.w500, fontFamily: 'Montserrat')),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar', style: TextStyle(color: Color(0xFF757575), fontFamily: 'Montserrat', fontWeight: FontWeight.w600)),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+                child: Column(
+                  children: [
+                    const Text('Esta acción eliminará la zona de estudio permanentemente y no se puede deshacer.', style: TextStyle(fontFamily: 'Montserrat', fontSize: 13, color: Color(0xFF0E3520), height: 1.4), textAlign: TextAlign.center),
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.of(context).pop(false),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Color(0xFF0E3520), width: 1.5),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+                              padding: const EdgeInsets.symmetric(vertical: 13),
+                            ),
+                            child: const Text('Cancelar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF0E3520))),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.of(context).pop(true),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFD32F2F),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+                              padding: const EdgeInsets.symmetric(vertical: 13),
+                            ),
+                            child: const Text('Eliminar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600, fontSize: 14)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFD32F2F), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0),
-            child: const Text('Eliminar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600)),
-          ),
-        ],
+        ),
       ),
     );
+
     if (confirmed != true || !mounted) return;
 
     try {
@@ -213,7 +238,6 @@ class _StudyZoneListScreenState extends State<StudyZoneListScreen> {
       backgroundColor: const Color(0xFFF1F5F9),
       body: Stack(
         children: [
-          // ── BACKGROUND IMAGE (same as projects screen) ────────
           Positioned(
             top: 0, left: 0, right: 0,
             child: SizedBox(
@@ -225,7 +249,6 @@ class _StudyZoneListScreenState extends State<StudyZoneListScreen> {
               ),
             ),
           ),
-          // Dark overlay for readability
           Positioned(
             top: 0, left: 0, right: 0,
             child: Container(
@@ -239,11 +262,9 @@ class _StudyZoneListScreenState extends State<StudyZoneListScreen> {
               ),
             ),
           ),
-
           SafeArea(
             child: Column(
               children: [
-                // ── HEADER with glassmorphism ──────────────────────
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
                   child: ClipRRect(
@@ -270,15 +291,10 @@ class _StudyZoneListScreenState extends State<StudyZoneListScreen> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                Text(
-                                  widget.projectName ?? 'Proyecto',
-                                  style: const TextStyle(fontFamily: 'Montserrat', fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
-                                  maxLines: 1, overflow: TextOverflow.ellipsis,
-                                ),
+                                Text(widget.projectName ?? 'Proyecto', style: const TextStyle(fontFamily: 'Montserrat', fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white), maxLines: 1, overflow: TextOverflow.ellipsis),
                                 const Text('Zonas de estudio', style: TextStyle(fontFamily: 'Montserrat', fontSize: 12, color: Colors.white70)),
                               ]),
                             ),
-                            // Comparar
                             if (!_isComparing)
                               GestureDetector(
                                 onTap: _toggleCompareMode,
@@ -303,10 +319,7 @@ class _StudyZoneListScreenState extends State<StudyZoneListScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 14),
-
-                // ── SEARCH BAR ────────────────────────────────────
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40),
                   child: Container(
@@ -336,10 +349,7 @@ class _StudyZoneListScreenState extends State<StudyZoneListScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
-                // ── CONTENT ───────────────────────────────────────
                 Expanded(
                   child: Container(
                     decoration: const BoxDecoration(
@@ -363,9 +373,7 @@ class _StudyZoneListScreenState extends State<StudyZoneListScreen> {
                         }
 
                         final zones = snapshot.data!.zones;
-                        final filtered = _searchQuery.isEmpty
-                            ? zones
-                            : zones.where((z) => z.nameStudyZone.toLowerCase().contains(_searchQuery)).toList();
+                        final filtered = _searchQuery.isEmpty ? zones : zones.where((z) => z.nameStudyZone.toLowerCase().contains(_searchQuery)).toList();
 
                         if (filtered.isEmpty) {
                           return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [

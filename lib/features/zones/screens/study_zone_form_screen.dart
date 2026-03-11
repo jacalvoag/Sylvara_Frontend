@@ -9,12 +9,16 @@ class StudyZoneFormScreen extends StatefulWidget {
   final int projectId;
   final int? zoneId;
   final StudyZone? existingZone;
+  /// Unidad fija heredada del proyecto (1 = m², 2 = ha).
+  /// Si se provee, el selector de unidad queda deshabilitado.
+  final int? fixedUnitId;
 
   const StudyZoneFormScreen({
     super.key,
     required this.projectId,
     this.zoneId,
     this.existingZone,
+    this.fixedUnitId,
   });
 
   @override
@@ -26,23 +30,29 @@ class _StudyZoneFormScreenState extends State<StudyZoneFormScreen> {
   final _nameController = TextEditingController();
   final _areaController = TextEditingController();
 
-  // unitId 1 = m², unitId 2 = ha
-  int _selectedUnitId = 2;
+  late int _selectedUnitId;
   bool _isSubmitting = false;
 
   bool get _isEditing => widget.zoneId != null;
+  bool get _unitIsFixed => widget.fixedUnitId != null;
 
   // 1 ha = 10,000 m²
   double _toHectares(double value, int unitId) =>
       unitId == 1 ? value / 10000 : value;
 
+  String get _unitLabel => _selectedUnitId == 1 ? 'm²' : 'ha';
+
   @override
   void initState() {
     super.initState();
+    // Priority: fixedUnitId > existingZone.unitId > default (2 = ha)
+    _selectedUnitId = widget.fixedUnitId ??
+        widget.existingZone?.unitId ??
+        2;
+
     if (widget.existingZone != null) {
       _nameController.text = widget.existingZone!.nameStudyZone;
       _areaController.text = widget.existingZone!.subArea.toString();
-      _selectedUnitId = widget.existingZone!.unitId;
     }
   }
 
@@ -181,44 +191,37 @@ class _StudyZoneFormScreenState extends State<StudyZoneFormScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                // Unit dropdown styled as a button
-                Container(
-                  height: 56,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: const Color(0xFFE0E0E0)),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<int>(
-                      value: _selectedUnitId,
-                      icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF0E3520), size: 18),
-                      style: const TextStyle(
-                        color: Color(0xFF0E3520),
-                        fontFamily: 'Montserrat',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      items: const [
-                        DropdownMenuItem(value: 1, child: Text('m²')),
-                        DropdownMenuItem(value: 2, child: Text('ha')),
-                      ],
-                      onChanged: (v) {
-                        if (v != null) setState(() => _selectedUnitId = v);
-                      },
-                    ),
-                  ),
-                ),
+                // Unit: fixed badge or dropdown
+                _unitIsFixed
+                    ? _buildFixedUnitBadge()
+                    : _buildUnitDropdown(),
               ],
             ),
+
+            // Hint when unit is fixed
+            if (_unitIsFixed) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Icon(Icons.info_outline, size: 14, color: Color(0xFF5C7C6A)),
+                  const SizedBox(width: 6),
+                  Text(
+                    'La unidad del proyecto es $_unitLabel y no puede cambiarse.',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF5C7C6A),
+                      fontFamily: 'Montserrat',
+                    ),
+                  ),
+                ],
+              ),
+            ],
 
             const SizedBox(height: 36),
 
             // ── BUTTONS ──────────────────────────────────────────────
             Row(
               children: [
-                // Cancelar
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => Navigator.of(context).pop(false),
@@ -235,7 +238,6 @@ class _StudyZoneFormScreenState extends State<StudyZoneFormScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                // Crear/Actualizar
                 Expanded(
                   child: ElevatedButton(
                     onPressed: _isSubmitting ? null : _handleSubmit,
@@ -260,6 +262,62 @@ class _StudyZoneFormScreenState extends State<StudyZoneFormScreen> {
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// Badge estático que muestra la unidad fija del proyecto
+  Widget _buildFixedUnitBadge() {
+    return Container(
+      height: 56,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE8F5E9),
+        border: Border.all(color: const Color(0xFF0E3520)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Center(
+        child: Text(
+          _unitLabel,
+          style: const TextStyle(
+            color: Color(0xFF0E3520),
+            fontFamily: 'Montserrat',
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Dropdown editable cuando no hay unidad fija
+  Widget _buildUnitDropdown() {
+    return Container(
+      height: 56,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: const Color(0xFFE0E0E0)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<int>(
+          value: _selectedUnitId,
+          icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF0E3520), size: 18),
+          style: const TextStyle(
+            color: Color(0xFF0E3520),
+            fontFamily: 'Montserrat',
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+          items: const [
+            DropdownMenuItem(value: 1, child: Text('m²')),
+            DropdownMenuItem(value: 2, child: Text('ha')),
+          ],
+          onChanged: (v) {
+            if (v != null) setState(() => _selectedUnitId = v);
+          },
         ),
       ),
     );

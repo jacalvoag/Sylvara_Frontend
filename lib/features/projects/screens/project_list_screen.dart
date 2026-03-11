@@ -26,7 +26,6 @@ class ProjectListScreenState extends State<ProjectListScreen> {
   bool _hasError = false;
   String _errorMessage = '';
 
-  // Búsqueda
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
@@ -37,7 +36,6 @@ class ProjectListScreenState extends State<ProjectListScreen> {
     _scrollController.addListener(_onScroll);
   }
 
-  /// Called by MainScaffold when user switches to the Projects tab
   void refresh() => _loadProjects();
 
   @override
@@ -103,7 +101,7 @@ class ProjectListScreenState extends State<ProjectListScreen> {
       setState(() => _isLoadingMore = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error al cargar más proyectos'),
+          content: const Text('Error al cargar más proyectos'),
           backgroundColor: const Color(0xFFD32F2F),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -115,87 +113,78 @@ class ProjectListScreenState extends State<ProjectListScreen> {
   void _showDeleteConfirmationDialog(Plot project) {
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            const Icon(Icons.warning_amber_rounded, color: Color(0xFFF57C00), size: 28),
-            const SizedBox(width: 12),
-            Expanded(
-              child: const Text(
-                '¿Eliminar proyecto?',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+      builder: (dialogContext) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F5F9),
+            borderRadius: BorderRadius.circular(25),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.18), blurRadius: 20, offset: const Offset(0, 4))],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+                decoration: const BoxDecoration(
                   color: Color(0xFF0E3520),
-                  fontFamily: 'Montserrat',
+                  borderRadius: BorderRadius.only(topLeft: Radius.circular(25), topRight: Radius.circular(25)),
+                ),
+                child: Column(
+                  children: [
+                    const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 36),
+                    const SizedBox(height: 10),
+                    const Text('Eliminar proyecto', style: TextStyle(fontFamily: 'Montserrat', fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                    const SizedBox(height: 4),
+                    Text(project.name, style: const TextStyle(fontFamily: 'Montserrat', fontSize: 13, color: Colors.white70), maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center),
+                  ],
                 ),
               ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Estás a punto de eliminar el proyecto:',
-              style: TextStyle(fontSize: 14, color: Color(0xFF666666), fontFamily: 'Montserrat'),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF5F5F5),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE0E0E0)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.folder_outlined, color: Color(0xFF0E3520), size: 24),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      project.name,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF0E3520),
-                        fontFamily: 'Montserrat',
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+                child: Column(
+                  children: [
+                    const Text('Esta acción eliminará el proyecto permanentemente y no se puede deshacer.', style: TextStyle(fontFamily: 'Montserrat', fontSize: 13, color: Color(0xFF0E3520), height: 1.4), textAlign: TextAlign.center),
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.of(dialogContext).pop(),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Color(0xFF0E3520), width: 1.5),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+                              padding: const EdgeInsets.symmetric(vertical: 13),
+                            ),
+                            child: const Text('Cancelar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF0E3520))),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              Navigator.of(dialogContext).pop();
+                              await _deleteProject(project.id);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFD32F2F),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+                              padding: const EdgeInsets.symmetric(vertical: 13),
+                            ),
+                            child: const Text('Eliminar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600, fontSize: 14)),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Esta acción no se puede deshacer.',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFFD32F2F), fontFamily: 'Montserrat'),
-            ),
-          ],
+            ],
+          ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancelar', style: TextStyle(color: Color(0xFF757575), fontFamily: 'Montserrat', fontWeight: FontWeight.w600)),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.of(dialogContext).pop();
-              await _deleteProject(project.id);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFD32F2F),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              elevation: 0,
-            ),
-            child: const Text('Eliminar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600)),
-          ),
-        ],
       ),
     );
   }
@@ -331,7 +320,6 @@ class ProjectListScreenState extends State<ProjectListScreen> {
       );
     }
 
-    // Filtrar por búsqueda
     final projects = _searchQuery.isEmpty
         ? _allProjects
         : _allProjects.where((p) => p.samplingPlotName.toLowerCase().contains(_searchQuery)).toList();
@@ -404,17 +392,13 @@ class ProjectListScreenState extends State<ProjectListScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Imagen de fondo
           const BackgroundImage(
             imagePath: 'assets/images/backgrounds/FondoHome.png',
             height: 612,
           ),
-
-          // Contenido principal
           SafeArea(
             child: Column(
               children: [
-                // Header con logo y título
                 Padding(
                   padding: const EdgeInsets.fromLTRB(10, 28, 10, 10),
                   child: Row(
@@ -432,30 +416,17 @@ class ProjectListScreenState extends State<ProjectListScreen> {
                       ),
                       RichText(
                         text: const TextSpan(
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontFamily: 'Montserrat',
-                            color: Color(0xFF0E3520),
-                          ),
+                          style: TextStyle(fontSize: 22, fontFamily: 'Montserrat', color: Color(0xFF0E3520)),
                           children: [
-                            TextSpan(
-                              text: 'Mis',
-                              style: TextStyle(fontWeight: FontWeight.normal),
-                            ),
-                            TextSpan(
-                              text: ' Proyectos',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
+                            TextSpan(text: 'Mis', style: TextStyle(fontWeight: FontWeight.normal)),
+                            TextSpan(text: ' Proyectos', style: TextStyle(fontWeight: FontWeight.bold)),
                           ],
                         ),
                       ),
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
-                // ── Barra de búsqueda ──────────────────────────────────
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Container(
@@ -463,66 +434,37 @@ class ProjectListScreenState extends State<ProjectListScreen> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(50),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.12),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 8, offset: const Offset(0, 2))],
                     ),
                     child: Row(
                       children: [
                         Expanded(
                           child: TextField(
                             controller: _searchController,
-                            onChanged: (v) => setState(
-                              () => _searchQuery = v.toLowerCase().trim(),
-                            ),
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Color(0xFF0E3520),
-                              fontFamily: 'Montserrat',
-                            ),
+                            onChanged: (v) => setState(() => _searchQuery = v.toLowerCase().trim()),
+                            style: const TextStyle(fontSize: 14, color: Color(0xFF0E3520), fontFamily: 'Montserrat'),
                             decoration: InputDecoration(
                               hintText: 'Buscar proyecto...',
-                              hintStyle: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[400],
-                                fontFamily: 'Montserrat',
-                              ),
+                              hintStyle: TextStyle(fontSize: 14, color: Colors.grey[400], fontFamily: 'Montserrat'),
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 14,
-                              ),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                             ),
                           ),
                         ),
                         Padding(
                           padding: const EdgeInsets.only(right: 16),
-                          child: Icon(
-                            Icons.search,
-                            color: const Color(0xFF0E3520).withOpacity(0.7),
-                            size: 22,
-                          ),
+                          child: Icon(Icons.search, color: const Color(0xFF0E3520).withOpacity(0.7), size: 22),
                         ),
                       ],
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
-                // ── White card con lista de proyectos ─────────────────
                 Expanded(
                   child: Container(
                     decoration: const BoxDecoration(
                       color: Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(40),
-                        topRight: Radius.circular(40),
-                      ),
+                      borderRadius: BorderRadius.only(topLeft: Radius.circular(40), topRight: Radius.circular(40)),
                     ),
                     child: Column(
                       children: [
@@ -543,10 +485,7 @@ class ProjectListScreenState extends State<ProjectListScreen> {
         margin: const EdgeInsets.only(bottom: 80),
         child: FloatingActionButton(
           onPressed: () async {
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ProjectFormScreen()),
-            );
+            final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => const ProjectFormScreen()));
             if (result == true) _loadProjects();
           },
           backgroundColor: const Color(0xFF0E3520),
@@ -562,7 +501,6 @@ class ProjectListScreenState extends State<ProjectListScreen> {
 
 class _PasswordDialog extends StatefulWidget {
   final Plot project;
-
   const _PasswordDialog({required this.project});
 
   @override
@@ -584,114 +522,120 @@ class _PasswordDialogState extends State<_PasswordDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-      contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-      title: Column(
-        children: [
-          Container(
-            width: 56, height: 56,
-            decoration: BoxDecoration(
-              color: (_isActive ? const Color(0xFF582F0E) : const Color(0xFF0E3520)).withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              _isActive ? Icons.toggle_off_outlined : Icons.toggle_on_outlined,
-              size: 30,
-              color: _isActive ? const Color(0xFF582F0E) : const Color(0xFF0E3520),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            _isActive ? 'Desactivar proyecto' : 'Activar proyecto',
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0E3520), fontFamily: 'Montserrat'),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            widget.project.name,
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 13, color: Color(0xFF5C7C6A), fontFamily: 'Montserrat', fontWeight: FontWeight.w500),
-          ),
-        ],
-      ),
-      content: Form(
-        key: _formKey,
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(25),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.18), blurRadius: 20, offset: const Offset(0, 4))],
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Confirma tu contraseña para continuar',
-              style: TextStyle(fontSize: 13, color: Color(0xFF666666), fontFamily: 'Montserrat'),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+              decoration: const BoxDecoration(
+                color: Color(0xFF0E3520),
+                borderRadius: BorderRadius.only(topLeft: Radius.circular(25), topRight: Radius.circular(25)),
+              ),
+              child: Column(
+                children: [
+                  Icon(
+                    _isActive ? Icons.toggle_off_outlined : Icons.toggle_on_outlined,
+                    color: Colors.white,
+                    size: 36,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    _isActive ? 'Desactivar proyecto' : 'Activar proyecto',
+                    style: const TextStyle(fontFamily: 'Montserrat', fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    widget.project.name,
+                    style: const TextStyle(fontFamily: 'Montserrat', fontSize: 13, color: Colors.white70),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 14),
-            TextFormField(
-              controller: _passwordController,
-              obscureText: _obscure,
-              autofocus: true,
-              decoration: InputDecoration(
-                hintText: '••••••••',
-                hintStyle: const TextStyle(color: Color(0xFFBDBDBD), fontFamily: 'Montserrat'),
-                prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF0E3520), size: 20),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                    color: const Color(0xFF9E9E9E),
-                    size: 20,
-                  ),
-                  onPressed: () => setState(() => _obscure = !_obscure),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Confirma tu contraseña para continuar', style: TextStyle(fontFamily: 'Montserrat', fontSize: 13, color: Color(0xFF0E3520))),
+                    const SizedBox(height: 14),
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: _obscure,
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        hintText: '••••••••',
+                        hintStyle: const TextStyle(color: Color(0xFFBDBDBD), fontFamily: 'Montserrat'),
+                        prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF0E3520), size: 20),
+                        suffixIcon: IconButton(
+                          icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined, color: const Color(0xFF9E9E9E), size: 20),
+                          onPressed: () => setState(() => _obscure = !_obscure),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF0E3520), width: 2)),
+                        errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFD32F2F))),
+                        focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFD32F2F), width: 2)),
+                      ),
+                      style: const TextStyle(fontFamily: 'Montserrat', fontSize: 15, color: Color(0xFF0E3520)),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return 'Ingresa tu contraseña';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Color(0xFF0E3520), width: 1.5),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+                              padding: const EdgeInsets.symmetric(vertical: 13),
+                            ),
+                            child: const Text('Cancelar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF0E3520))),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              if (!_formKey.currentState!.validate()) return;
+                              Navigator.of(context).pop(_passwordController.text);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF0E3520),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+                              padding: const EdgeInsets.symmetric(vertical: 13),
+                            ),
+                            child: const Text('Confirmar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600, fontSize: 14)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                filled: true,
-                fillColor: const Color(0xFFF5F5F5),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
-                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF0E3520), width: 2)),
-                errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFD32F2F))),
-                focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFD32F2F), width: 2)),
               ),
-              style: const TextStyle(fontFamily: 'Montserrat', fontSize: 15, color: Color(0xFF0E3520)),
-              validator: (value) {
-                if (value == null || value.isEmpty) return 'Ingresa tu contraseña';
-                return null;
-              },
             ),
-            const SizedBox(height: 20),
-            Row(children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF757575),
-                    side: const BorderSide(color: Color(0xFFE0E0E0)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-                  ),
-                  child: const Text('Cancelar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600, fontSize: 14)),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (!_formKey.currentState!.validate()) return;
-                    Navigator.of(context).pop(_passwordController.text);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0E3520),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-                    elevation: 0,
-                  ),
-                  child: const Text('Confirmar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600, fontSize: 14)),
-                ),
-              ),
-            ]),
           ],
         ),
       ),
