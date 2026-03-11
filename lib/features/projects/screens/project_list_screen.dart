@@ -288,9 +288,6 @@ class ProjectListScreenState extends State<ProjectListScreen> {
     }
   }
 
-
-
-
   Widget _buildContent() {
     if (_isLoading) {
       return const Center(
@@ -408,23 +405,22 @@ class ProjectListScreenState extends State<ProjectListScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Imagen de fondo con altura específica de Figma
+          // Imagen de fondo
           const BackgroundImage(
             imagePath: 'assets/images/backgrounds/FondoHome.png',
             height: 612,
           ),
-          
+
           // Contenido principal
           SafeArea(
             child: Column(
               children: [
-                // Header con logo y título "Mis Proyectos"
+                // Header con logo y título
                 Padding(
                   padding: const EdgeInsets.fromLTRB(10, 28, 10, 10),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Logo de Sylvara
                       Container(
                         width: 50,
                         height: 54,
@@ -435,26 +431,21 @@ class ProjectListScreenState extends State<ProjectListScreen> {
                           ),
                         ),
                       ),
-                      // Título "Mis Proyectos"
                       RichText(
-                        text: TextSpan(
+                        text: const TextSpan(
                           style: TextStyle(
                             fontSize: 22,
                             fontFamily: 'Montserrat',
-                            color: const Color(0xFF0E3520),
+                            color: Color(0xFF0E3520),
                           ),
                           children: [
                             TextSpan(
                               text: 'Mis',
-                              style: TextStyle(
-                                fontWeight: FontWeight.normal,
-                              ),
+                              style: TextStyle(fontWeight: FontWeight.normal),
                             ),
                             TextSpan(
                               text: ' Proyectos',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),
@@ -462,15 +453,15 @@ class ProjectListScreenState extends State<ProjectListScreen> {
                     ],
                   ),
                 ),
-                
+
                 const SizedBox(height: 10),
-                
-                // Contenedor principal y buscador (superposición)
+
+                // Contenedor principal con buscador superpuesto
                 Expanded(
                   child: Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      // Glassmorphism panel con buscador
+                      // ── Glassmorphism panel (franja superior con buscador) ──
                       Positioned(
                         top: 0, left: 0, right: 0,
                         child: ClipRRect(
@@ -481,8 +472,12 @@ class ProjectListScreenState extends State<ProjectListScreen> {
                           child: BackdropFilter(
                             filter: ImageFilter.blur(sigmaX: 3.5, sigmaY: 3.5),
                             child: Container(
-                              height: 120,
-                              padding: const EdgeInsets.only(top: 20, left: 55, right: 55),
+                              height: 115,
+                              padding: const EdgeInsets.only(
+                                top: 22,
+                                left: 32,
+                                right: 32,
+                              ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFFCFFFD).withOpacity(0.1),
                                 border: Border.all(color: Colors.white, width: 1),
@@ -508,18 +503,31 @@ class ProjectListScreenState extends State<ProjectListScreen> {
                                     Expanded(
                                       child: TextField(
                                         controller: _searchController,
-                                        onChanged: (v) => setState(() => _searchQuery = v.toLowerCase().trim()),
+                                        onChanged: (v) => setState(
+                                          () => _searchQuery = v.toLowerCase().trim(),
+                                        ),
                                         decoration: InputDecoration(
                                           hintText: 'Buscar proyecto...',
-                                          hintStyle: TextStyle(fontSize: 14, color: Colors.grey[500], fontFamily: 'Montserrat'),
+                                          hintStyle: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.grey[500],
+                                            fontFamily: 'Montserrat',
+                                          ),
                                           border: InputBorder.none,
-                                          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                                          contentPadding: const EdgeInsets.symmetric(
+                                            horizontal: 20,
+                                            vertical: 12,
+                                          ),
                                         ),
                                       ),
                                     ),
                                     const Padding(
                                       padding: EdgeInsets.only(right: 12),
-                                      child: Icon(Icons.search, color: Color(0xFF0E3520), size: 27),
+                                      child: Icon(
+                                        Icons.search,
+                                        color: Color(0xFF0E3520),
+                                        size: 27,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -529,9 +537,10 @@ class ProjectListScreenState extends State<ProjectListScreen> {
                         ),
                       ),
 
-                      // White card (overlaps glassmorphism)
+                      // ── White card (empieza justo debajo del buscador) ──
                       Positioned(
-                        top: 70, left: 0, right: 0, bottom: 0,
+                        top: 85,
+                        left: 0, right: 0, bottom: 0,
                         child: Container(
                           decoration: BoxDecoration(
                             color: const Color(0xFFF1F5F9),
@@ -616,7 +625,6 @@ class _PasswordDialogState extends State<_PasswordDialog> {
       contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
       title: Column(
         children: [
-          // Icon badge
           Container(
             width: 56, height: 56,
             decoration: BoxDecoration(
@@ -665,7 +673,11 @@ class _PasswordDialogState extends State<_PasswordDialog> {
                 hintStyle: const TextStyle(color: Color(0xFFBDBDBD), fontFamily: 'Montserrat'),
                 prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF0E3520), size: 20),
                 suffixIcon: IconButton(
-                  icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined, color: const Color(0xFF9E9E9E), size: 20),
+                  icon: Icon(
+                    _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                    color: const Color(0xFF9E9E9E),
+                    size: 20,
+                  ),
                   onPressed: () => setState(() => _obscure = !_obscure),
                 ),
                 filled: true,
@@ -720,4 +732,4 @@ class _PasswordDialogState extends State<_PasswordDialog> {
       ),
     );
   }
-}
+}

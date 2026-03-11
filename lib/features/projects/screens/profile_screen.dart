@@ -285,11 +285,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        // Logo de Sylvara
                         Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(color: const Color(0xFF0E3520), borderRadius: BorderRadius.circular(12)),
-                          child: const Icon(Icons.eco, color: Colors.white, size: 28),
+                          width: 50,
+                          height: 54,
+                          decoration: const BoxDecoration(
+                            image: DecorationImage(
+                              image: AssetImage('assets/images/logos/sylvara_logo.png'),
+                              fit: BoxFit.contain,
+                            ),
+                          ),
                         ),
                         RichText(
                           text: const TextSpan(

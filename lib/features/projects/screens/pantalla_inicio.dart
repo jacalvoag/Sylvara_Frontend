@@ -74,10 +74,26 @@ class PantallaInicioState extends State<PantallaInicio> with TickerProviderState
               children: [
                 // ── HEADER (always visible) ─────────────────────────
                 Padding(
-                  padding: const EdgeInsets.only(left: 16, right: 16, top: 14, bottom: 200),
-                  child: _isLoading || _hasError || _dashboard == null
-                      ? const SizedBox.shrink()
-                      : CustomBienvenida(nombre: _dashboard!.user.userName),
+                  padding: const EdgeInsets.fromLTRB(16, 28, 16, 200),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        width: 50,
+                        height: 54,
+                        decoration: const BoxDecoration(
+                          image: DecorationImage(
+                            image: AssetImage('assets/images/logos/sylvara_logo.png'),
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                      if (!_isLoading && !_hasError && _dashboard != null)
+                        CustomBienvenida(nombre: _dashboard!.user.userName),
+                      if (_isLoading || _hasError || _dashboard == null)
+                        const SizedBox.shrink(),
+                    ],
+                  ),
                 ),
                 if (_isAdmin && _dashboard != null)
                   Padding(
