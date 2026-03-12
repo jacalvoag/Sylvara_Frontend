@@ -88,8 +88,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final firstAllowedDate = DateTime(now.year - 100, now.month, now.day);
     final lastAllowedDate = DateTime(now.year - 15, now.month, now.day);
 
-    if (initial.isBefore(firstAllowedDate)) initial = firstAllowedDate;
-    else if (initial.isAfter(lastAllowedDate)) initial = lastAllowedDate;
+    if (initial.isBefore(firstAllowedDate)) {
+      initial = firstAllowedDate;
+    } else if (initial.isAfter(lastAllowedDate)) initial = lastAllowedDate;
 
     final picked = await showDatePicker(
       context: context,
