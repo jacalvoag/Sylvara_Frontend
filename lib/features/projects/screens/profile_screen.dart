@@ -305,13 +305,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    padding: const EdgeInsets.fromLTRB(16, 28, 16, 0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Container(
-                          width: 50,
-                          height: 54,
+                          width: 65,
+                          height: 70,
                           decoration: const BoxDecoration(
                             image: DecorationImage(
                               image: AssetImage('assets/images/logos/sylvara_logo.png'),

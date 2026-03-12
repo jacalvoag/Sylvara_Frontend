@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:sylvara_frontend/core/api/token_storage.dart';
 import 'package:sylvara_frontend/core/widgets/main_scaffold.dart';
-import 'package:sylvara_frontend/features/auth/screens/login_screen.dart';
+import 'package:sylvara_frontend/features/auth/screens/welcome_screen.dart';
 
 void main() {
   runApp(const MainApp());
@@ -12,9 +13,14 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: AuthGate(),
+      theme: ThemeData(
+        textTheme: GoogleFonts.montserratTextTheme(
+          Theme.of(context).textTheme,
+        ),
+      ),
+      home: const AuthGate(),
     );
   }
 }
@@ -54,6 +60,6 @@ class _AuthGateState extends State<AuthGate> {
         ),
       );
     }
-    return _authenticated ? const MainScaffold() : const LoginScreen();
+    return _authenticated ? const MainScaffold() : const WelcomeScreen();
   }
 }

@@ -79,8 +79,8 @@ class PantallaInicioState extends State<PantallaInicio> with TickerProviderState
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                        width: 50,
-                        height: 54,
+                        width: 65,
+                        height: 70,
                         decoration: const BoxDecoration(
                           image: DecorationImage(
                             image: AssetImage('assets/images/logos/sylvara_logo.png'),
