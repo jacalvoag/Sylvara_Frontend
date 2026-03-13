@@ -3,14 +3,10 @@ import 'package:flutter/services.dart';
 import '../models/models.dart';
 import '../services/services.dart';
 
-/// Formulario para crear o editar una Zona de Estudio.
-/// Estilo similar a la captura del formulario de proyecto.
 class StudyZoneFormScreen extends StatefulWidget {
   final int projectId;
   final int? zoneId;
   final StudyZone? existingZone;
-  /// Unidad fija heredada del proyecto (1 = m², 2 = ha).
-  /// Si se provee, el selector de unidad queda deshabilitado.
   final int? fixedUnitId;
 
   const StudyZoneFormScreen({
@@ -154,7 +150,7 @@ class _StudyZoneFormScreenState extends State<StudyZoneFormScreen> {
             const SizedBox(height: 8),
             TextFormField(
               controller: _nameController,
-              decoration: _inputDeco(hint: 'Ej. Corazón Bonito'),
+              decoration: _inputDeco(hint: 'Ej. Las Cabañas'),
               maxLength: 50,
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'El nombre es obligatorio';

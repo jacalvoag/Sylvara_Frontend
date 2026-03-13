@@ -163,7 +163,7 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
                 // Nombre
                 CustomTextField(
                   label: 'Nombre del proyecto *',
-                  placeholder: 'Ej. Corazón Bonito',
+                  placeholder: 'Ej. Rancho Los Pinos',
                   controller: _nombreController,
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) return 'Ingresa un nombre';
