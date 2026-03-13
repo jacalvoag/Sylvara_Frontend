@@ -667,12 +667,12 @@ class _ComparisonBarChart extends StatelessWidget {
     return List.generate(labels.length, (i) {
       return BarChartGroupData(
         x: i,
-        barsSpace: 4,
+        barsSpace: 2,
         barRods: [
           BarChartRodData(
             toY: labels[i][0],
             color: colors[0],
-            width: 14,
+            width: 32,
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(3), topRight: Radius.circular(3),
             ),
@@ -680,7 +680,7 @@ class _ComparisonBarChart extends StatelessWidget {
           BarChartRodData(
             toY: labels[i][1],
             color: colors[1],
-            width: 14,
+            width: 32,
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(3), topRight: Radius.circular(3),
             ),
@@ -700,9 +700,9 @@ class _ComparisonBarChart extends StatelessWidget {
       height: 220,
       child: BarChart(
         BarChartData(
-          alignment: BarChartAlignment.spaceAround,
+          alignment: BarChartAlignment.center,
           maxY: maxY,
-          groupsSpace: 20,
+          groupsSpace: 16,
           barTouchData: BarTouchData(
             enabled: true,
             touchTooltipData: BarTouchTooltipData(
