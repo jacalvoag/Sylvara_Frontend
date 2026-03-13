@@ -132,7 +132,7 @@ class ExportService {
                   child: pw.Column(children: [
                     _infoRow('Investigador', report.researcherFullName, textGray),
                     _infoRow('Inicio', fmt(report.startDate), textGray),
-                    _infoRow('Cierre', fmt(report.endDate), textGray),
+                    _infoRow('Cierre', report.endDate != null ? fmt(report.endDate) : '', textGray),
                     _infoRow('Área total', '${report.totalArea.toStringAsFixed(2)} ${report.unitName}', textGray),
                     _infoRow('Número de zonas', '${report.zonesDetails.length}', textGray),
                     _infoRow('Estado', report.isActive ? 'Activo' : 'Inactivo', textGray),
@@ -218,20 +218,20 @@ class ExportService {
                   pw.Row(children: [
                     _badge('${zone.subArea.toStringAsFixed(1)} ${zone.unitName}', bgGray, darkGreen),
                     pw.SizedBox(width: 8),
-                    _badge('${zone.speciesRichness} spp', bgGray, darkGreen),
+                    _badge('Especies registradas: ${zone.speciesRichness}', bgGray, darkGreen),
                     pw.SizedBox(width: 8),
-                    _badge('${zone.totalIndividuals} ind', bgGray, darkGreen),
+                    _badge('Total de individuos: ${zone.totalIndividuals} ', bgGray, darkGreen),
                   ]),
                   pw.SizedBox(height: 16),
 
                   // Índices de la zona
-                  _sectionTitle('Índices de Biodiversidad', darkGreen),
+                  _sectionTitle('Índices de biodiversidad', darkGreen),
                   pw.SizedBox(height: 10),
                   _indicesGrid(zone.indices, darkGreen, bgGray),
                   pw.SizedBox(height: 20),
 
                   // Tabla de especies
-                  _sectionTitle('Registro de Especies', darkGreen),
+                  _sectionTitle('Registro de especies', darkGreen),
                   pw.SizedBox(height: 10),
                   _speciesTable(zone.speciesRecords, darkGreen, bgGray, white, textGray),
                 ],
@@ -396,14 +396,14 @@ class ExportService {
           ),
           pw.Expanded(
             child: pw.Text(
-              '${zone.speciesRichness} spp',
+              'Especies registradas: ${zone.speciesRichness}',
               textAlign: pw.TextAlign.center,
               style: const pw.TextStyle(fontSize: 10),
             ),
           ),
           pw.Expanded(
             child: pw.Text(
-              '${zone.totalIndividuals} ind',
+              'Total de individuos: ${zone.totalIndividuals}',
               textAlign: pw.TextAlign.center,
               style: const pw.TextStyle(fontSize: 10),
             ),
@@ -475,7 +475,7 @@ class ExportService {
               _tableCell(
                 sr.heightMin == 0 && sr.heightMax == 0
                     ? '—'
-                    : '${sr.heightMin.toStringAsFixed(1)} – ${sr.heightMax.toStringAsFixed(1)} ${sr.unitName}',
+                    : '${sr.heightMin.toStringAsFixed(1)} - ${sr.heightMax.toStringAsFixed(1)} ${sr.unitName}',
                 textGray,
               ),
             ],

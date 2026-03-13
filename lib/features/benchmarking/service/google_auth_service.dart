@@ -26,7 +26,7 @@ class GoogleAuthService {
       await _googleSignIn!.signOut();
       print('signOut OK');
 
-      final account = await _googleSignIn!.signIn();
+      final account = await _googleSignIn.signIn();
       print('account: $account');
       if (account == null) {
         print('ERROR: account es null');
