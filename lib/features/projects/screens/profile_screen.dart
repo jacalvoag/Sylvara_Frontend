@@ -5,6 +5,7 @@ import 'package:sylvara_frontend/features/profile/models/models.dart';
 import 'package:sylvara_frontend/features/profile/services/profile_service.dart';
 import 'package:sylvara_frontend/core/api/token_storage.dart';
 import 'package:sylvara_frontend/core/services/cloudinary_service.dart';
+import 'package:sylvara_frontend/features/auth/screens/welcome_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -191,6 +192,96 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       }
     }
+  }
+
+  void _showLogoutConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F5F9),
+            borderRadius: BorderRadius.circular(25),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.18), blurRadius: 20, offset: const Offset(0, 4))],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF0E3520),
+                  borderRadius: BorderRadius.only(topLeft: Radius.circular(25), topRight: Radius.circular(25)),
+                ),
+                child: const Column(
+                  children: [
+                    Icon(Icons.logout, color: Colors.white, size: 36),
+                    SizedBox(height: 10),
+                    Text('Cerrar sesión', style: TextStyle(fontFamily: 'Montserrat', fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                    SizedBox(height: 4),
+                    Text('¿Estás seguro que deseas salir?', style: TextStyle(fontFamily: 'Montserrat', fontSize: 13, color: Colors.white70)),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+                child: Column(
+                  children: [
+                    const Text(
+                      'Tendrás que volver a iniciar sesión para acceder a tu cuenta.',
+                      style: TextStyle(fontFamily: 'Montserrat', fontSize: 13, color: Color(0xFF0E3520), height: 1.4),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Color(0xFF0E3520), width: 1.5),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+                              padding: const EdgeInsets.symmetric(vertical: 13),
+                            ),
+                            child: const Text('Cancelar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF0E3520))),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              await TokenStorage().clear();
+                              if (!mounted) return;
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+                                (_) => false,
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF0E3520),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+                              padding: const EdgeInsets.symmetric(vertical: 13),
+                            ),
+                            child: const Text('Aceptar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600, fontSize: 14)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _showDeleteAccountDialog() {
@@ -535,11 +626,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 width: double.infinity,
                 height: 48,
                 child: OutlinedButton.icon(
-                  onPressed: () async {
-                    await TokenStorage().clear();
-                    if (!mounted) return;
-                    Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const LoginScreen()), (_) => false);
-                  },
+                  onPressed: _showLogoutConfirmationDialog,
                   icon: const Icon(Icons.logout, size: 18, color: Color(0xFF0E3520)),
                   label: const Text('Cerrar Sesión', style: TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF0E3520))),
                   style: OutlinedButton.styleFrom(side: const BorderSide(color: Color(0xFF0E3520), width: 1.5), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
