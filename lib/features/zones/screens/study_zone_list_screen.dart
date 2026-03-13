@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../services/services.dart';
@@ -172,6 +173,12 @@ class _StudyZoneListScreenState extends State<StudyZoneListScreen> {
     if (mounted) _loadZones();
   }
 
+  
+  static const List<Color> _zoneColors = [
+    Color(0xFF4CAF50),
+    Color(0xFF8D6E63), 
+  ];
+
   void _showComparison(List<StudyZone> allZones) {
     if (_selectedZones.length != 2) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -184,51 +191,214 @@ class _StudyZoneListScreenState extends State<StudyZoneListScreen> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Comparación de Zonas', style: TextStyle(fontFamily: 'Montserrat', fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0E3520))),
-        contentPadding: const EdgeInsets.all(20),
-        content: SingleChildScrollView(
-          child: SizedBox(
-            width: double.maxFinite,
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              _compCard(zone1),
-              const SizedBox(height: 16),
-              _compCard(zone2),
-            ]),
+      builder: (context) {
+        final mq = MediaQuery.of(context);
+        final topPad = mq.viewPadding.top + 12;
+        final botPad = mq.viewPadding.bottom + 12;
+        final availH = mq.size.height - topPad - botPad;
+
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: EdgeInsets.fromLTRB(20, topPad, 20, botPad),
+          child: Container(
+            constraints: BoxConstraints(maxHeight: availH * 0.93),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 20, offset: const Offset(0, 6))],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // ── Encabezado blanco Sylvara ────────────────────────────
+                Container(
+                  width: double.infinity,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+                    border: Border(bottom: BorderSide(color: Color(0xFFE8F5E9), width: 1)),
+                  ),
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.bar_chart_rounded, color: Color(0xFF0E3520), size: 20),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Comparación de Zonas',
+                            style: TextStyle(fontFamily: 'Montserrat', fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0E3520)),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      // ── Chips de leyenda ─────────────────────────
+                      Row(
+                        children: [
+                          Expanded(child: _legendChip(zone1.nameStudyZone, 'Ciclo ${zone1.cycleNumber} · ${zone1.subArea} ${zone1.unitName}', _zoneColors[0])),
+                          const SizedBox(width: 10),
+                          Expanded(child: _legendChip(zone2.nameStudyZone, 'Ciclo ${zone2.cycleNumber} · ${zone2.subArea} ${zone2.unitName}', _zoneColors[1])),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                // ── Contenido scrollable ─────────────────────────────
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(16, 18, 16, 4),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // ── Tabla de índices ────────────────────────
+                        const Text(
+                          'Índices de biodiversidad',
+                          style: TextStyle(fontFamily: 'Montserrat', fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF0E3520), letterSpacing: 0.4),
+                        ),
+                        const SizedBox(height: 8),
+                        _indicesTable(zone1, zone2),
+
+                        const SizedBox(height: 20),
+
+                        // ── Gráfica agrupada ────────────────────────
+                        const Text(
+                          'Gráfica comparativa',
+                          style: TextStyle(fontFamily: 'Montserrat', fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF0E3520), letterSpacing: 0.4),
+                        ),
+                        const SizedBox(height: 10),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: const Color(0xFFE8F5E9), width: 1.5),
+                          ),
+                          padding: const EdgeInsets.fromLTRB(8, 16, 16, 8),
+                          child: _ComparisonBarChart(zone1: zone1, zone2: zone2, colors: _zoneColors),
+                        ),
+
+                        const SizedBox(height: 16),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // ── Botón Cerrar ─────────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF0E3520),
+                        side: const BorderSide(color: Color(0xFF0E3520), width: 1.5),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                      ),
+                      child: const Text('Cerrar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600, fontSize: 14)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cerrar', style: TextStyle(color: Color(0xFF0E3520), fontFamily: 'Montserrat', fontWeight: FontWeight.w600))),
+        );
+      },
+    );
+  }
+
+  Widget _legendChip(String name, String subtitle, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.18),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withOpacity(0.5), width: 1),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 7),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: const TextStyle(fontFamily: 'Montserrat', fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF0E3520)), overflow: TextOverflow.ellipsis, maxLines: 1),
+                Text(subtitle, style: const TextStyle(fontFamily: 'Montserrat', fontSize: 9, fontWeight: FontWeight.w400, color: Color(0xFF5C7C6A)), overflow: TextOverflow.ellipsis, maxLines: 1),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _compCard(StudyZone z) {
-    return Container(
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFF0E3520), width: 1.5)),
-      padding: const EdgeInsets.all(14),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          const CircleAvatar(backgroundColor: Color(0xFF0E3520), radius: 18, child: Icon(Icons.terrain, color: Colors.white, size: 18)),
-          const SizedBox(width: 10),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(z.nameStudyZone, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0E3520), fontFamily: 'Montserrat')),
-            Text('Ciclo ${z.cycleNumber} · ${z.subArea} ${z.unitName}', style: const TextStyle(fontSize: 12, color: Color(0xFF5C7C6A))),
-          ])),
-        ]),
-        const Divider(height: 20, color: Color(0xFFE0E0E0)),
-        Text("S' (Shannon) = ${z.indices.shannon.toStringAsFixed(3)}", style: const TextStyle(fontSize: 13, color: Color(0xFF0E3520), fontFamily: 'Montserrat')),
-        const SizedBox(height: 4),
-        Text("D (Simpson) = ${z.indices.simpson.toStringAsFixed(3)}", style: const TextStyle(fontSize: 13, color: Color(0xFF0E3520), fontFamily: 'Montserrat')),
-        const SizedBox(height: 4),
-        Text("d (Margalef) = ${z.indices.margalef.toStringAsFixed(3)}", style: const TextStyle(fontSize: 13, color: Color(0xFF0E3520), fontFamily: 'Montserrat')),
-        const SizedBox(height: 4),
-        Text("J' (Pielou) = ${z.indices.pielou.toStringAsFixed(3)}", style: const TextStyle(fontSize: 13, color: Color(0xFF0E3520), fontFamily: 'Montserrat')),
-        const SizedBox(height: 14),
-        BiodiversityChart(indices: z.indices, height: 180),
-      ]),
+  Widget _indicesTable(StudyZone z1, StudyZone z2) {
+    final rows = [
+      ["S' (Shannon)", z1.indices.shannon.toStringAsFixed(3), z2.indices.shannon.toStringAsFixed(3)],
+      ['D (Simpson)', z1.indices.simpson.toStringAsFixed(3), z2.indices.simpson.toStringAsFixed(3)],
+      ['d (Margalef)', z1.indices.margalef.toStringAsFixed(3), z2.indices.margalef.toStringAsFixed(3)],
+      ["J' (Pielou)", z1.indices.pielou.toStringAsFixed(3), z2.indices.pielou.toStringAsFixed(3)],
+    ];
+
+    return Table(
+      border: TableBorder.all(color: const Color(0xFFE0E0E0), borderRadius: BorderRadius.circular(8)),
+      columnWidths: const {
+        0: FlexColumnWidth(2),
+        1: FlexColumnWidth(1.5),
+        2: FlexColumnWidth(1.5),
+      },
+      children: [
+        // Encabezado tabla
+        TableRow(
+          decoration: const BoxDecoration(color: Color(0xFFF1F5F9)),
+          children: [
+            _tableCell('Índice', bold: true),
+            _tableCellColor(z1.nameStudyZone, _zoneColors[0], bold: true),
+            _tableCellColor(z2.nameStudyZone, _zoneColors[1], bold: true),
+          ],
+        ),
+        for (final row in rows)
+          TableRow(children: [
+            _tableCell(row[0]),
+            _tableCell(row[1], center: true),
+            _tableCell(row[2], center: true),
+          ]),
+      ],
+    );
+  }
+
+  Widget _tableCell(String text, {bool bold = false, bool center = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+      child: Text(
+        text,
+        textAlign: center ? TextAlign.center : TextAlign.left,
+        style: TextStyle(fontFamily: 'Montserrat', fontSize: 11, fontWeight: bold ? FontWeight.w700 : FontWeight.w400, color: const Color(0xFF0E3520)),
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+
+  Widget _tableCellColor(String text, Color color, {bool bold = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(width: 8, height: 8, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(text, style: TextStyle(fontFamily: 'Montserrat', fontSize: 11, fontWeight: bold ? FontWeight.w700 : FontWeight.w400, color: const Color(0xFF0E3520)), overflow: TextOverflow.ellipsis),
+          ),
+        ],
+      ),
     );
   }
 
@@ -459,6 +629,140 @@ class _StudyZoneListScreenState extends State<StudyZoneListScreen> {
             child: const Icon(Icons.add, color: Colors.white),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ComparisonBarChart extends StatelessWidget {
+  final StudyZone zone1;
+  final StudyZone zone2;
+  final List<Color> colors;
+
+  const _ComparisonBarChart({
+    required this.zone1,
+    required this.zone2,
+    required this.colors,
+  });
+
+  double get _maxY {
+    final vals = [
+      zone1.indices.shannon, zone1.indices.simpson,
+      zone1.indices.margalef, zone1.indices.pielou,
+      zone2.indices.shannon, zone2.indices.simpson,
+      zone2.indices.margalef, zone2.indices.pielou,
+    ];
+    final max = vals.reduce((a, b) => a > b ? a : b);
+    return (max * 1.35).clamp(1.0, double.infinity);
+  }
+
+  List<BarChartGroupData> _buildGroups() {
+    // Cada índice es un grupo; dentro, cada zona es un rod
+    final labels = [
+      [zone1.indices.shannon,   zone2.indices.shannon],
+      [zone1.indices.simpson,   zone2.indices.simpson],
+      [zone1.indices.margalef,  zone2.indices.margalef],
+      [zone1.indices.pielou,    zone2.indices.pielou],
+    ];
+    return List.generate(labels.length, (i) {
+      return BarChartGroupData(
+        x: i,
+        barsSpace: 4,
+        barRods: [
+          BarChartRodData(
+            toY: labels[i][0],
+            color: colors[0],
+            width: 14,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(3), topRight: Radius.circular(3),
+            ),
+          ),
+          BarChartRodData(
+            toY: labels[i][1],
+            color: colors[1],
+            width: 14,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(3), topRight: Radius.circular(3),
+            ),
+          ),
+        ],
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final maxY = _maxY;
+    const xLabels = ["S'", 'D', 'd', "J'"];
+    final indexNames = ["Shannon (S')", 'Simpson (D)', 'Margalef (d)', "Pielou (J')"];
+
+    return SizedBox(
+      height: 220,
+      child: BarChart(
+        BarChartData(
+          alignment: BarChartAlignment.spaceAround,
+          maxY: maxY,
+          groupsSpace: 20,
+          barTouchData: BarTouchData(
+            enabled: true,
+            touchTooltipData: BarTouchTooltipData(
+              getTooltipColor: (_) => const Color(0xFF0E3520),
+              getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                final zoneName = rodIndex == 0 ? zone1.nameStudyZone : zone2.nameStudyZone;
+                return BarTooltipItem(
+                  '${indexNames[group.x]}\n$zoneName\n${rod.toY.toStringAsFixed(3)}',
+                  const TextStyle(color: Colors.white, fontFamily: 'Montserrat', fontSize: 11, fontWeight: FontWeight.w600),
+                );
+              },
+            ),
+          ),
+          titlesData: FlTitlesData(
+            show: true,
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 30,
+                getTitlesWidget: (value, meta) => Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(
+                    xLabels[value.toInt()],
+                    style: const TextStyle(fontFamily: 'Montserrat', fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF0E3520)),
+                  ),
+                ),
+              ),
+            ),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 40,
+                interval: maxY / 5,
+                getTitlesWidget: (value, meta) {
+                  if (value == 0) return const SizedBox.shrink();
+                  return Text(
+                    value.toStringAsFixed(1),
+                    style: const TextStyle(fontFamily: 'Montserrat', fontSize: 10, color: Color(0xFF5C7C6A)),
+                  );
+                },
+              ),
+            ),
+            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          ),
+          gridData: FlGridData(
+            show: true,
+            drawVerticalLine: false,
+            horizontalInterval: maxY / 5,
+            getDrawingHorizontalLine: (_) => FlLine(color: const Color(0xFF0E3520).withOpacity(0.1), strokeWidth: 1),
+          ),
+          borderData: FlBorderData(
+            show: true,
+            border: Border(
+              left: BorderSide(color: const Color(0xFF0E3520).withOpacity(0.3), width: 1.5),
+              bottom: BorderSide(color: const Color(0xFF0E3520).withOpacity(0.3), width: 1.5),
+            ),
+          ),
+          barGroups: _buildGroups(),
+        ),
       ),
     );
   }

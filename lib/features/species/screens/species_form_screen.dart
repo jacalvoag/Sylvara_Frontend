@@ -608,12 +608,17 @@ class _SpeciesFormScreenState extends State<SpeciesFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final mq = MediaQuery.of(context);
+    final topPadding = mq.viewPadding.top + 8;
+    final bottomPadding = mq.viewInsets.bottom + mq.viewPadding.bottom + 8;
+    final availableHeight = mq.size.height - topPadding - bottomPadding;
+
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+      insetPadding: EdgeInsets.fromLTRB(40, topPadding, 40, bottomPadding),
       child: Container(
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.9,
+          maxHeight: availableHeight * 0.95,
         ),
         decoration: BoxDecoration(
           color: const Color(0xFFF1F5F9),

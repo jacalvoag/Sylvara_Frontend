@@ -16,6 +16,13 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF0E3520),
+          primary: const Color(0xFF0E3520),
+          secondary: const Color(0xFF4CAF50),
+          surface: const Color(0xFFF1F5F9),
+          brightness: Brightness.light,
+        ),
         textTheme: GoogleFonts.montserratTextTheme(
           Theme.of(context).textTheme,
         ),
