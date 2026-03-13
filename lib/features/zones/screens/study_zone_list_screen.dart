@@ -522,6 +522,7 @@ class _StudyZoneListScreenState extends State<StudyZoneListScreen> {
                 const SizedBox(height: 16),
                 Expanded(
                   child: Container(
+                    clipBehavior: Clip.antiAlias,
                     decoration: const BoxDecoration(
                       color: Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.only(topLeft: Radius.circular(40), topRight: Radius.circular(40)),
