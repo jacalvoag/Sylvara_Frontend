@@ -68,9 +68,9 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          const BackgroundImage(
+          BackgroundImage(
             imagePath: 'assets/images/backgrounds/FondoAuth.png',
-            height: 933,
+            height: MediaQuery.of(context).size.height,
           ),
           SafeArea(
             child: Center(
@@ -275,15 +275,18 @@ class _LoginScreenState extends State<LoginScreen> {
                                           borderRadius: BorderRadius.circular(12),
                                         ),
                                       ),
-                                      child: Text(
-                                        'Cancelar',
-                                        style: TextStyle(
-                                          fontFamily: 'Montserrat',
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w700,
-                                          color: _isLoading
-                                              ? const Color(0xFFCBD5E1)
-                                              : const Color(0xFF0E3520),
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          'Cancelar',
+                                          style: TextStyle(
+                                            fontFamily: 'Montserrat',
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w700,
+                                            color: _isLoading
+                                                ? const Color(0xFFCBD5E1)
+                                                : const Color(0xFF0E3520),
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -312,13 +315,16 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 strokeWidth: 2,
                                               ),
                                             )
-                                          : const Text(
-                                              'Iniciar sesión',
-                                              style: TextStyle(
-                                                fontFamily: 'Montserrat',
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w700,
-                                                color: Colors.white,
+                                          : const FittedBox(
+                                              fit: BoxFit.scaleDown,
+                                              child: Text(
+                                                'Iniciar sesión',
+                                                style: TextStyle(
+                                                  fontFamily: 'Montserrat',
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
                                               ),
                                             ),
                                     ),

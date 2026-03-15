@@ -151,6 +151,7 @@ class PantallaInicioState extends State<PantallaInicio> with TickerProviderState
                 // ── WHITE CARD (always visible) ─────────────────────
                 Expanded(
                   child: Container(
+                    clipBehavior: Clip.antiAlias,
                     decoration: const BoxDecoration(
                       color: Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.only(topLeft: Radius.circular(40), topRight: Radius.circular(40)),
@@ -159,27 +160,30 @@ class PantallaInicioState extends State<PantallaInicio> with TickerProviderState
                         ? const Center(child: CircularProgressIndicator(color: Color(0xFF0E3520), strokeWidth: 3))
                         : _hasError
                             ? Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(24),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(Icons.error_outline, size: 64, color: Color(0xFFAE0000)),
-                                      const SizedBox(height: 20),
-                                      const Text('Error al cargar los datos', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF0E3520), fontFamily: 'Montserrat'), textAlign: TextAlign.center),
-                                      const SizedBox(height: 10),
-                                      Text(_errorMessage, style: const TextStyle(fontSize: 14, color: Color(0xFFAE0000), fontFamily: 'Montserrat'), textAlign: TextAlign.center),
-                                      const SizedBox(height: 30),
-                                      ElevatedButton(
-                                        onPressed: _loadData,
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: const Color(0xFF0E3520),
-                                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                child: SingleChildScrollView(
+                                  padding: const EdgeInsets.only(bottom: 120),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(24),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(Icons.error_outline, size: 64, color: Color(0xFFAE0000)),
+                                        const SizedBox(height: 20),
+                                        const Text('Error al cargar los datos', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF0E3520), fontFamily: 'Montserrat'), textAlign: TextAlign.center),
+                                        const SizedBox(height: 10),
+                                        Text(_errorMessage, style: const TextStyle(fontSize: 14, color: Color(0xFFAE0000), fontFamily: 'Montserrat'), textAlign: TextAlign.center),
+                                        const SizedBox(height: 30),
+                                        ElevatedButton(
+                                          onPressed: _loadData,
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: const Color(0xFF0E3520),
+                                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                          ),
+                                          child: const Text('Reintentar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white, fontFamily: 'Montserrat')),
                                         ),
-                                        child: const Text('Reintentar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white, fontFamily: 'Montserrat')),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
                               )
@@ -231,8 +235,8 @@ class PantallaInicioState extends State<PantallaInicio> with TickerProviderState
       );
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
       child: Column(
         children: latestPlots.map((plot) {
           final project = plot.toProject();

@@ -424,6 +424,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 16),
                   Expanded(
                     child: Container(
+                      clipBehavior: Clip.antiAlias,
                       decoration: const BoxDecoration(
                         color: Color(0xFFF1F5F9),
                         borderRadius: BorderRadius.only(topLeft: Radius.circular(40), topRight: Radius.circular(40)),
@@ -432,24 +433,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ? const Center(child: CircularProgressIndicator(color: Color(0xFF0E3520)))
                           : _hasError
                               ? Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(Icons.error_outline, color: Color(0xFFD32F2F), size: 64),
-                                      const SizedBox(height: 16),
-                                      const Text('Error al cargar el perfil', style: TextStyle(fontFamily: 'Montserrat', fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF0E3520))),
-                                      const SizedBox(height: 8),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 32),
-                                        child: Text(_errorText, style: const TextStyle(fontFamily: 'Montserrat', fontSize: 13, color: Color(0xFF666666)), textAlign: TextAlign.center),
-                                      ),
-                                      const SizedBox(height: 20),
-                                      ElevatedButton(
-                                        onPressed: _loadProfile,
-                                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0E3520), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                                        child: const Text('Reintentar', style: TextStyle(fontFamily: 'Montserrat', color: Colors.white, fontWeight: FontWeight.w600)),
-                                      ),
-                                    ],
+                                  child: SingleChildScrollView(
+                                    padding: const EdgeInsets.only(bottom: 120),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(Icons.error_outline, color: Color(0xFFD32F2F), size: 64),
+                                        const SizedBox(height: 16),
+                                        const Text('Error al cargar el perfil', style: TextStyle(fontFamily: 'Montserrat', fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF0E3520))),
+                                        const SizedBox(height: 8),
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                                          child: Text(_errorText, style: const TextStyle(fontFamily: 'Montserrat', fontSize: 13, color: Color(0xFF666666)), textAlign: TextAlign.center),
+                                        ),
+                                        const SizedBox(height: 20),
+                                        ElevatedButton(
+                                          onPressed: _loadProfile,
+                                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0E3520), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                                          child: const Text('Reintentar', style: TextStyle(fontFamily: 'Montserrat', color: Colors.white, fontWeight: FontWeight.w600)),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 )
                               : _buildForm(),
@@ -580,7 +584,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: OutlinedButton(
                         onPressed: _isSaving ? null : () => setState(() { _isEditingMode = false; _fillFormWithProfile(_profile!); }),
                         style: OutlinedButton.styleFrom(side: const BorderSide(color: Color(0xFF0E3520), width: 1.5), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                        child: const Text('Cancelar', style: TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0E3520))),
+                        child: const FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text('Cancelar', style: TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0E3520))),
+                        ),
                       ),
                     ),
                   ),
@@ -593,7 +600,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0E3520), disabledBackgroundColor: const Color(0xFFCBD5E1), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0),
                         child: _isSaving
                             ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                            : const Text('Guardar', style: TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                            : const FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text('Guardar', style: TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                              ),
                       ),
                     ),
                   ),
@@ -606,7 +616,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: OutlinedButton.icon(
                   onPressed: _showChangePasswordDialog,
                   icon: const Icon(Icons.lock_outline, size: 18, color: Color(0xFF0E3520)),
-                  label: const Text('Cambiar Contraseña', style: TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF0E3520))),
+                  label: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('Cambiar Contraseña', style: TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF0E3520))),
+                  ),
                   style: OutlinedButton.styleFrom(side: const BorderSide(color: Color(0xFF0E3520), width: 1.5), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                 ),
               ),
@@ -617,7 +630,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: ElevatedButton.icon(
                   onPressed: () => setState(() => _isEditingMode = true),
                   icon: const Icon(Icons.edit_outlined, color: Colors.white, size: 18),
-                  label: const Text('Editar Perfil', style: TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                  label: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('Editar Perfil', style: TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                  ),
                   style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0E3520), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 0),
                 ),
               ),
@@ -628,7 +644,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: OutlinedButton.icon(
                   onPressed: _showLogoutConfirmationDialog,
                   icon: const Icon(Icons.logout, size: 18, color: Color(0xFF0E3520)),
-                  label: const Text('Cerrar Sesión', style: TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF0E3520))),
+                  label: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('Cerrar Sesión', style: TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF0E3520))),
+                  ),
                   style: OutlinedButton.styleFrom(side: const BorderSide(color: Color(0xFF0E3520), width: 1.5), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                 ),
               ),
@@ -641,7 +660,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: OutlinedButton.icon(
                   onPressed: _showDeleteAccountDialog,
                   icon: const Icon(Icons.delete_outline, size: 18, color: Color(0xFFD32F2F)),
-                  label: const Text('Eliminar Cuenta', style: TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFFD32F2F))),
+                  label: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('Eliminar Cuenta', style: TextStyle(fontFamily: 'Montserrat', fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFFD32F2F))),
+                  ),
                   style: OutlinedButton.styleFrom(side: const BorderSide(color: Color(0xFFD32F2F), width: 1.5), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                 ),
               ),
@@ -724,7 +746,10 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
                     child: OutlinedButton(
                       onPressed: () => Navigator.of(context).pop(),
                       style: OutlinedButton.styleFrom(side: const BorderSide(color: Color(0xFFD0D5DD)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-                      child: const Text('Cancelar', style: TextStyle(color: Color(0xFF757575), fontFamily: 'Montserrat', fontWeight: FontWeight.w600)),
+                      child: const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text('Cancelar', style: TextStyle(color: Color(0xFF757575), fontFamily: 'Montserrat', fontWeight: FontWeight.w600)),
+                      ),
                     ),
                   ),
                 ),
@@ -738,7 +763,10 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
                         Navigator.of(context).pop({'current': _currentPwdController.text, 'new': _newPwdController.text});
                       },
                       style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0E3520), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), elevation: 0),
-                      child: const Text('Actualizar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600, color: Colors.white)),
+                      child: const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text('Actualizar', style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600, color: Colors.white)),
+                      ),
                     ),
                   ),
                 ),

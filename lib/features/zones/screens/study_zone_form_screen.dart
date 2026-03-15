@@ -227,9 +227,12 @@ class _StudyZoneFormScreenState extends State<StudyZoneFormScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
                     ),
-                    child: const Text(
-                      'Cancelar',
-                      style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600, fontSize: 15),
+                    child: const FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'Cancelar',
+                        style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600, fontSize: 15),
+                      ),
                     ),
                   ),
                 ),
@@ -249,9 +252,12 @@ class _StudyZoneFormScreenState extends State<StudyZoneFormScreen> {
                             width: 20, height: 20,
                             child: CircularProgressIndicator(strokeWidth: 2.5, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
                           )
-                        : Text(
-                            _isEditing ? 'Actualizar' : 'Crear',
-                            style: const TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w700, fontSize: 15),
+                        : FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              _isEditing ? 'Actualizar' : 'Crear',
+                              style: const TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w700, fontSize: 15),
+                            ),
                           ),
                   ),
                 ),

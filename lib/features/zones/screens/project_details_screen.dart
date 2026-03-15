@@ -312,6 +312,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
   Widget _indexCard(String value, String label) {
     return Expanded(
       child: Container(
+        height: 100, // Fijar altura para que todas las tarjetas sean iguales
         padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -321,6 +322,7 @@ class _ProjectDetailsScreenState extends State<ProjectDetailsScreen> {
           ],
         ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               value,

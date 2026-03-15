@@ -295,9 +295,12 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
                             side: const BorderSide(color: Color(0xFF0E3520), width: 1.5),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),
-                          child: const Text(
-                            'Cancelar',
-                            style: TextStyle(fontFamily: 'Montserrat', fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0E3520)),
+                          child: const FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'Cancelar',
+                              style: TextStyle(fontFamily: 'Montserrat', fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0E3520)),
+                            ),
                           ),
                         ),
                       ),
@@ -320,9 +323,12 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
                                   height: 20,
                                   child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                                 )
-                              : Text(
-                                  _isEditing ? 'Guardar' : 'Crear',
-                                  style: const TextStyle(fontFamily: 'Montserrat', fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                              : FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    _isEditing ? 'Guardar' : 'Crear',
+                                    style: const TextStyle(fontFamily: 'Montserrat', fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                                  ),
                                 ),
                         ),
                       ),
