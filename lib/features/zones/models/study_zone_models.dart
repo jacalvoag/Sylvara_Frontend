@@ -1,4 +1,3 @@
-/// Índices de biodiversidad
 class Indices {
   final double shannon;
   final double simpson;
@@ -153,12 +152,14 @@ class StudyZone {
 /// Respuesta del GET /projects/:id/zones
 class ProjectZonesResponse {
   final int samplingPlotId;
+  final int unitId;
   final int cycleNumber;
   final GlobalMetrics globalMetrics;
   final List<StudyZone> zones;
 
   ProjectZonesResponse({
     required this.samplingPlotId,
+    required this.unitId,
     required this.cycleNumber,
     required this.globalMetrics,
     required this.zones,
@@ -167,6 +168,7 @@ class ProjectZonesResponse {
   factory ProjectZonesResponse.fromJson(Map<String, dynamic> json) {
     return ProjectZonesResponse(
       samplingPlotId: json['samplingPlotId'] as int,
+      unitId: json['unitId'] as int,
       cycleNumber: json['cycleNumber'] as int,
       globalMetrics: GlobalMetrics.fromJson(
         json['globalMetrics'] as Map<String, dynamic>,

@@ -13,7 +13,6 @@ class DashboardResponse {
     required this.latestPlots,
   });
 
-  /// Crear desde JSON (respuesta del backend)
   factory DashboardResponse.fromJson(Map<String, dynamic> json) {
     final user = json['user'] as Map<String, dynamic>;
     final summary = json['summary'] as Map<String, dynamic>;
@@ -33,6 +32,7 @@ class DashboardResponse {
         return Plot(
           samplingPlotId: p['id'] as int,
           samplingPlotName: p['name'] as String? ?? '',
+          description: p['description'] as String?,         // ← mapeado
           totalArea: (p['totalArea'] as num?)?.toDouble(),
           unitName: p['areaUnit'] as String?,
           samplingPlotStatus: p['status'] as String? ?? 'active',
@@ -44,7 +44,6 @@ class DashboardResponse {
     );
   }
 
-  /// Convertir a JSON
   Map<String, dynamic> toJson() {
     return {
       'user': user.toJson(),
@@ -81,8 +80,8 @@ class DashboardUser {
 
 /// Resumen de proyectos del Dashboard
 class DashboardSummary {
-  final int totalHistoricalPlots; // Total de proyectos históricos
-  final int currentMonthPlots;    // Proyectos del mes actual
+  final int totalHistoricalPlots;
+  final int currentMonthPlots;
 
   DashboardSummary({
     required this.totalHistoricalPlots,
@@ -108,6 +107,7 @@ class DashboardSummary {
 class Plot {
   final int samplingPlotId;
   final String samplingPlotName;
+  final String? description;
   final double? totalArea;
   final int? unitId;
   final String? unitName;
@@ -120,6 +120,7 @@ class Plot {
   Plot({
     required this.samplingPlotId,
     required this.samplingPlotName,
+    this.description,
     this.totalArea,
     this.unitId,
     this.unitName,
@@ -134,6 +135,7 @@ class Plot {
     return Plot(
       samplingPlotId: json['samplingPlotId'] as int,
       samplingPlotName: json['samplingPlotName'] as String,
+      description: json['description'] as String?,
       totalArea: (json['totalArea'] as num?)?.toDouble(),
       unitId: json['unitId'] as int?,
       unitName: json['unitName'] as String?,
@@ -153,6 +155,7 @@ class Plot {
     return {
       'samplingPlotId': samplingPlotId,
       'samplingPlotName': samplingPlotName,
+      'description': description,
       'totalArea': totalArea,
       'unitId': unitId,
       'unitName': unitName,
@@ -164,25 +167,25 @@ class Plot {
     };
   }
 
-  /// Verificar si el proyecto está activo
-  bool get isActive => samplingPlotStatus.toLowerCase() == 'active' || samplingPlotStatus.toLowerCase() == 'activo';
+  bool get isActive =>
+      samplingPlotStatus.toLowerCase() == 'active' ||
+      samplingPlotStatus.toLowerCase() == 'activo';
 
-  /// Convertir Plot a Project (para compatibilidad con widgets existentes)
+  /// Convierte Plot a Project usando la descripción real del campo
   Project toProject() {
     return Project(
       id: samplingPlotId.toString(),
       nombre: samplingPlotName,
-      descripcion: '',
+      descripcion: description ?? '',   // ← usa el campo real
       isActive: isActive,
       imagen: imageUrl ?? '',
     );
   }
 
-  /// Nombre para mostrar con ID
   String get id => samplingPlotId.toString();
   String get name => samplingPlotName;
   String get status => samplingPlotStatus;
-  String get description => unitName ?? 'Sin descripción';
+  // ELIMINADO: el getter `description` que ocultaba el campo del constructor
 }
 
 /// Respuesta paginada de proyectos

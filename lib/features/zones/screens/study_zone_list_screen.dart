@@ -28,6 +28,8 @@ class _StudyZoneListScreenState extends State<StudyZoneListScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
+  int? _projectUnitId;
+
   @override
   void initState() {
     super.initState();
@@ -42,7 +44,15 @@ class _StudyZoneListScreenState extends State<StudyZoneListScreen> {
 
   void _loadZones() {
     setState(() {
-      _zonesFuture = StudyZoneService.instance.getProjectZones(widget.projectId);
+      _zonesFuture = StudyZoneService.instance
+          .getProjectZones(widget.projectId)
+          .then((response) {
+        // Guardamos el unitId en cuanto llega la respuesta
+        if (mounted) {
+          setState(() => _projectUnitId = response.unitId);
+        }
+        return response;
+      });
       _selectedZones.clear();
     });
   }
@@ -55,12 +65,19 @@ class _StudyZoneListScreenState extends State<StudyZoneListScreen> {
   }
 
   Future<void> _navigateToForm({StudyZone? zone}) async {
+    // Si todavía no tenemos el unitId (carga inicial), esperamos el future
+    final int unitId = _projectUnitId ??
+        await _zonesFuture.then((r) => r.unitId);
+
+    if (!mounted) return;
+
     final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (context) => StudyZoneFormScreen(
           projectId: widget.projectId,
           zoneId: zone?.studyZoneId,
           existingZone: zone,
+          fixedUnitId: unitId,
         ),
       ),
     );
@@ -173,10 +190,9 @@ class _StudyZoneListScreenState extends State<StudyZoneListScreen> {
     if (mounted) _loadZones();
   }
 
-  
   static const List<Color> _zoneColors = [
     Color(0xFF4CAF50),
-    Color(0xFF8D6E63), 
+    Color(0xFF8D6E63),
   ];
 
   void _showComparison(List<StudyZone> allZones) {
@@ -210,7 +226,6 @@ class _StudyZoneListScreenState extends State<StudyZoneListScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // ── Encabezado blanco Sylvara ────────────────────────────
                 Container(
                   width: double.infinity,
                   decoration: const BoxDecoration(
@@ -233,7 +248,6 @@ class _StudyZoneListScreenState extends State<StudyZoneListScreen> {
                         ],
                       ),
                       const SizedBox(height: 14),
-                      // ── Chips de leyenda ─────────────────────────
                       Row(
                         children: [
                           Expanded(child: _legendChip(zone1.nameStudyZone, 'Ciclo ${zone1.cycleNumber} · ${zone1.subArea} ${zone1.unitName}', _zoneColors[0])),
@@ -244,25 +258,19 @@ class _StudyZoneListScreenState extends State<StudyZoneListScreen> {
                     ],
                   ),
                 ),
-
-                // ── Contenido scrollable ─────────────────────────────
                 Flexible(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.fromLTRB(16, 18, 16, 4),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // ── Tabla de índices ────────────────────────
                         const Text(
                           'Índices de biodiversidad',
                           style: TextStyle(fontFamily: 'Montserrat', fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF0E3520), letterSpacing: 0.4),
                         ),
                         const SizedBox(height: 8),
                         _indicesTable(zone1, zone2),
-
                         const SizedBox(height: 20),
-
-                        // ── Gráfica agrupada ────────────────────────
                         const Text(
                           'Gráfica comparativa',
                           style: TextStyle(fontFamily: 'Montserrat', fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF0E3520), letterSpacing: 0.4),
@@ -277,14 +285,11 @@ class _StudyZoneListScreenState extends State<StudyZoneListScreen> {
                           padding: const EdgeInsets.fromLTRB(8, 16, 16, 8),
                           child: _ComparisonBarChart(zone1: zone1, zone2: zone2, colors: _zoneColors),
                         ),
-
                         const SizedBox(height: 16),
                       ],
                     ),
                   ),
                 ),
-
-                // ── Botón Cerrar ─────────────────────────────────────
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
                   child: SizedBox(
@@ -355,7 +360,6 @@ class _StudyZoneListScreenState extends State<StudyZoneListScreen> {
         2: FlexColumnWidth(1.5),
       },
       children: [
-        // Encabezado tabla
         TableRow(
           decoration: const BoxDecoration(color: Color(0xFFF1F5F9)),
           children: [
@@ -544,7 +548,9 @@ class _StudyZoneListScreenState extends State<StudyZoneListScreen> {
                         }
 
                         final zones = snapshot.data!.zones;
-                        final filtered = _searchQuery.isEmpty ? zones : zones.where((z) => z.nameStudyZone.toLowerCase().contains(_searchQuery)).toList();
+                        final filtered = _searchQuery.isEmpty
+                            ? zones
+                            : zones.where((z) => z.nameStudyZone.toLowerCase().contains(_searchQuery)).toList();
 
                         if (filtered.isEmpty) {
                           return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -625,6 +631,9 @@ class _StudyZoneListScreenState extends State<StudyZoneListScreen> {
             ),
           FloatingActionButton(
             heroTag: 'add_zone_list',
+            // El FAB llama a _navigateToForm sin zona (crear nueva)
+            // Si _projectUnitId ya está disponible es inmediato;
+            // si no, espera el future internamente.
             onPressed: () => _navigateToForm(),
             backgroundColor: const Color(0xFF0E3520),
             child: const Icon(Icons.add, color: Colors.white),
@@ -658,12 +667,11 @@ class _ComparisonBarChart extends StatelessWidget {
   }
 
   List<BarChartGroupData> _buildGroups() {
-    // Cada índice es un grupo; dentro, cada zona es un rod
     final labels = [
-      [zone1.indices.shannon,   zone2.indices.shannon],
-      [zone1.indices.simpson,   zone2.indices.simpson],
-      [zone1.indices.margalef,  zone2.indices.margalef],
-      [zone1.indices.pielou,    zone2.indices.pielou],
+      [zone1.indices.shannon,  zone2.indices.shannon],
+      [zone1.indices.simpson,  zone2.indices.simpson],
+      [zone1.indices.margalef, zone2.indices.margalef],
+      [zone1.indices.pielou,   zone2.indices.pielou],
     ];
     return List.generate(labels.length, (i) {
       return BarChartGroupData(
@@ -674,17 +682,13 @@ class _ComparisonBarChart extends StatelessWidget {
             toY: labels[i][0],
             color: colors[0],
             width: 32,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(3), topRight: Radius.circular(3),
-            ),
+            borderRadius: const BorderRadius.only(topLeft: Radius.circular(3), topRight: Radius.circular(3)),
           ),
           BarChartRodData(
             toY: labels[i][1],
             color: colors[1],
             width: 32,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(3), topRight: Radius.circular(3),
-            ),
+            borderRadius: const BorderRadius.only(topLeft: Radius.circular(3), topRight: Radius.circular(3)),
           ),
         ],
       );
@@ -725,10 +729,7 @@ class _ComparisonBarChart extends StatelessWidget {
                 reservedSize: 30,
                 getTitlesWidget: (value, meta) => Padding(
                   padding: const EdgeInsets.only(top: 6),
-                  child: Text(
-                    xLabels[value.toInt()],
-                    style: const TextStyle(fontFamily: 'Montserrat', fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF0E3520)),
-                  ),
+                  child: Text(xLabels[value.toInt()], style: const TextStyle(fontFamily: 'Montserrat', fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF0E3520))),
                 ),
               ),
             ),
@@ -739,10 +740,7 @@ class _ComparisonBarChart extends StatelessWidget {
                 interval: maxY / 5,
                 getTitlesWidget: (value, meta) {
                   if (value == 0) return const SizedBox.shrink();
-                  return Text(
-                    value.toStringAsFixed(1),
-                    style: const TextStyle(fontFamily: 'Montserrat', fontSize: 10, color: Color(0xFF5C7C6A)),
-                  );
+                  return Text(value.toStringAsFixed(1), style: const TextStyle(fontFamily: 'Montserrat', fontSize: 10, color: Color(0xFF5C7C6A)));
                 },
               ),
             ),

@@ -408,17 +408,6 @@ class ExportService {
               style: const pw.TextStyle(fontSize: 10),
             ),
           ),
-          pw.Expanded(
-            child: pw.Text(
-              "S'=${zone.indices.shannon.toStringAsFixed(2)}",
-              textAlign: pw.TextAlign.right,
-              style: pw.TextStyle(
-                fontSize: 10,
-                fontWeight: pw.FontWeight.bold,
-                color: dark,
-              ),
-            ),
-          ),
         ],
       ),
     );
