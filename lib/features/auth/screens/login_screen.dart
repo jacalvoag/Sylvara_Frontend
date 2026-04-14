@@ -57,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
       });
     } catch (e) {
       setState(() {
-        _errorMessage = 'Error de conexión. Verifica tu red e intenta de nuevo.';
+        _errorMessage = 'Error de conexión. Verifica tu red e intenta de nueva cuenta .';
         _isLoading = false;
       });
     }

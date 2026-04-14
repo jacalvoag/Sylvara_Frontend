@@ -6,6 +6,9 @@ class ApiConfig {
   static String get googleStatus => '$baseUrl/auth/google/status';
   static String get googleAuth => '$baseUrl/auth/google';
 
+  static String get twoFactorVerify => '$baseUrl/auth/2fa/verify';
+  static String get twoFactorToggle => '$baseUrl/auth/2fa/toggle';
+
   static String get dashboard => '$baseUrl/dashboard';
 
   static String get profile => '$baseUrl/profile';
