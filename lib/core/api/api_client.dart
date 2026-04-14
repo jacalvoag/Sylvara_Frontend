@@ -61,4 +61,19 @@ class ApiClient {
       body: jsonEncode(body),
     );
   }
+
+  Future<http.Response> postWithToken(
+  String url, {
+  required String token,
+  Map<String, dynamic>? body,
+}) async {
+  return await http.post(
+    Uri.parse(url),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    },
+    body: body != null ? jsonEncode(body) : null,
+  );
+}
 }

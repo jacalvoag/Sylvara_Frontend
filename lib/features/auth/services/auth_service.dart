@@ -41,6 +41,8 @@ class AuthService {
     throw AuthException.fromJson(data, statusCode: response.statusCode);
   }
 
+  /// Retorna [RegisterResponse] si el login fue exitoso sin 2FA,
+  /// o lanza [TwoFactorRequiredException] si se requiere verificación.
   Future<RegisterResponse> login(LoginRequest request) async {
     final response = await _apiClient.postNoAuth(
       ApiConfig.login,
@@ -50,6 +52,13 @@ class AuthService {
     final data = jsonDecode(response.body);
 
     if (response.statusCode == 200 || response.statusCode == 201) {
+      // El backend devuelve requiresTwoFactor cuando 2FA está activo
+      if (data['requiresTwoFactor'] == true) {
+        throw TwoFactorRequiredException(
+          twoFactorToken: data['twoFactorToken'] as String,
+        );
+      }
+
       final loginResponse = RegisterResponse.fromJson(data);
 
       await _tokenStorage.saveTokens(
@@ -65,8 +74,56 @@ class AuthService {
     throw AuthException.fromJson(data, statusCode: response.statusCode);
   }
 
+  Future<RegisterResponse> verifyTwoFactor({
+    required String twoFactorToken,
+    required String code,
+  }) async {
+    final response = await _apiClient.postWithToken(
+      ApiConfig.twoFactorVerify,
+      token: twoFactorToken,
+      body: {'code': code},
+    );
+
+    final data = jsonDecode(response.body);
+
+    if (response.statusCode == 200) {
+      final loginResponse = RegisterResponse.fromJson(data);
+
+      await _tokenStorage.saveTokens(
+        accessToken: loginResponse.accessToken,
+        refreshToken: loginResponse.refreshToken,
+        role: loginResponse.user.role ?? 'USER',
+      );
+
+      _currentUser = loginResponse.user;
+      return loginResponse;
+    }
+
+    throw AuthException.fromJson(data, statusCode: response.statusCode);
+  }
+
+  Future<bool> toggleTwoFactor({required bool enabled}) async {
+    final response = await _apiClient.post(
+      ApiConfig.twoFactorToggle,
+      body: {'enabled': enabled},
+    );
+
+    final data = jsonDecode(response.body);
+
+    if (response.statusCode == 200) {
+      return data['twoFactorEnabled'] as bool;
+    }
+
+    throw AuthException.fromJson(data, statusCode: response.statusCode);
+  }
+
   Future<void> logout() async {
     _currentUser = null;
     await _tokenStorage.clear();
   }
+}
+
+class TwoFactorRequiredException implements Exception {
+  final String twoFactorToken;
+  TwoFactorRequiredException({required this.twoFactorToken});
 }
