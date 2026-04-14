@@ -26,6 +26,12 @@ class AuthService {
     final data = jsonDecode(response.body);
 
     if (response.statusCode == 201) {
+      if (data['requiresTwoFactor'] == true) {
+        throw TwoFactorRequiredException(
+          twoFactorToken: data['twoFactorToken'] as String,
+        );
+      }
+
       final registerResponse = RegisterResponse.fromJson(data);
 
       await _tokenStorage.saveTokens(
@@ -41,8 +47,6 @@ class AuthService {
     throw AuthException.fromJson(data, statusCode: response.statusCode);
   }
 
-  /// Retorna [RegisterResponse] si el login fue exitoso sin 2FA,
-  /// o lanza [TwoFactorRequiredException] si se requiere verificación.
   Future<RegisterResponse> login(LoginRequest request) async {
     final response = await _apiClient.postNoAuth(
       ApiConfig.login,
@@ -52,7 +56,6 @@ class AuthService {
     final data = jsonDecode(response.body);
 
     if (response.statusCode == 200 || response.statusCode == 201) {
-      // El backend devuelve requiresTwoFactor cuando 2FA está activo
       if (data['requiresTwoFactor'] == true) {
         throw TwoFactorRequiredException(
           twoFactorToken: data['twoFactorToken'] as String,

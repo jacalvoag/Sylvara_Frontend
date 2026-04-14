@@ -3,8 +3,7 @@ import 'package:sylvara_frontend/core/widgets/widgets.dart';
 import 'package:sylvara_frontend/features/auth/models/models.dart';
 import 'package:sylvara_frontend/features/auth/services/auth_service.dart';
 import 'package:sylvara_frontend/features/auth/screens/register_screen.dart';
-
-
+import 'package:sylvara_frontend/features/auth/screens/two_factor_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -42,14 +41,22 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text,
       );
 
-      final response = await _authService.login(request);
+      await _authService.login(request);
 
       if (!mounted) return;
-
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MainScaffold()),
       );
+    } on TwoFactorRequiredException catch (e) {
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TwoFactorScreen(twoFactorToken: e.twoFactorToken),
+        ),
+      );
+      setState(() => _isLoading = false);
     } on AuthException catch (e) {
       setState(() {
         _errorMessage = e.message;
@@ -57,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
       });
     } catch (e) {
       setState(() {
-        _errorMessage = 'Error de conexión. Verifica tu red e intenta de nueva cuenta .';
+        _errorMessage = 'Error de conexión. Verifica tu red e intenta de nuevo.';
         _isLoading = false;
       });
     }
@@ -81,7 +88,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     const SizedBox(height: 40),
 
-                    // Logo
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -113,7 +119,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     const SizedBox(height: 40),
 
-                    // Card del formulario
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(28),
@@ -212,7 +217,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               },
                             ),
 
-                            // Error message
                             if (_errorMessage != null) ...[
                               const SizedBox(height: 20),
                               Container(
@@ -254,7 +258,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                             const SizedBox(height: 28),
 
-                            // Botones
                             Row(
                               children: [
                                 Expanded(
@@ -335,7 +338,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                             const SizedBox(height: 20),
 
-                            // Link a registro
                             Center(
                               child: GestureDetector(
                                 onTap: _isLoading

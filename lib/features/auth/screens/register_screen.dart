@@ -4,7 +4,7 @@ import 'package:sylvara_frontend/core/utils/legal_texts.dart';
 import 'package:sylvara_frontend/core/widgets/widgets.dart';
 import 'package:sylvara_frontend/features/auth/models/models.dart';
 import 'package:sylvara_frontend/features/auth/services/auth_service.dart';
-
+import 'package:sylvara_frontend/features/auth/screens/two_factor_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -71,7 +71,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  Future<void> _handleRegister() async {
+Future<void> _handleRegister() async {
     setState(() => _errorMessage = null);
 
     if (!_formKey.currentState!.validate()) return;
@@ -97,7 +97,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         password: _passwordController.text,
       );
 
-      final response = await _authService.register(request);
+      await _authService.register(request);
 
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(
@@ -105,7 +105,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
         MaterialPageRoute(builder: (context) => const MainScaffold()),
         (route) => false,
       );
-      
+    } on TwoFactorRequiredException catch (e) {
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TwoFactorScreen(twoFactorToken: e.twoFactorToken),
+        ),
+        (route) => false,
+      );
     } on AuthException catch (e) {
       setState(() {
         _errorMessage = e.message;
@@ -117,7 +125,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _isLoading = false;
       });
     }
-  }
+}
 
   @override
   Widget build(BuildContext context) {
