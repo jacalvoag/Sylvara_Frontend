@@ -331,7 +331,7 @@ Future<void> _handleRegister() async {
                                 // Contraseña
                                 CustomTextField(
                                   label: 'Contraseña',
-                                  placeholder: 'Mínimo 6 caracteres',
+                                  placeholder: 'Mín. 8 caracteres, letras, números y especial',
                                   controller: _passwordController,
                                   obscureText: _obscurePassword,
                                   suffixIcon: GestureDetector(
@@ -355,8 +355,17 @@ Future<void> _handleRegister() async {
                                     if (value == null || value.isEmpty) {
                                       return 'Ingresa una contraseña';
                                     }
-                                    if (value.length < 6) {
-                                      return 'Mínimo 6 caracteres';
+                                    if (value.length < 8) {
+                                      return 'Mínimo 8 caracteres';
+                                    }
+                                    if (!RegExp(r'[a-zA-Z]').hasMatch(value)) {
+                                      return 'Debe contener al menos una letra';
+                                    }
+                                    if (!RegExp(r'\d').hasMatch(value)) {
+                                      return 'Debe contener al menos un número';
+                                    }
+                                    if (!RegExp(r'[^a-zA-Z\d\s]').hasMatch(value)) {
+                                      return 'Debe contener al menos un carácter especial';
                                     }
                                     return null;
                                   },
