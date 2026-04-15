@@ -17,7 +17,7 @@ class AuthService {
   User? get currentUser => _currentUser;
   Future<bool> get isAuthenticated => _tokenStorage.hasTokens();
 
-  Future<RegisterResponse> register(RegisterRequest request) async {
+Future<RegisterResponse> register(RegisterRequest request) async {
     final response = await _apiClient.postNoAuth(
       ApiConfig.register,
       body: request.toJson(),

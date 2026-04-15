@@ -6,6 +6,7 @@ import 'package:sylvara_frontend/features/auth/models/models.dart';
 import 'package:sylvara_frontend/features/auth/services/auth_service.dart';
 import 'package:sylvara_frontend/features/auth/screens/two_factor_screen.dart';
 
+
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -125,7 +126,7 @@ Future<void> _handleRegister() async {
         _isLoading = false;
       });
     }
-}
+  }
 
   @override
   Widget build(BuildContext context) {
